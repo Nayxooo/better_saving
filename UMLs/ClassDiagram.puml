@@ -1,0 +1,152 @@
+@startuml
+
+' Define styles
+skinparam class {
+  BackgroundColor White
+  ArrowColor Black
+  BorderColor Black
+}
+
+skinparam package {
+  BackgroundColor LightGray
+  BorderColor Gray
+}
+
+title "Backup Job Manager - MVC Architecture"
+
+' MVC Packages
+package "Model" {
+  enum JobType {
+    Full
+    Diff
+  }
+  
+  enum jobState {
+    Working
+    Finished
+    Stopped
+    Failed
+    Idle
+  }
+  
+  class backupJob {
+    - String name
+    - String sourceDirectory
+    - String targetDirectory
+    - JobType type
+    - int maxThreads
+    - Logger logger
+    - jobState state
+    - int progress
+    - int totalFilesToCopy
+    - int remainingFiles
+    - String errorMessage
+    + backupJob(name, sourceDir, targetDir, type, maxThreads, logger)
+    + String GetName()
+    + String GetSourceDirectory()
+    + String GetTargetDirectory()
+    + JobType GetJobType()
+    + jobState GetState()
+    + int GetProgress()
+    + int GetTotalFilesToCopy()
+    + int GetNumberFilesLeftToDo()
+    + String GetErrorMessage()
+    + Task ExecuteAsync(CancellationToken)
+    + String ToString()
+  }
+  
+  class Backup {
+    + static Task CopyFileAsync(String, String, CancellationToken)
+    + static Task BackupFilesAsync(String, String, List<String>, CancellationToken, backupJob)
+  }
+  
+  class hash {
+    + static String GetFileHash(String)
+    + static bool CompareFileHash(String, String)
+  }
+}
+
+package "View" {
+  enum ConsoleMenu {
+    MainMenu
+    Language
+    CreateJob
+    ShowJob
+    StartJob
+    StopJob
+    DeleteJob
+    Exit
+  }
+  
+  class ConsoleInterface {
+    - Dictionary<String, backupJob> jobs
+    - String Language
+    - Logger logger
+    - ConsoleMenu currentMenu
+    - Dictionary<String, Dictionary<String, String>> uiText
+    + static void Initialize(Logger)
+    - static void InitializeLanguages()
+    + static void Start()
+    - static String GetText(String)
+    - static void ShowMainMenu()
+    - static void RequestExit()
+    - static String GetProgressBar(int, int, int)
+    - static void SetLanguageDialog()
+    - static void CreateJobDialog()
+    - static void ListJobsDialog()
+    - static void ShowJob(String)
+    - static void DisplayMessage(String)
+    - static String NormalizePath(String)
+    - static Attribute GetStateColor(jobState)
+    - static bool IsInMenu(ConsoleMenu)
+    - static String GetMenuTitle()
+  }
+}
+
+package "Controller" {
+  class Controller {
+    - List<backupJob> backupJobsList
+    - Logger applicationLogger
+    - Dictionary<String, CancellationTokenSource> runningJobs
+    + static List<backupJob> RetrieveBackupJobs()
+    + static void CreateBackupJob(String, String, String, JobType)
+    + static Task StartJobAsync(String)
+    + static void StartJob(String)
+    + static void StopJob(String)
+    + static bool IsJobRunning(String)
+    + static Task StartAllJobsAsync()
+    + static void StartAllJobs()
+    + static void Main(String[])
+  }
+  
+  class Logger {
+    - String logDirectory
+    - String dailyLogFilePath
+    - String stateLogFilePath
+    - Object logLock
+    + Logger(String)
+    + void Log(String)
+    + void LogError(String, Exception)
+    + void UpdateAllJobsState()
+  }
+}
+
+' Relationships
+' MVC Pattern Relationships
+Controller ..> Model : manages >
+Controller ..> View : updates >
+View ..> Controller : calls >
+View ..> Model : displays >
+
+' Specific Relationships
+Controller --> backupJob : creates & manages
+Controller --> Logger : uses
+ConsoleInterface --> Controller : calls methods
+ConsoleInterface ..> backupJob : displays job info
+backupJob --> JobType : has
+backupJob --> jobState : has state
+backupJob --> Backup : uses
+backupJob --> Logger : uses for logging
+Backup ..> hash : uses for differentials
+
+@enduml

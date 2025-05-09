@@ -46,4 +46,9 @@ public class Hashing
             return string.Empty; // Return an empty string in case of error
         }
     }
+
+    public static bool CompareFiles(string filePath1, string filePath2)
+    {
+        return GetFileHash(filePath1) == GetFileHash(filePath2);
+    }
 }

@@ -26,7 +26,7 @@ public enum jobState
 public class Controller
 {
     private static List<backupJob> backupJobsList = []; // list of all jobs
-    private static Logger? applicationLogger; // Logger instance, not nullable
+    private static Logger applicationLogger = new(""); // Logger instance, not nullable
     
     // Dictionary to keep track of running jobs and their cancellation tokens
     private static Dictionary<string, CancellationTokenSource> runningJobs = [];

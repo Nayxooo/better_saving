@@ -53,6 +53,38 @@ A robust C# file backup application with a Terminal GUI interface for efficientl
 4. Monitor the progress through the Terminal GUI
 5. View logs for detailed information about backup operations
 
+## Interface Screenshots
+
+Below are screenshots of the EasySave console interface:
+
+### Main Dashboard
+*The main application interface showing job list and available actions*
+![Main Dashboard](images/main_dashboard.png)
+
+### Job Creation
+*Interface for creating a new backup job*
+![Job Creation](images/create_job.png)
+
+### Jobs List
+*View of completed backup jobs and their results*
+![Jobs List](images/jobs_list.png)
+
+### Job Details
+*Detailed view of a specific backup job, including progress and status*
+![Job Details](images/job_details.png)
+
+### Backup Execution
+*A backup job in progress with real-time statistics*
+![Backup Execution](images/job_execution.png)
+
+### Language Selection
+*Application settings including language selection*
+![Language Selection](images/language_selection.png)
+
+### Main Dashboard in French
+*The main application interface in French*
+![Main Dashboard in French](images/main_dashboard_fr.png)
+
 ## Project Structure
 
 - **Controllers/**: Contains the main application controller

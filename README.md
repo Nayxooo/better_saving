@@ -1,4 +1,4 @@
-# EasySave
+# Better Saving
 
 A robust C# file backup application with a Terminal GUI interface for efficiently managing backup jobs.
 
@@ -10,7 +10,7 @@ A robust C# file backup application with a Terminal GUI interface for efficientl
 - **Progress Tracking**: Real-time tracking of backup progress
 - **Logging System**: Comprehensive logging of backup activities and states
 - **Multi-language Support**: Support for multiple languages in the interface
-- **File Verification**: Uses SHA256 hashing to verify file integrity
+- **File Verification**: Uses XXHash64 algorithm for efficient file comparison
 
 ## Getting Started
 
@@ -60,9 +60,9 @@ A robust C# file backup application with a Terminal GUI interface for efficientl
 - **Views/**: Contains the Terminal.Gui-based user interface
 - **UMLs/**: Contains UML diagrams describing the application architecture
 
-## License
+## Documentation
 
-This project is licensed under the MIT License - see the LICENSE file for details.
+For a comprehensive overview of the codebase, including detailed explanations of architecture, components, and implementation details, please see the [Code Overview](https://github.com/Nayxooo/better_saving/blob/develop/CODE_OVERVIEW.md) document.
 
 ## Acknowledgments
 

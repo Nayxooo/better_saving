@@ -1,4 +1,4 @@
-# Better Saving
+# EasySave
 
 A robust C# file backup application with a Terminal GUI interface for efficiently managing backup jobs.
 

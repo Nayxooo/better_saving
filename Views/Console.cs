@@ -80,7 +80,42 @@ public class ConsoleInterface
             { "stop", "Stop" },
             { "delete", "Delete" },
             { "confirm", "Confirm" },
-            { "confirmDelete", "Are you sure you want to delete this job?" }
+            { "confirmDelete", "Are you sure you want to delete this job?" },
+            { "help", "Help" },
+            { "menu", "Menu" },
+            { "quit", "Quit" },
+            { "info", "Info" },
+            { "error", "Error" },
+            { "success", "Success" },
+            { "noJobsFound", "No jobs found" },
+            { "noJobsToStart", "No jobs found to start" },
+            { "allJobsStarted", "All jobs have been started" },
+            { "jobNotFound", "Job '{0}' not found" },
+            { "jobStopping", "Job '{0}' is stopping..." },
+            { "jobStarted", "Job '{0}' started" },
+            { "jobDeletedSuccess", "Job '{0}' was deleted successfully." },
+            { "failedStartJobs", "Failed to start all jobs: {0}" },
+            { "failedStartJob", "Failed to start job: {0}" },
+            { "failedStopJob", "Failed to stop job: {0}" },
+            { "allFieldsRequired", "All fields are required" },
+            { "jobCreateSuccess", "Job created successfully" },
+            { "directoryError", "Directory Error" },
+            { "ioError", "I/O Error" },
+            { "jobError", "Job Error" },
+            { "unexpectedError", "Unexpected Error" },
+            { "failedCreateJob", "Failed to create job: {0}\n\nDetails: {1}" },
+            { "exitConfirm", "Are you sure you want to exit?" },
+            { "yes", "yes" },
+            { "no", "no" },
+            { "ok", "OK" },
+            { "latestError", "Latest error:" },
+            { "jobsListInstructions", "Use arrow keys to select a job, then press Enter to view details" },
+            { "jobDeletedError", "Could not delete job '{0}'. It may be running or no longer exists." },
+            { "colName", "Name" },
+            { "colType", "Type" },
+            { "colState", "State" }, 
+            { "colProgress", "Progress" },
+            { "jobDetails", "JOB DETAILS: {0}" }
         };
 
         // French text
@@ -114,7 +149,42 @@ public class ConsoleInterface
             { "stop", "Arrêter" },
             { "delete", "Supprimer" },
             { "confirm", "Confirmer" },
-            { "confirmDelete", "Êtes-vous sûr de vouloir supprimer cette tâche?" }
+            { "confirmDelete", "Êtes-vous sûr de vouloir supprimer cette tâche?" },
+            { "help", "Aide" },
+            { "menu", "Menu" },
+            { "quit", "Quitter" },
+            { "info", "Information" },
+            { "error", "Erreur" },
+            { "success", "Succès" },
+            { "noJobsFound", "Aucune tâche trouvée" },
+            { "noJobsToStart", "Aucune tâche à démarrer" },
+            { "allJobsStarted", "Toutes les tâches ont été démarrées" },
+            { "jobNotFound", "Tâche '{0}' introuvable" },
+            { "jobStopping", "La tâche '{0}' est en cours d'arrêt..." },
+            { "jobStarted", "Tâche '{0}' démarrée" },
+            { "jobDeletedSuccess", "La tâche '{0}' a été supprimée avec succès." },
+            { "failedStartJobs", "Échec du démarrage de toutes les tâches: {0}" },
+            { "failedStartJob", "Échec du démarrage de la tâche: {0}" },
+            { "failedStopJob", "Échec de l'arrêt de la tâche: {0}" },
+            { "allFieldsRequired", "Tous les champs sont obligatoires" },
+            { "jobCreateSuccess", "Tâche créée avec succès" },
+            { "directoryError", "Erreur de Répertoire" },
+            { "ioError", "Erreur d'E/S" },
+            { "jobError", "Erreur de Tâche" },
+            { "unexpectedError", "Erreur Inattendue" },
+            { "failedCreateJob", "Échec de la création de la tâche: {0}\n\nDétails: {1}" },
+            { "exitConfirm", "Êtes-vous sûr de vouloir quitter?" },
+            { "yes", "oui" },
+            { "no", "non" },
+            { "ok", "OK" },
+            { "latestError", "Dernière erreur:" },
+            { "jobsListInstructions", "Utilisez les flèches pour sélectionner une tâche, puis appuyez sur Entrée pour voir les détails" },
+            { "jobDeletedError", "Impossible de supprimer la tâche '{0}'. Elle peut être en cours d'exécution ou n'existe plus." },
+            { "colName", "Nom" },
+            { "colType", "Type" },
+            { "colState", "État" }, 
+            { "colProgress", "Progression" },
+            { "jobDetails", "DÉTAILS DE LA TÂCHE: {0}" }
         };
 
         uiText.Add("en", englishText);
@@ -171,9 +241,9 @@ public class ConsoleInterface
         
         // Create status bar that shows current menu
         var statusBar = new StatusBar(new StatusItem[] {
-            new StatusItem(Key.F1, "~F1~ Help", null),
-            new StatusItem(Key.F2, "~F2~ Menu", () => ShowMainMenu()),
-            new StatusItem(Key.F10, "~F10~ Quit", () => RequestExit())
+            new StatusItem(Key.F1, $"~F1~ {GetText("help")}", null),
+            new StatusItem(Key.F2, $"~F2~ {GetText("menu")}", () => ShowMainMenu()),
+            new StatusItem(Key.F10, $"~F10~ {GetText("quit")}", () => RequestExit())
         });
         
         top.Add(win, statusBar);
@@ -284,16 +354,16 @@ public class ConsoleInterface
                 var jobs = Controller.RetrieveBackupJobs();
                 if (jobs.Count == 0)
                 {
-                    MessageBox.Query(60, 7, "Info", "No jobs found to start", "OK");
+                    MessageBox.Query(60, 7, GetText("info"), GetText("noJobsToStart"), GetText("ok"));
                     return;
                 }
                 
                 Controller.StartAllJobs();
-                MessageBox.Query(60, 7, "Info", "All jobs have been started", "OK");
+                MessageBox.Query(60, 7, GetText("info"), GetText("allJobsStarted"), GetText("ok"));
             }
             catch (Exception ex)
             {
-                MessageBox.ErrorQuery(60, 8, "Error", $"Failed to start all jobs: {ex.Message}", "OK");
+                MessageBox.ErrorQuery(60, 8, GetText("error"), string.Format(GetText("failedStartJobs"), ex.Message), GetText("ok"));
             }
         };
         
@@ -340,16 +410,16 @@ public class ConsoleInterface
                         var jobs = Controller.RetrieveBackupJobs();
                         if (jobs.Count == 0)
                         {
-                            MessageBox.Query(60, 7, "Info", "No jobs found to start", "OK");
+                            MessageBox.Query(60, 7, GetText("info"), GetText("noJobsToStart"), GetText("ok"));
                             return;
                         }
                         
                         Controller.StartAllJobs();
-                        MessageBox.Query(60, 7, "Info", "All jobs have been started", "OK");
+                        MessageBox.Query(60, 7, GetText("info"), GetText("allJobsStarted"), GetText("ok"));
                     }
                     catch (Exception ex)
                     {
-                        MessageBox.ErrorQuery(60, 8, "Error", $"Failed to start all jobs: {ex.Message}", "OK");
+                        MessageBox.ErrorQuery(60, 8, GetText("error"), string.Format(GetText("failedStartJobs"), ex.Message), GetText("ok"));
                     }
                 }),
                 new MenuItem(GetText("language"), "", () => SetLanguageDialog()),
@@ -358,8 +428,8 @@ public class ConsoleInterface
         });
         
         var statusBar = new StatusBar([
-            new(Key.F1, "~F1~ Help", null),
-            new(Key.F10, "~F10~ Quit", () => RequestExit())
+            new(Key.F1, $"~F1~ {GetText("help")}", null),
+            new(Key.F10, $"~F10~ {GetText("quit")}", () => RequestExit())
         ]);
         
         top.Add(win, menu, statusBar);
@@ -372,7 +442,7 @@ public class ConsoleInterface
     /// </summary>
     private static void RequestExit()
     {
-        var n = MessageBox.Query(50, 7, "Exit", "Are you sure you want to exit?", "no", "yes");
+        var n = MessageBox.Query(50, 7, GetText("exit"), GetText("exitConfirm"), GetText("no"), GetText("yes"));
         if (n == 1)
         {
             Application.RequestStop();
@@ -415,7 +485,7 @@ public class ConsoleInterface
             dialog.RequestStop();
         };
         
-        var englishBtn = new Button("English")
+        var englishBtn = new Button(GetText("english"))
         {
             X = Pos.Right(cancelBtn) + 2,
             Y = 1
@@ -426,7 +496,7 @@ public class ConsoleInterface
             ShowMainMenu(); // Refresh UI with new language
         };
         
-        var frenchBtn = new Button("Français")
+        var frenchBtn = new Button(GetText("french"))
         {
             X = Pos.Right(cancelBtn) + 2,
             Y = 3
@@ -590,7 +660,7 @@ public class ConsoleInterface
                 string.IsNullOrEmpty(sourceField.Text?.ToString()) || 
                 string.IsNullOrEmpty(targetField.Text?.ToString()))
             {
-                MessageBox.ErrorQuery(50, 7, "Error", "All fields are required", "OK");
+                MessageBox.ErrorQuery(50, 7, GetText("error"), GetText("allFieldsRequired"), GetText("ok"));
                 return;
             }
             
@@ -605,23 +675,23 @@ public class ConsoleInterface
                 Controller.CreateBackupJob(name, sourceDir, targetDir, type);
                 
                 dialog.RequestStop();
-                MessageBox.Query(50, 7, "Success", "Job created successfully", "OK");
+                MessageBox.Query(50, 7, GetText("success"), GetText("jobCreateSuccess"), GetText("ok"));
             }
             catch (DirectoryNotFoundException ex)
             {
-                MessageBox.ErrorQuery(60, 8, "Directory Error", ex.Message, "OK");
+                MessageBox.ErrorQuery(60, 8, GetText("directoryError"), ex.Message, GetText("ok"));
             }
             catch (IOException ex)
             {
-                MessageBox.ErrorQuery(60, 8, "I/O Error", ex.Message, "OK");
+                MessageBox.ErrorQuery(60, 8, GetText("ioError"), ex.Message, GetText("ok"));
             }
             catch (InvalidOperationException ex)
             {
-                MessageBox.ErrorQuery(60, 8, "Job Error", ex.Message, "OK");
+                MessageBox.ErrorQuery(60, 8, GetText("jobError"), ex.Message, GetText("ok"));
             }
             catch (Exception ex)
             {
-                MessageBox.ErrorQuery(60, 10, "Unexpected Error", $"Failed to create job: {ex.Message}\n\nDetails: {ex.GetType().Name}", "OK");
+                MessageBox.ErrorQuery(60, 10, GetText("unexpectedError"), string.Format(GetText("failedCreateJob"), ex.Message, ex.GetType().Name), GetText("ok"));
             }
         };
         
@@ -646,7 +716,7 @@ public class ConsoleInterface
         
         if (jobs.Count == 0)
         {
-            MessageBox.Query(50, 7, "Info", "No jobs found", "OK");
+            MessageBox.Query(50, 7, GetText("info"), GetText("noJobsFound"), GetText("ok"));
             ShowMainMenu(); // Return to main menu if no jobs found
             return;
         }
@@ -654,9 +724,9 @@ public class ConsoleInterface
         // Set up the top-level window and status bar
         var top = Application.Top;
         var statusBar = new StatusBar(new StatusItem[] {
-            new StatusItem(Key.F1, "~F1~ Help", null),
-            new StatusItem(Key.F2, "~F2~ Menu", () => ShowMainMenu()),
-            new StatusItem(Key.F10, "~F10~ Quit", () => RequestExit())
+            new StatusItem(Key.F1, $"~F1~ {GetText("help")}", null),
+            new StatusItem(Key.F2, $"~F2~ {GetText("menu")}", () => ShowMainMenu()),
+            new StatusItem(Key.F10, $"~F10~ {GetText("quit")}", () => RequestExit())
         });
         top.Add(statusBar);
         
@@ -682,7 +752,7 @@ public class ConsoleInterface
         };
         
         // Create column headers with styling - expanded width for better path display
-        var headerLabel = new Label($"{"Name",-25} {"Type",-15} {"State",-15} {"Progress",-15}")
+        var headerLabel = new Label($"{GetText("colName"),-25} {GetText("colType"),-15} {GetText("colState"),-15} {GetText("colProgress"),-15}")
         {
             X = 1,
             Y = 2,
@@ -736,7 +806,7 @@ public class ConsoleInterface
         };
         
         // The instruction label is still useful to guide users
-        var instructionLabel = new Label("Use arrow keys to select a job, then press Enter to view details")
+        var instructionLabel = new Label(GetText("jobsListInstructions"))
         {
             X = 1,
             Y = Pos.Bottom(listView),
@@ -785,7 +855,7 @@ public class ConsoleInterface
         
         if (job == null)
         {
-            MessageBox.ErrorQuery(50, 7, "Error", $"Job '{jobName}' not found", "OK");
+            MessageBox.ErrorQuery(50, 7, GetText("error"), string.Format(GetText("jobNotFound"), jobName), GetText("ok"));
             // Go back to job list if job not found
             ListJobsDialog();
             return;
@@ -794,13 +864,13 @@ public class ConsoleInterface
         // Set up the top-level window and status bar to ensure consistent UI
         var top = Application.Top;
         var statusBar = new StatusBar(new StatusItem[] {
-            new StatusItem(Key.F1, "~F1~ Help", null),
-            new StatusItem(Key.F2, "~F2~ Menu", () => ShowMainMenu()),
-            new StatusItem(Key.F10, "~F10~ Quit", () => RequestExit())
+            new StatusItem(Key.F1, $"~F1~ {GetText("help")}", null),
+            new StatusItem(Key.F2, $"~F2~ {GetText("menu")}", () => ShowMainMenu()),
+            new StatusItem(Key.F10, $"~F10~ {GetText("quit")}", () => RequestExit())
         });
         top.Add(statusBar);
         
-        var dialog = new Dialog($"Job: {job.Name}", 150, 30)
+        var dialog = new Dialog(string.Format(GetText("jobDetails"), job.Name), 150, 30)
         {
             Border = new Border
             {
@@ -810,7 +880,7 @@ public class ConsoleInterface
         };
         
         // Title with styling
-        var titleLabel = new Label($"JOB DETAILS: {job.Name}")
+        var titleLabel = new Label(string.Format(GetText("jobDetails"), job.Name))
         {
             X = Pos.Center(),
             Y = 0,
@@ -933,7 +1003,7 @@ public class ConsoleInterface
         
         // Get and display error message if any
         string errorMessage = job.GetErrorMessage();
-        var errorLabel = new Label("Latest error:")
+        var errorLabel = new Label(GetText("latestError"))
         {
             X = 2, 
             Y = 14,  // Moved down to have more space
@@ -1008,7 +1078,7 @@ public class ConsoleInterface
                 try
                 {
                     Controller.StopJob(job.Name);
-                    MessageBox.Query(50, 7, "Info", $"Job '{job.Name}' is stopping...", "OK");
+                    MessageBox.Query(50, 7, GetText("info"), string.Format(GetText("jobStopping"), job.Name), GetText("ok"));
                     
                     // Refresh job state and progress
                     dialog.RequestStop();
@@ -1019,7 +1089,7 @@ public class ConsoleInterface
                 }
                 catch (Exception ex)
                 {
-                    MessageBox.ErrorQuery(50, 7, "Error", $"Failed to stop job: {ex.Message}", "OK");
+                    MessageBox.ErrorQuery(50, 7, GetText("error"), string.Format(GetText("failedStopJob"), ex.Message), GetText("ok"));
                 }
             };
             
@@ -1044,7 +1114,7 @@ public class ConsoleInterface
                 try
                 {
                     Controller.StartJob(job.Name);
-                    MessageBox.Query(50, 7, "Info", $"Job '{job.Name}' started", "OK");
+                    MessageBox.Query(50, 7, GetText("info"), string.Format(GetText("jobStarted"), job.Name), GetText("ok"));
                     
                     // Refresh job state and progress
                     dialog.RequestStop();
@@ -1055,7 +1125,7 @@ public class ConsoleInterface
                 }
                 catch (Exception ex)
                 {
-                    MessageBox.ErrorQuery(50, 7, "Error", $"Failed to start job: {ex.Message}", "OK");
+                    MessageBox.ErrorQuery(50, 7, GetText("error"), string.Format(GetText("failedStartJob"), ex.Message), GetText("ok"));
                 }
             };
             
@@ -1086,7 +1156,7 @@ public class ConsoleInterface
                         bool deleted = Controller.DeleteBackupJob(job.Name);
                         if (deleted)
                         {
-                            MessageBox.Query(50, 7, "Info", $"Job '{job.Name}' was deleted successfully.", "OK");
+                            MessageBox.Query(50, 7, GetText("info"), string.Format(GetText("jobDeletedSuccess"), job.Name), GetText("ok"));
                             dialog.RequestStop();
                             
                             // This will properly navigate back to the UI
@@ -1105,13 +1175,13 @@ public class ConsoleInterface
                         else
                         {
                             // This will happen if the job is running (although the button should be disabled)
-                            MessageBox.ErrorQuery(60, 8, "Error", 
-                                $"Could not delete job '{job.Name}'. It may be running or no longer exists.", "OK");
+                            MessageBox.ErrorQuery(60, 8, GetText("error"), 
+                                string.Format(GetText("jobDeletedError"), job.Name), GetText("ok"));
                         }
                     }
                     catch (Exception ex)
                     {
-                        MessageBox.ErrorQuery(60, 8, "Error", $"Failed to delete job: {ex.Message}", "OK");
+                        MessageBox.ErrorQuery(60, 8, GetText("error"), string.Format(GetText("failedStopJob"), ex.Message), GetText("ok"));
                     }
                 }
             };
@@ -1172,7 +1242,7 @@ public class ConsoleInterface
     /// <param name="message">The message to display.</param>
     private static void DisplayMessage(string message)
     {
-        MessageBox.Query(50, 7, "Message", message, "OK");
+        MessageBox.Query(50, 7, GetText("info"), message, GetText("ok"));
     }
 
     /// <summary>

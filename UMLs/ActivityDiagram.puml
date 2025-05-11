@@ -1,0 +1,62 @@
+@startuml Backup Job Creation - Activity Diagram
+
+title "Backup Job Creation - Activity Diagram"
+
+skinparam activityDiamondBorderColor #000000
+skinparam activityDiamondBackgroundColor #FFFFFF
+skinparam activityStartColor #87B741
+skinparam activityEndColor #FF6347
+skinparam activityBorderColor #000000
+skinparam activityBackgroundColor #FFFFFF
+skinparam ArrowColor #000000
+
+start
+
+:User selects Create Job option;
+:Show Job Creation Form;
+
+:User enters job details
+- Name
+- Source directory
+- Target directory
+- Job type (Full/Differential);
+
+:Validate form data;
+
+if (Is form data valid?) then (yes)
+  :Submit job creation request;
+  
+  if (Job with same name exists?) then (yes)
+    :Display error: Job name already exists;
+  else (no)
+    if (Source directory exists?) then (yes)
+      if (Target directory exists?) then (yes)
+        :Create backup job;
+      else (no)
+        :Attempt to create target directory;
+        
+        if (Directory creation successful?) then (yes)
+        else (no)
+          :Display warning: Failed to create target directory;
+        endif
+      endif
+      
+      :Create backup job;
+      :Add job to job list;
+      :Update logs with new job state;
+      :Display success message;
+      
+    else (no)
+      :Display error: Source directory not found;
+      stop
+    endif
+  endif
+  
+else (no)
+  :Display form validation errors;
+  :Return to form with error messages;
+endif
+
+stop
+
+@enduml

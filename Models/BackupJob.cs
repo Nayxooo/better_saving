@@ -57,7 +57,7 @@ public class backupJob
     private string? ErrorMessage { get; set; } // Error message if any error occurs
     private readonly Logger BackupJobLogger;
 
-    // Public accessor methods for the GUI/Console
+
     public string GetSourceDirectory() => SourceDirectory;
     public string GetTargetDirectory() => TargetDirectory;
     public JobType GetJobType() => Type;
@@ -67,6 +67,11 @@ public class backupJob
     public int GetTotalFilesToCopy() => TotalFilesToCopy;
     public int GetNumberFilesLeftToDo() => NumberFilesLeftToDo;
 
+    /// <summary>
+    /// Updates the progress percentage based on the number of files left to do.
+    /// The progress is calculated as the ratio of completed files to total files.
+    /// If all files are copied, the state is set to Finished.
+    /// </summary>
     private void UpdateProgress()
     {
         // Calculate the progress percentage
@@ -74,6 +79,17 @@ public class backupJob
         if (Progress == 100){State = jobState.Finished;}
     }
 
+
+    /// <summary>
+    /// Constructor for the backupJob class.
+    /// </summary>
+    /// <param name="name"></param>
+    /// <param name="sourceDir"></param>
+    /// <param name="targetDir"></param>
+    /// <param name="type"></param>
+    /// <param name="idleTime"></param>
+    /// <param name="loggerInstance"></param>
+    /// <exception cref="DirectoryNotFoundException"></exception>
     public backupJob(string name, string sourceDir, string targetDir, JobType type, int idleTime, Logger loggerInstance)
     {
         // check if the source directory exists
@@ -95,6 +111,11 @@ public class backupJob
         Progress = 0;
     }
 
+    /// <summary>
+    /// Updates the files count and the list of files to backup.
+    /// This method scans the source directory, calculates total file counts and sizes,
+    /// and identifies files that need to be backed up based on the job type (Full or Differential).
+    /// </summary>
     public void UpdateFilesCount()
     {
         Console.WriteLine($"Updating files count for job '{Name}'...");
@@ -136,6 +157,13 @@ public class backupJob
         }
     }
 
+    /// <summary>
+    /// Executes the backup job asynchronously.
+    /// This method processes all files that need to be backed up, creates necessary directories,
+    /// and handles errors and cancellation when files are copied from source to target.
+    /// </summary>
+    /// <param name="cancellationToken">Optional cancellation token to stop the backup operation.</param>
+    /// <returns>A task representing the asynchronous backup operation.</returns>
     public async Task ExecuteAsync(CancellationToken cancellationToken = default)
     {
         State = jobState.Working;
@@ -231,13 +259,21 @@ public class backupJob
         }
     }
     
-    // Keep the synchronous method for backwards compatibility
+    /// <summary>
+    /// Executes the backup job synchronously.
+    /// This is a wrapper method that calls the asynchronous ExecuteAsync method and waits for it to complete.
+    /// </summary>
     public void Execute()
     {
         // Run the async method synchronously
         ExecuteAsync().ConfigureAwait(false).GetAwaiter().GetResult();
     }
 
+    /// <summary>
+    /// Returns a JSON-formatted string representation of this backup job.
+    /// Includes all relevant job properties like name, directories, type, state, and progress information.
+    /// </summary>
+    /// <returns>A JSON string containing the job's properties.</returns>
     public override string ToString()
     {
         // Escape backslashes in file paths for proper JSON formatting

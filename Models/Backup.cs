@@ -3,6 +3,14 @@ using System.Collections.Generic;
 
 public class Backup
 {
+    /// <summary>
+    /// Copies a file from a source path to a target path and measures the time taken.
+    /// </summary>
+    /// <param name="sourceFilePath">The full path of the source file to copy.</param>
+    /// <param name="targetFilePath">The full path where the file should be copied to.</param>
+    /// <returns>
+    /// The time taken in milliseconds to copy the file, or -1 if the operation failed.
+    /// </returns>
     public static int backupFile(string sourceFilePath, string targetFilePath)
     {
         // copy the file from source to target

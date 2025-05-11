@@ -31,7 +31,11 @@ public class Controller
     // Dictionary to keep track of running jobs and their cancellation tokens
     private static Dictionary<string, CancellationTokenSource> runningJobs = [];
 
-    // Constructor to initialize the logger
+    /// <summary>
+    /// Initializes a new Controller instance with the specified logs directory.
+    /// Sets up the application logger, loads existing backup jobs, and starts the console interface.
+    /// </summary>
+    /// <param name="logsDirectory">The directory where log files will be stored.</param>
     public Controller(string logsDirectory)
     {
         applicationLogger = new Logger(logsDirectory);
@@ -45,12 +49,26 @@ public class Controller
         ConsoleInterface.Start();
     }
 
-    // Getter method to access the jobs list
+    /// <summary>
+    /// Retrieves the current list of backup jobs managed by the controller.
+    /// </summary>
+    /// <returns>A List of backupJob objects representing all current backup jobs.</returns>
     public static List<backupJob> RetrieveBackupJobs()
     {
         return backupJobsList;
     }
 
+    /// <summary>
+    /// Creates a new backup job with the specified parameters.
+    /// Validates inputs, ensures directories exist, and adds the job to the managed list.
+    /// </summary>
+    /// <param name="name">The name of the backup job.</param>
+    /// <param name="sourceDir">The source directory containing files to back up.</param>
+    /// <param name="targetDir">The target directory where files will be backed up to.</param>
+    /// <param name="type">The type of backup (Full or Differential).</param>
+    /// <exception cref="InvalidOperationException">Thrown if a job with the same name already exists.</exception>
+    /// <exception cref="DirectoryNotFoundException">Thrown if the source directory doesn't exist.</exception>
+    /// <exception cref="IOException">Thrown if the target directory cannot be created.</exception>
     public static void CreateBackupJob(string name, string sourceDir, string targetDir, JobType type)
     {
         try
@@ -94,7 +112,12 @@ public class Controller
         }
     }
 
-    // Asynchronous method to start a job
+    /// <summary>
+    /// Asynchronously starts a backup job with the specified name.
+    /// Creates a cancellation token to allow stopping the job and monitors job execution.
+    /// </summary>
+    /// <param name="name">The name of the backup job to start.</param>
+    /// <returns>A Task representing the asynchronous operation.</returns>
     public static async Task StartJobAsync(string name)
     {
         // Find the job by name
@@ -146,14 +169,21 @@ public class Controller
         }
     }
     
-    // For backward compatibility - starts job asynchronously but doesn't wait for completion
+    /// <summary>
+    /// Starts a backup job with the specified name without waiting for completion.
+    /// This is a wrapper around StartJobAsync for backward compatibility.
+    /// </summary>
+    /// <param name="name">The name of the backup job to start.</param>
     public static void StartJob(string name)
     {
         // Start job without awaiting its completion
         _ = StartJobAsync(name);
     }
     
-    // Stop a running job
+    /// <summary>
+    /// Stops a running backup job with the specified name by cancelling its execution.
+    /// </summary>
+    /// <param name="name">The name of the backup job to stop.</param>
     public static void StopJob(string name)
     {
         if (runningJobs.TryGetValue(name, out var cancellationTokenSource))
@@ -168,12 +198,20 @@ public class Controller
         }
     }
 
-    // Check if a job is currently running
+    /// <summary>
+    /// Checks if a backup job with the specified name is currently running.
+    /// </summary>
+    /// <param name="name">The name of the backup job to check.</param>
+    /// <returns>True if the job is running, false otherwise.</returns>
     public static bool IsJobRunning(string name)
     {
         return runningJobs.ContainsKey(name);
     }
 
+    /// <summary>
+    /// Asynchronously starts all backup jobs and waits for them all to complete.
+    /// </summary>
+    /// <returns>A Task representing the asynchronous operation.</returns>
     public static async Task StartAllJobsAsync()
     {
         var tasks = new List<Task>();
@@ -186,14 +224,21 @@ public class Controller
         await Task.WhenAll(tasks);
     }
     
-    // For backward compatibility
+    /// <summary>
+    /// Starts all backup jobs without waiting for completion.
+    /// This is a wrapper around StartAllJobsAsync for backward compatibility.
+    /// </summary>
     public static void StartAllJobs()
     {
         // Start all jobs without awaiting completion
         _ = StartAllJobsAsync();
     }
     
-    // Delete a backup job
+    /// <summary>
+    /// Deletes a backup job with the specified name if it's not currently running.
+    /// </summary>
+    /// <param name="name">The name of the backup job to delete.</param>
+    /// <returns>True if the job was successfully deleted, false if the job was not found or is running.</returns>
     public static bool DeleteBackupJob(string name)
     {
         // Check if the job is currently running
@@ -219,7 +264,10 @@ public class Controller
         }
     }
 
-    // Method to load backup jobs from the state.json file
+    /// <summary>
+    /// Loads backup jobs from the state.json file to restore previously configured jobs.
+    /// Parses the JSON file and recreates backup job objects for each valid entry.
+    /// </summary>
     public static void LoadBackupJobsFromState()
     {
         string stateFilePath = Path.Combine(applicationLogger.GetLogDirectory(), "state.json");

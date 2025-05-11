@@ -33,14 +33,20 @@ public class ConsoleInterface
     // Dictionary for UI text in different languages
     private static Dictionary<string, Dictionary<string, string>> uiText = new Dictionary<string, Dictionary<string, string>>();
 
-    // Method to initialize the logger
+    /// <summary>
+    /// Initializes the console interface with the provided logger and sets up language configurations.
+    /// </summary>
+    /// <param name="applicationLogger">The logger instance to be used for logging operations.</param>
     public static void Initialize(Logger applicationLogger)
     {
         logger = applicationLogger;
         InitializeLanguages();
     }
 
-    // Initialize languages for UI text
+    /// <summary>
+    /// Initializes the language dictionaries used for UI text localization.
+    /// Sets up English and French language options.
+    /// </summary>
     private static void InitializeLanguages()
     {
         // English text
@@ -115,6 +121,10 @@ public class ConsoleInterface
         uiText.Add("fr", frenchText);
     }
 
+    /// <summary>
+    /// Starts the terminal GUI application with a dark theme and displays the main menu.
+    /// Sets up the application's top-level window, menu, and status bar.
+    /// </summary>
     public static void Start()
     {
         Application.Init();
@@ -175,6 +185,11 @@ public class ConsoleInterface
         Application.Shutdown();
     }
 
+    /// <summary>
+    /// Retrieves the localized text for a given key from the current language dictionary.
+    /// </summary>
+    /// <param name="key">The key to look up in the language dictionary.</param>
+    /// <returns>The localized text string, or the key itself if not found.</returns>
     private static string GetText(string key)
     {
         if (uiText.ContainsKey(Language) && uiText[Language].ContainsKey(key))
@@ -184,6 +199,10 @@ public class ConsoleInterface
         return key; // Return key if text not found
     }
 
+    /// <summary>
+    /// Displays the main menu with options to create, view, and manage backup jobs.
+    /// Sets up the main window with a title, buttons, and menu bar.
+    /// </summary>
     private static void ShowMainMenu()
     {
         currentMenu = ConsoleMenu.MainMenu;
@@ -338,16 +357,19 @@ public class ConsoleInterface
             ])
         });
         
-        var statusBar = new StatusBar(new StatusItem[] {
-            new StatusItem(Key.F1, "~F1~ Help", null),
-            new StatusItem(Key.F10, "~F10~ Quit", () => RequestExit())
-        });
+        var statusBar = new StatusBar([
+            new(Key.F1, "~F1~ Help", null),
+            new(Key.F10, "~F10~ Quit", () => RequestExit())
+        ]);
         
         top.Add(win, menu, statusBar);
         // Set initial focus on the first button
         createBtn.SetFocus();
     }
 
+    /// <summary>
+    /// Shows a confirmation dialog for exiting the application.
+    /// </summary>
     private static void RequestExit()
     {
         var n = MessageBox.Query(50, 7, "Exit", "Are you sure you want to exit?", "no", "yes");
@@ -357,6 +379,13 @@ public class ConsoleInterface
         }
     }
     
+    /// <summary>
+    /// Creates a text-based progress bar showing completion percentage and file count.
+    /// </summary>
+    /// <param name="progress">The percentage of completion (0-100).</param>
+    /// <param name="totalFiles">The total number of files to process.</param>
+    /// <param name="remainingFiles">The number of files remaining to be processed.</param>
+    /// <returns>A formatted string representing the progress bar with completion percentage and file count.</returns>
     private static string GetProgressBar(int progress, int totalFiles, int remainingFiles)
     {
         // Create a progress bar string based on the progress percentage
@@ -367,6 +396,10 @@ public class ConsoleInterface
         return $"[{bar}] {progress}%   ({transferredFiles}/{totalFiles})";
     }
 
+    /// <summary>
+    /// Displays a dialog for selecting the application language.
+    /// Allows users to switch between English and French.
+    /// </summary>
     private static void SetLanguageDialog()
     {
         currentMenu = ConsoleMenu.Language;
@@ -409,6 +442,10 @@ public class ConsoleInterface
         Application.Run(dialog);
     }
 
+    /// <summary>
+    /// Displays a dialog for creating a new backup job.
+    /// Collects job name, source directory, target directory, and job type from the user.
+    /// </summary>
     private static void CreateJobDialog()
     {
         currentMenu = ConsoleMenu.CreateJob;
@@ -594,6 +631,10 @@ public class ConsoleInterface
         Application.Run(dialog);
     }
 
+    /// <summary>
+    /// Displays a list of all configured backup jobs.
+    /// Shows job names, types, states, and progress, and allows selecting a job for detailed view.
+    /// </summary>
     private static void ListJobsDialog()
     {
         currentMenu = ConsoleMenu.MainMenu;
@@ -727,6 +768,11 @@ public class ConsoleInterface
         Application.Run(dialog);
     }
 
+    /// <summary>
+    /// Displays detailed information about a specific backup job.
+    /// Shows job properties, state, progress, and provides options to start, stop, or delete the job.
+    /// </summary>
+    /// <param name="jobName">The name of the job to display.</param>
     private static void ShowJob(string jobName)
     {
         currentMenu = ConsoleMenu.ShowJob;
@@ -1120,11 +1166,20 @@ public class ConsoleInterface
         Application.Run(dialog);
     }
 
+    /// <summary>
+    /// Displays a message box with the specified text.
+    /// </summary>
+    /// <param name="message">The message to display.</param>
     private static void DisplayMessage(string message)
     {
         MessageBox.Query(50, 7, "Message", message, "OK");
     }
 
+    /// <summary>
+    /// Normalizes a file path by replacing multiple consecutive backslashes with a single one.
+    /// </summary>
+    /// <param name="path">The path string to normalize.</param>
+    /// <returns>The normalized path string.</returns>
     private static string NormalizePath(string path)
     {
         // First replace all backslashes with a single backslash
@@ -1133,6 +1188,11 @@ public class ConsoleInterface
         return normalizedPath;
     }
 
+    /// <summary>
+    /// Determines the appropriate color attribute based on the job state.
+    /// </summary>
+    /// <param name="state">The job state to get a color for.</param>
+    /// <returns>A Terminal.Gui Attribute representing the color for the given state.</returns>
     private static Terminal.Gui.Attribute GetStateColor(jobState state)
     {
         return state switch
@@ -1145,13 +1205,20 @@ public class ConsoleInterface
         };
     }
 
-    // Method to check if we're in a specific menu (can be used for navigation logic)
+    /// <summary>
+    /// Checks if the console is currently displaying a specific menu.
+    /// </summary>
+    /// <param name="menu">The menu to check against the current menu.</param>
+    /// <returns>True if the specified menu is currently displayed, false otherwise.</returns>
     private static bool IsInMenu(ConsoleMenu menu)
     {
         return currentMenu == menu;
     }
     
-    // Add a menu title based on current menu
+    /// <summary>
+    /// Gets the title for the current menu screen.
+    /// </summary>
+    /// <returns>A localized string representing the title of the current menu.</returns>
     private static string GetMenuTitle()
     {
         return currentMenu switch

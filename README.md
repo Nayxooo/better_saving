@@ -1,4 +1,4 @@
-# Better Saving
+# EasySave
 
 A robust C# file backup application with a Terminal GUI interface for efficiently managing backup jobs.
 
@@ -10,7 +10,7 @@ A robust C# file backup application with a Terminal GUI interface for efficientl
 - **Progress Tracking**: Real-time tracking of backup progress
 - **Logging System**: Comprehensive logging of backup activities and states
 - **Multi-language Support**: Support for multiple languages in the interface
-- **File Verification**: Uses MD5 hashing to verify file integrity
+- **File Verification**: Uses SHA256 hashing to verify file integrity
 
 ## Getting Started
 
@@ -23,7 +23,7 @@ A robust C# file backup application with a Terminal GUI interface for efficientl
 
 1. Clone the repository:
    ```
-   git clone https://github.com/yourusername/better_saving.git
+   git clone https://github.com/Nayxooo/better_saving.git
    ```
 
 2. Navigate to the project directory:

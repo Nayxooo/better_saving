@@ -8,6 +8,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="System.IO.Hashing" Version="9.0.4" />
     <PackageReference Include="Terminal.Gui" Version="1.18.1" />
   </ItemGroup>
 

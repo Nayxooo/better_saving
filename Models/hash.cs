@@ -1,52 +1,57 @@
 using System;
 using System.IO;
+using System.IO.Hashing;
 using System.Security.Cryptography;
 using System.Text;
+using System.Buffers.Binary;
 
 public class Hashing
 {
+    /// <summary>
+    /// Generates a hash for the given file using XxHash64.
+    /// </summary>
+    /// <param name="filePath"></param>
+    /// <returns></returns>
     public static string GetFileHash(string filePath)
     {
         try
         {
-            // Use a buffer size of 4MB for efficient processing of large files
-            const int bufferSize = 4 * 1024 * 1024; // 4MB buffer
+            // Use a buffer size of 8MB for efficient processing of large files
+            const int bufferSize = 8 * 1024 * 1024; // 8MB buffer
             
-            using (var sha256 = SHA256.Create())
-            using (var stream = File.OpenRead(filePath))
+            // Use XxHash64 for superior performance with large files
+            var xxHash = new XxHash64();
+
+            using var stream = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.Read, bufferSize, FileOptions.SequentialScan);
+            byte[] buffer = new byte[bufferSize];
+            int bytesRead;
+
+            // Process the file in chunks
+            while ((bytesRead = stream.Read(buffer, 0, buffer.Length)) > 0)
             {
-                byte[] buffer = new byte[bufferSize];
-                int bytesRead;
-                
-                // Process the file in chunks
-                while ((bytesRead = stream.Read(buffer, 0, buffer.Length)) > 0)
-                {
-                    sha256.TransformBlock(buffer, 0, bytesRead, null, 0);
-                }
-                
-                // Complete the hash computation
-                sha256.TransformFinalBlock([], 0, 0);
-                
-                // Convert the hash to a string
-                var hashBytes = sha256.Hash;
-                var sb = new StringBuilder(hashBytes?.Length * 2 ?? 0);
-                if (hashBytes != null)
-                {
-                    foreach (var b in hashBytes)
-                    {
-                        sb.Append(b.ToString("x2"));
-                    }
-                }
-                
-                return sb.ToString();
+                xxHash.Append(buffer.AsSpan(0, bytesRead));
             }
+
+            // Get the hash and convert to string
+            byte[] hashBytes = new byte[8]; // XxHash64 produces an 8-byte hash
+            xxHash.GetHashAndReset(hashBytes);
+
+            return Convert.ToHexString(hashBytes);
         }
-        catch
+        catch (Exception ex)
         {
+            Console.Error.WriteLine($"Error hashing file {filePath}: {ex.Message}");
             return string.Empty; // Return an empty string in case of error
         }
     }
 
+    /// <summary>
+    /// Compares two files by their hashes.
+    /// This method uses XxHash64 for efficient comparison.
+    /// </summary>
+    /// <param name="filePath1"></param>
+    /// <param name="filePath2"></param>
+    /// <returns></returns>
     public static bool CompareFiles(string filePath1, string filePath2)
     {
         return GetFileHash(filePath1) == GetFileHash(filePath2);

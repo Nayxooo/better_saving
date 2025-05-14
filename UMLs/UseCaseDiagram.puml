@@ -1,0 +1,56 @@
+@startuml EasySaveUseCaseDiagram
+
+title "EasySave - Use Case Diagram"
+
+skinparam usecaseBorderColor #000000
+skinparam usecaseBackgroundColor #FFFFFF
+skinparam actorBorderColor #000000
+skinparam actorBackgroundColor #FFFFFF
+skinparam packageBackgroundColor #FEFECE
+skinparam packageBorderColor #A80036
+
+left to right direction
+actor User as user
+actor FileSystem as fs
+
+rectangle "EasySave " {
+  usecase "Create Backup Job" as UC1
+  usecase "Start Backup Job" as UC2
+  usecase "Stop Backup Job" as UC3
+  usecase "List All Backup Jobs" as UC4
+  usecase "View Job Details" as UC5
+  usecase "Delete Backup Job" as UC6
+  usecase "Start All Jobs" as UC7
+  usecase "Change Language" as UC8
+  usecase "Exit Application" as UC9
+  
+  usecase "Copy Files" as UC10
+  usecase "Compare File Hashes" as UC11
+  usecase "Logger instance" as UC12
+  usecase "Update Job Progress" as UC13
+}
+
+user --> UC1
+user --> UC2
+user --> UC3
+user --> UC4
+user --> UC5
+user --> UC6
+user --> UC7
+user --> UC8
+user --> UC9
+
+UC1 ..> UC13 : <<include>>
+UC2 ..> UC10 : <<include>>
+UC2 ..> UC12 : <<include>>
+UC2 ..> UC13 : <<include>>
+UC10 <.. UC11 : <<extend>> Only for differential backup
+UC2 <.. UC11 : <<extend>> Only for differential backup
+
+UC10 --> fs : reads/writes
+UC11 --> fs : reads
+
+note "Files are read from source\nand written to target" as N1
+UC10 .. N1
+
+@enduml

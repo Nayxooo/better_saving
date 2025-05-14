@@ -1,4 +1,4 @@
-@startuml
+@startuml Backup Job Manager Class Diagram
 
 ' Define styles
 skinparam class {
@@ -12,9 +12,9 @@ skinparam package {
   BorderColor Gray
 }
 
-title "Backup Job Manager - MVC Architecture"
+title "Backup Job Manager Class Diagram"
 
-' MVC Packages
+' MVVM Packages
 package "Model" {
   enum JobType {
     Full
@@ -64,6 +64,17 @@ package "Model" {
     + static String GetFileHash(String)
     + static bool CompareFileHash(String, String)
   }
+  
+  class Logger {
+    - String logDirectory
+    - String dailyLogFilePath
+    - String stateLogFilePath
+    - Object logLock
+    + Logger(String)
+    + void Log(String)
+    + void LogError(String, Exception)
+    + void UpdateAllJobsState()
+  }
 }
 
 package "View" {
@@ -79,12 +90,12 @@ package "View" {
   }
   
   class ConsoleInterface {
-    - Dictionary<String, backupJob> jobs
+    - MainViewModel mainViewModel
     - String Language
     - Logger logger
     - ConsoleMenu currentMenu
     - Dictionary<String, Dictionary<String, String>> uiText
-    + static void Initialize(Logger)
+    + static void Initialize(Logger, MainViewModel)
     - static void InitializeLanguages()
     + static void Start()
     - static String GetText(String)
@@ -103,46 +114,53 @@ package "View" {
   }
 }
 
-package "Controller" {
-  class Controller {
-    - List<backupJob> backupJobsList
-    - Logger applicationLogger
-    - Dictionary<String, CancellationTokenSource> runningJobs
-    + static List<backupJob> RetrieveBackupJobs()
-    + static void CreateBackupJob(String, String, String, JobType)
-    + static Task StartJobAsync(String)
-    + static void StartJob(String)
-    + static void StopJob(String)
-    + static bool IsJobRunning(String)
-    + static Task StartAllJobsAsync()
-    + static void StartAllJobs()
-    + static void Main(String[])
+package "ViewModel" {
+  class MainViewModel {
+    + ObservableCollection<BackupJobViewModel> BackupJobs { get; }
+    + ICommand CreateJobCommand { get; }
+    + ICommand StartJobCommand { get; }
+    + ICommand StopJobCommand { get; }
+    + ICommand DeleteJobCommand { get; }
+    + ICommand StartAllJobsCommand { get; }
+    + Logger ApplicationLogger { get; }
+    + MainViewModel(Logger)
+    + void LoadBackupJobs()
+    - void CreateBackupJob(params)
+    - void StartJob(BackupJobViewModel)
+    - void StopJob(BackupJobViewModel)
+    - void DeleteJob(BackupJobViewModel)
+    - void StartAllJobs()
+    + event PropertyChangedEventHandler PropertyChanged
   }
-  
-  class Logger {
-    - String logDirectory
-    - String dailyLogFilePath
-    - String stateLogFilePath
-    - Object logLock
-    + Logger(String)
-    + void Log(String)
-    + void LogError(String, Exception)
-    + void UpdateAllJobsState()
+
+  class BackupJobViewModel {
+    - backupJob _backupJobModel
+    + string Name { get; set; }
+    + string SourceDirectory { get; set; }
+    + string TargetDirectory { get; set; }
+    + JobType Type { get; set; }
+    + jobState State { get; }
+    + int Progress { get; }
+    + string ErrorMessage { get; }
+    + ICommand StartCommand { get; }
+    + ICommand StopCommand { get; }
+    + BackupJobViewModel(backupJob)
+    + void UpdateState(jobState, int, string)
+    + event PropertyChangedEventHandler PropertyChanged
   }
 }
 
 ' Relationships
-' MVC Pattern Relationships
-Controller ..> Model : manages >
-Controller ..> View : updates >
-View ..> Controller : calls >
-View ..> Model : displays >
+' MVVM Pattern Relationships
+View ..> ViewModel : interacts with / binds to >
+ViewModel ..> Model : manages / updates >
+Model ..> ViewModel : notifies of changes > ' (Implicitly, via events or INotifyPropertyChanged)
 
 ' Specific Relationships
-Controller --> backupJob : creates & manages
-Controller --> Logger : uses
-ConsoleInterface --> Controller : calls methods
-ConsoleInterface ..> backupJob : displays job info
+MainViewModel --> BackupJobViewModel : aggregates / manages
+MainViewModel --> Logger : uses
+ConsoleInterface --> MainViewModel : uses / interacts with
+BackupJobViewModel --> backupJob : wraps / exposes
 backupJob --> JobType : has
 backupJob --> jobState : has state
 backupJob --> Backup : uses

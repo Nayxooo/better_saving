@@ -1,10 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Diagnostics;
 using Terminal.Gui;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Win32;
 using EasySave.ViewModels; // Added for MainViewModel
 using EasySave.Models;     // Added for JobType, JobState if needed directly by View for enums (e.g. in forms)
 
@@ -347,16 +349,25 @@ public class ConsoleInterface
             ShowLanguageSelectionDialog();
         };
 
+        var CryptoSoftButton = new Button(GetText("CryptoSoft"))
+        {
+            X = Pos.Center(),
+            Y = Pos.Center() + 3,
+        };
+        CryptoSoftButton.Clicked += () => {
+            ShowLogFileSelectionDialog();
+        };
+
         var exitButton = new Button(GetText("exit"))
         {
             X = Pos.Center(),
-            Y = Pos.Center() + 4,
+            Y = Pos.Center() + 5,
         };
         exitButton.Clicked += () => {
             RequestExit();
         };
         
-        window.Add(createJobButton, showJobsButton, startAllJobsButton, changeLanguageButton, exitButton);
+        window.Add(createJobButton, showJobsButton, startAllJobsButton, changeLanguageButton, CryptoSoftButton, exitButton);
         
         // Add menu and window to the top-level view
         // Add menu bar if it's not already there
@@ -382,7 +393,7 @@ public class ConsoleInterface
     {
         MessageBox.Query("Info", "Show Jobs list not fully implemented in this refactoring step.", "Ok");
     }
-
+     
     private static void ShowLanguageSelectionDialog()
     {
         var dialog = new Dialog(GetText("selectLanguage"), 60, 10);
@@ -406,6 +417,85 @@ public class ConsoleInterface
 
         dialog.Add(englishButton, frenchButton);
         Application.Run(dialog);
+    }
+
+    private static void ShowLogFileSelectionDialog()
+    {
+        string logsDir = Path.Combine("C:\\Users\\noaar\\source\\repos\\better_saving\\logs\\");
+
+        if (!Directory.Exists(logsDir))
+        {
+            MessageBox.ErrorQuery("Erreur", "Le dossier 'logs' est introuvable.", "OK");
+            return;
+        }
+
+        var files = Directory.GetFiles(logsDir, "*.json");
+
+        if (files.Length == 0)
+        {
+            MessageBox.Query("Aucun fichier", "Aucun fichier JSON trouvé dans 'logs'.", "OK");
+            return;
+        }
+
+        var dialog = new Dialog("Choisir un fichier à encrypter", 60, 20);
+        var fileList = new ListView(files.Select(Path.GetFileName).ToList())
+        {
+            X = 0,
+            Y = 0,
+            Width = Dim.Fill(),
+            Height = Dim.Fill() - 2
+        };
+
+        var cancelButton = new Button("Annuler")
+        {
+            X = Pos.Center(),
+            Y = Pos.Bottom(fileList) + 1
+        };
+        cancelButton.Clicked += () => Application.RequestStop();
+
+        fileList.OpenSelectedItem += (args) =>
+        {
+            string selectedFile = Path.Combine(logsDir, files[args.Item]);
+            RunCryptoSoft(selectedFile);
+            Application.RequestStop();
+        };
+
+        dialog.Add(fileList, cancelButton);
+        Application.Run(dialog);
+    }
+
+    private static void RunCryptoSoft(string filePath)
+    {
+        string cryptoSoftPath = Path.Combine("C:\\Users\\me\\source\\repos\\better_saving\\bin\\Release\\net8.0\\win-x64\\CryptoSoft.exe");
+
+        if (!File.Exists(cryptoSoftPath))
+        {
+            MessageBox.ErrorQuery("Erreur", "CryptoSoft.exe introuvable.", "OK");
+            return;
+        }
+
+        try
+        {
+            ProcessStartInfo psi = new ProcessStartInfo
+            {
+                FileName = cryptoSoftPath,
+                Arguments = $"\"{filePath}\"",
+                UseShellExecute = false,
+                RedirectStandardOutput = true,
+                CreateNoWindow = true
+            };
+
+            using (Process process = Process.Start(psi))
+            {
+                string output = process.StandardOutput.ReadToEnd();
+                process.WaitForExit();
+                MessageBox.Query("Résultat", output, "OK");
+            }
+        }
+        catch (Exception ex)
+        {
+            MessageBox.ErrorQuery("Erreur", $"Échec de l'exécution : {ex.Message}", "OK");
+        }
     }
 
     /// <summary>

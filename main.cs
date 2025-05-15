@@ -7,6 +7,6 @@ class Program
     {
 
         // Initialize controller with logs directory
-        var controller = new Controller("D:\\Cesi\\Ripo\\Cesi\\FISE3\\5_génieLogiciel\\Projet\\Git\\better_saving\\logs");
+        var controller = new Controller("logs");
     }
 }

@@ -16,8 +16,14 @@ public class Logger
     /// <param name="logDirectory">The directory where log files will be stored.</param>
     public Logger(string logDirectory)
     {
-        LogDirectory = logDirectory;
-        StateLogFilePath = Path.Combine(LogDirectory, "state.json");
+        if (!string.IsNullOrEmpty(logDirectory))
+        {
+            // create the directory if it doesn't exist
+            if (!Directory.Exists(logDirectory)) Directory.CreateDirectory(logDirectory);
+            LogDirectory = logDirectory;
+
+            StateLogFilePath = Path.Combine(LogDirectory, "state.json");
+        }
     }
 
     /// <summary>

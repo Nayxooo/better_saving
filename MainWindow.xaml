@@ -1,9 +1,126 @@
-﻿<Window x:Class="SimpleWpfApp.MainWindow"
+﻿<Window x:Class="EasySave.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="Demo" Height="200" Width="300">
-    <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
-        <TextBlock x:Name="MyTextBlock" Text="Texte initial" FontSize="16" Margin="0,0,0,10" />
-        <Button Content="Clique ici" Width="100" Click="Button_Click" />
-    </StackPanel>
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:EasySave"
+        xmlns:models="clr-namespace:EasySave.Models"
+        xmlns:vm="clr-namespace:EasySave.ViewModels"
+        mc:Ignorable="d"
+        Title="EasySave" Height="450" Width="800" Background="#FF1E1E1E">
+    <Window.Resources>
+        <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter" />
+    </Window.Resources>
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="1*" />
+            <ColumnDefinition Width="2*" />
+        </Grid.ColumnDefinitions>
+
+        <!-- Left Panel: Job List -->
+        <Border Grid.Column="0" Background="#FF333333" Margin="5">
+            <StackPanel Margin="10">
+                <!-- Header and Controls -->
+                <StackPanel Orientation="Horizontal" Margin="0,0,0,10">
+                    <TextBlock Text="Backup job list" Foreground="White" FontSize="16" />
+                    <Button Content="▶️" Command="{Binding LaunchAllJobsCommand}" Margin="10,0,5,0" />
+                    <Button Content="▼" Command="{Binding SortJobsCommand}" />
+                </StackPanel>
+                <!-- Job List -->
+                <ListView ItemsSource="{Binding Jobs}" SelectedItem="{Binding SelectedJob}"
+                          Background="Transparent" BorderThickness="0" Height="300">
+                    <ListView.ItemTemplate>
+                        <DataTemplate>
+                            <Border Background="{Binding StatusColor}" CornerRadius="5" Padding="5" Margin="2">
+                                <StackPanel Orientation="Horizontal">
+                                    <TextBlock Text="{Binding Name}" Foreground="White" />
+                                    <Ellipse Width="10" Height="10" Fill="{Binding StatusColor}" Margin="5,0,0,0" />
+                                </StackPanel>
+                            </Border>
+                        </DataTemplate>
+                    </ListView.ItemTemplate>
+                </ListView>
+                <!-- Create Job Button -->
+                <Button Content="+" Command="{Binding NavigateToCreateJobCommand}"
+                        Background="#FF007ACC" Foreground="White" FontSize="20" Margin="0,10,0,0" />
+            </StackPanel>
+        </Border>
+
+        <!-- Right Panel: Dynamic Content -->
+        <Border Grid.Column="1" Background="#FF444444" Margin="5">
+            <ContentControl Content="{Binding CurrentView}">
+                <ContentControl.Resources>
+                    <DataTemplate DataType="{x:Type models:Job}">
+                        <StackPanel Margin="10">
+                            <TextBlock Text="Source directory:" Foreground="White" Margin="0,0,0,5" />
+                            <TextBox Text="{Binding SourceDirectory}" IsReadOnly="True" />
+                            <TextBlock Text="Target directory:" Foreground="White" Margin="0,10,0,5" />
+                            <TextBox Text="{Binding TargetDirectory}" IsReadOnly="True" />
+                            <TextBlock Text="Type:" Foreground="White" Margin="0,10,0,5" />
+                            <ComboBox SelectedItem="{Binding BackupType}">
+                                <ComboBoxItem Content="Full" />
+                                <ComboBoxItem Content="Differential" />
+                            </ComboBox>
+                            <ProgressBar Value="{Binding Progress}" Maximum="100" Height="20" Margin="0,10,0,5" />
+                            <TextBlock Text="{Binding Status}" Foreground="White" Margin="0,5,0,10" />
+                            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                                <Button Content="🗑️" Command="{Binding DataContext.DeleteJobCommand, RelativeSource={RelativeSource AncestorType=Window}}" />
+                                <Button Content="▶️/⏸️" Command="{Binding DataContext.ToggleJobCommand, RelativeSource={RelativeSource AncestorType=Window}}" />
+                            </StackPanel>
+                        </StackPanel>
+                    </DataTemplate>
+                    <DataTemplate DataType="{x:Type vm:JobCreationViewModel}">
+                        <StackPanel Margin="10">
+                            <TextBlock Text="Backup Job Creation" Foreground="White" FontSize="16" Margin="0,0,0,10" />
+                            <TextBlock Text="Name:" Foreground="White" Margin="0,0,0,5" />
+                            <TextBox Text="{Binding Name}" />
+                            <TextBlock Text="Source Directory:" Foreground="White" Margin="0,10,0,5" />
+                            <TextBox Text="{Binding SourceDirectory}" />
+                            <TextBlock Text="Target Directory:" Foreground="White" Margin="0,10,0,5" />
+                            <TextBox Text="{Binding TargetDirectory}" />
+                            <TextBlock Text="Type:" Foreground="White" Margin="0,10,0,5" />
+                            <ComboBox SelectedItem="{Binding BackupType}">
+                                <ComboBoxItem Content="Full" />
+                                <ComboBoxItem Content="Differential" />
+                            </ComboBox>
+                            <Button Content="✔️" Command="{Binding DataContext.CreateJobCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                                    Background="#FF28A745" Foreground="White" Margin="0,10,0,0" HorizontalAlignment="Right" />
+                        </StackPanel>
+                    </DataTemplate>
+                </ContentControl.Resources>
+            </ContentControl>
+        </Border>
+
+        <!-- Settings Button -->
+        <Button Content="⚙️" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="10">
+            <Button.ContextMenu>
+                <ContextMenu>
+                    <MenuItem Header="Langue">
+                        <MenuItem Header="EN" Command="{Binding SetLanguageCommand}" CommandParameter="EN" />
+                        <MenuItem Header="FR" Command="{Binding SetLanguageCommand}" CommandParameter="FR" />
+                    </MenuItem>
+                    <MenuItem Header="Encryption" Command="{Binding ShowEncryptionInputCommand}" />
+                    <MenuItem Header="Blocking programs" Command="{Binding ShowBlockingProgramsInputCommand}" />
+                </ContextMenu>
+            </Button.ContextMenu>
+        </Button>
+
+        <!-- Title -->
+        <TextBlock Text="EasySave" FontSize="24" Foreground="White"
+                   HorizontalAlignment="Center" VerticalAlignment="Top" Margin="0,10,0,0" />
+
+        <!-- Popup -->
+        <Grid>
+            <Rectangle Fill="Black" Opacity="0.5" Visibility="{Binding IsPopupVisible, Converter={StaticResource BooleanToVisibilityConverter}}" />
+            <Popup IsOpen="{Binding IsPopupVisible}" Placement="Center">
+                <Border Background="#FF333333" BorderBrush="White" BorderThickness="1" Padding="10">
+                    <StackPanel>
+                        <TextBlock Text="{Binding PopupTitle}" Foreground="White" Margin="0,0,0,10" />
+                        <TextBox Text="{Binding PopupInput}" Width="200" />
+                        <Button Content="Save" Command="{Binding SavePopupInputCommand}" Background="#FF28A745" Foreground="White" Margin="0,10,0,0" />
+                    </StackPanel>
+                </Border>
+            </Popup>
+        </Grid>
+    </Grid>
 </Window>

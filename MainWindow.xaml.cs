@@ -1,17 +1,13 @@
 ﻿using System.Windows;
 
-namespace SimpleWpfApp
+namespace EasySave
 {
     public partial class MainWindow : Window
     {
         public MainWindow()
         {
             InitializeComponent();
-        }
-
-        private void Button_Click(object sender, RoutedEventArgs e)
-        {
-            MyTextBlock.Text = "Tu as cliqué !";
+            DataContext = new ViewModels.MainViewModel();
         }
     }
 }

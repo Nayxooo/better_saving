@@ -2,7 +2,7 @@
 using System.Data;
 using System.Windows;
 
-namespace better_saving
+namespace EasySave
 {
     /// <summary>
     /// Interaction logic for App.xaml

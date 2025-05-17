@@ -1,5 +1,5 @@
-using better_saving.Models;
-using System.ComponentModel;
+using better_saving.Models; 
+using System.ComponentModel; 
 using System.Windows.Input; // Added for ICommand
 using System.Threading; // Added for CancellationTokenSource
 using System.Threading.Tasks; // Added for Task
@@ -23,10 +23,10 @@ namespace better_saving.ViewModels
         public BackupStatusViewModel(backupJob selectedJob, MainViewModel? mainViewModel = null)
         {
             _selectedJob = selectedJob;
-            _mainViewModel = mainViewModel; 
+            _mainViewModel = mainViewModel;
             _selectedJob.PropertyChanged += SelectedJob_PropertyChanged;
 
-            PauseResumeJobCommand = new RelayCommand(ExecutePauseResumeJob); // Removed CanExecute predicate
+            PauseResumeJobCommand = new RelayCommand(ExecutePauseResumeJob, CanExecutePauseResumeJob);
             DeleteJobCommand = new RelayCommand(ExecuteDeleteJob, CanExecuteDeleteJob);
         }
 
@@ -73,13 +73,13 @@ namespace better_saving.ViewModels
                 // Add other properties if needed
             }
         }
-
         // Expose properties of SelectedJob that BackupStatusView will bind to
+
         public string JobName => SelectedJob.Name;
         public string SourceDirectory => SelectedJob.SourceDirectory;
         public string TargetDirectory => SelectedJob.TargetDirectory;
         public string JobType => SelectedJob.Type.ToString();
-        public string JobState => SelectedJob.State.ToString(); // This is the string representation for UI
+        public string JobState => SelectedJob.State.ToString();
         public byte JobProgress => SelectedJob.Progress;
         public long TotalFilesToCopy => SelectedJob.TotalFilesToCopy;
         public long TotalFilesCopied => SelectedJob.TotalFilesCopied;
@@ -90,13 +90,20 @@ namespace better_saving.ViewModels
         public ICommand PauseResumeJobCommand { get; }
         public ICommand DeleteJobCommand { get; }
 
-        // Removed CanExecutePauseResumeJob method
-        // private bool CanExecutePauseResumeJob(object? parameter)
-        // {
-        //     return SelectedJob.State == JobState.Working || SelectedJob.State == JobState.Paused || SelectedJob.State == JobState.Idle;
-        // }
+        //removed CanExecutePauseResumeJob method
 
-        private async void ExecutePauseResumeJob(object? parameter) // Made async void
+        private bool CanExecutePauseResumeJob(object? parameter)
+        {
+            return (SelectedJob.State == JobStates.Working ||
+                    SelectedJob.State == JobStates.Idle ||
+                    SelectedJob.State == JobStates.Stopped ||
+                    SelectedJob.State == JobStates.Failed ||
+                    SelectedJob.State == JobStates.Finished) &&
+                    (_mainViewModel == null || !_mainViewModel.IsSoftwareRunning());
+        }
+
+
+        private async void ExecutePauseResumeJob(object? parameter)
         {
             if (SelectedJob == null) return;
 
@@ -104,10 +111,18 @@ namespace better_saving.ViewModels
 
             // Logger is essential for starting or resuming a job.
             // If the job is already working, we are pausing it, so logger isn't strictly needed for the pause action itself.
-            if (logger == null && (SelectedJob.State != JobStates.Working)) 
+            if (logger == null && SelectedJob.State != JobStates.Working)
             {
                 SelectedJob.ErrorMessage = "Logger not available. Cannot start/resume job.";
-                OnPropertyChanged(nameof(ErrorMessage)); 
+                OnPropertyChanged(nameof(ErrorMessage));
+                return;
+            }
+
+            if (_mainViewModel?.IsSoftwareRunning() == true)
+            {
+                SelectedJob.ErrorMessage = $"Cannot start/resume job: {_mainViewModel.GetRunningBlockedSoftware()} is running.";
+                _mainViewModel.ListVM.GetLogger().LogBackupDetails(DateTime.Now.ToString("o"), SelectedJob.Name, "SystemOperation", SelectedJob.ErrorMessage, 0, 0);
+                OnPropertyChanged(nameof(ErrorMessage));
                 return;
             }
 
@@ -119,7 +134,7 @@ namespace better_saving.ViewModels
                     if (_jobExecutionCts != null && !_jobExecutionCts.IsCancellationRequested)
                     {
                         _jobExecutionCts.Cancel();
-                        // ExecuteAsync in BackupJob should handle the OperationCanceledException 
+                        // ExecuteAsync in BackupJob should handle the OperationCanceledException
                         // and set the job's state to Stopped.
                     }
                 }
@@ -128,11 +143,11 @@ namespace better_saving.ViewModels
                          SelectedJob.State == JobStates.Failed ||
                          SelectedJob.State == JobStates.Finished) // Allow re-running/resuming from these states
                 {
-                    // RESUME or START action
+                    // START or RESUME action
                     _jobExecutionCts?.Dispose(); // Dispose any existing CTS
                     _jobExecutionCts = new CancellationTokenSource();
 
-                    // Execute the job on a background thread
+                    // Execute the job on a background thread    
                     await Task.Run(async () =>
                     {
                         try
@@ -201,7 +216,7 @@ namespace better_saving.ViewModels
                 _mainViewModel.CurrentView = null; // Clear the detail view, returning to the default (job list)
 
                 // Clean up resources associated with this job in this ViewModel instance
-                UnsubscribeFromJobEvents(); 
+                UnsubscribeFromJobEvents();
             }
         }
 

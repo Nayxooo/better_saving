@@ -2,23 +2,62 @@
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:vm="clr-namespace:better_saving.ViewModels"
+        xmlns:local="clr-namespace:better_saving"
         Title="EasySave" Height="600" Width="1000" Background="#FF1E1E1E">
-    <Window.DataContext>
-        <vm:MainViewModel/>
-    </Window.DataContext>
+    <Window.Resources>
+        <local:NullToVisibilityConverter x:Key="NullToVisibilityConverter"/>
+        <DataTemplate DataType="{x:Type vm:BackupCreationViewModel}">
+            <StackPanel Margin="10">
+                <TextBlock Text="Create New Backup Job" Foreground="White" FontSize="16"/>
+                <TextBlock Text="Name:" Foreground="White"/>
+                <TextBox Text="{Binding Name}" Margin="0,5"/>
+                <TextBlock Text="Source Directory:" Foreground="White"/>
+                <TextBox Text="{Binding SourceDirectory}" Margin="0,5"/>
+                <Button Content="Browse..." Command="{Binding SelectSourceDirectoryCommand}" Margin="0,5"/>
+                <TextBlock Text="Target Directory:" Foreground="White"/>
+                <TextBox Text="{Binding TargetDirectory}" Margin="0,5"/>
+                <Button Content="Browse..." Command="{Binding SelectTargetDirectoryCommand}" Margin="0,5"/>
+                <TextBlock Text="Backup Type:" Foreground="White"/>
+                <RadioButton Content="Full" IsChecked="{Binding IsFullBackup}" Foreground="White" Margin="0,5"/>
+                <RadioButton Content="Differential" IsChecked="{Binding IsDiffBackup}" Foreground="White" Margin="0,5"/>
+                <StackPanel Orientation="Horizontal" Margin="0,10">
+                    <Button Content="Create" Command="{Binding CreateCommand}" Margin="5"/>
+                    <Button Content="Cancel" Command="{Binding CancelCommand}" Margin="5"/>
+                </StackPanel>
+            </StackPanel>
+        </DataTemplate>
+        <DataTemplate DataType="{x:Type vm:BackupStatusViewModel}">
+            <StackPanel Margin="10">
+                <TextBlock Text="Job Status" Foreground="White" FontSize="16"/>
+                <TextBlock Text="{Binding JobName}" Foreground="White"/>
+                <TextBlock Text="{Binding JobState}" Foreground="White"/>
+                <TextBlock Text="{Binding ErrorMessage}" Foreground="Red" Visibility="{Binding ErrorMessage, Converter={StaticResource NullToVisibilityConverter}}"/>
+                <StackPanel Orientation="Horizontal" Margin="0,10">
+                    <Button Content="Pause/Resume" Command="{Binding PauseResumeJobCommand}" Margin="5"/>
+                    <Button Content="Delete" Command="{Binding DeleteJobCommand}" Margin="5"/>
+                </StackPanel>
+            </StackPanel>
+        </DataTemplate>
+        <DataTemplate DataType="{x:Type vm:SettingsViewModel}">
+            <StackPanel Margin="10">
+                <TextBlock Text="Settings" Foreground="White" FontSize="16"/>
+                <TextBlock Text="Blocked Software (comma-separated, e.g., calc.exe,notepad.exe):" Foreground="White"/>
+                <TextBox Text="{Binding BlockedSoftwareText}" Margin="0,5"/>
+                <StackPanel Orientation="Horizontal" Margin="0,10">
+                    <Button Content="Save" Command="{Binding SaveCommand}" Margin="5"/>
+                    <Button Content="Cancel" Command="{Binding CancelCommand}" Margin="5"/>
+                </StackPanel>
+            </StackPanel>
+        </DataTemplate>
+    </Window.Resources>
     <Grid>
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="250"/>
             <ColumnDefinition Width="*"/>
         </Grid.ColumnDefinitions>
 
-        <!-- Left panel for BackupListView -->
-        <ContentControl Grid.Column="0"
-                        Content="{Binding ListVM}"
-            />
+        <ContentControl Grid.Column="0" Content="{Binding ListVM}"/>
 
-        <!-- Right panel for other content, e.g., BackupCreationView or status -->
-        <ContentControl Grid.Column="1"
-                        Content="{Binding CurrentView}"/>
+        <ContentControl Grid.Column="1" Content="{Binding CurrentView}"/>
     </Grid>
 </Window>

@@ -16,11 +16,18 @@ namespace better_saving.ViewModels
         private bool _isAlphabeticalSort = false;
         private ObservableCollection<backupJob> _jobs = new ObservableCollection<backupJob>();
         private readonly Logger _logger;
+        private string? _errorMessage;
 
         public ObservableCollection<backupJob> Jobs
         {
             get => _jobs;
             set => SetProperty(ref _jobs, value);
+        }
+
+        public string? ErrorMessage
+        {
+            get => _errorMessage;
+            set => SetProperty(ref _errorMessage, value);
         }
 
         public ICommand CreateJobCommand { get; }
@@ -31,12 +38,12 @@ namespace better_saving.ViewModels
         public BackupListViewModel(MainViewModel mainViewModel)
         {
             _mainViewModel = mainViewModel;
-            _logger = new Logger(); 
+            _logger = new Logger();
             _logger.SetJobProvider(() => Jobs); // Provide the Jobs collection to the logger
             LoadJobsFromStateLog(); // Renamed method call
 
             CreateJobCommand = new RelayCommand(_ => CreateNewJob());
-            StartAllJobsCommand = new RelayCommand(_ => StartAllJobs(), _ => Jobs.Any(j => j.State != JobStates.Working));
+            StartAllJobsCommand = new RelayCommand(_ => StartAllJobs(), _ => CanStartAllJobs());
             FilterJobsCommand = new RelayCommand(_ => FilterJobs());
             ShowJobDetailsCommand = new RelayCommand(param => ShowJobDetails(param as backupJob));
         }
@@ -48,7 +55,7 @@ namespace better_saving.ViewModels
 
         private void LoadJobsFromStateLog() // Renamed method
         {
-            var loadedJobs = _logger.LoadJobsState(); 
+            var loadedJobs = _logger.LoadJobsState();
             if (loadedJobs != null)
             {
                 Jobs = new ObservableCollection<backupJob>(loadedJobs);
@@ -68,30 +75,46 @@ namespace better_saving.ViewModels
         {
             Jobs.Add(job);
             _logger.UpdateAllJobsState(); // Logger now gets jobs via provider
-            OnPropertyChanged(nameof(Jobs)); 
+            OnPropertyChanged(nameof(Jobs));
         }
 
-        public void RemoveJob(backupJob jobToRemove) 
+        public void RemoveJob(backupJob jobToRemove)
         {
             if (Jobs.Contains(jobToRemove))
             {
                 Jobs.Remove(jobToRemove);
-                _logger.UpdateAllJobsState(); // Logger now gets jobs via provider
-                OnPropertyChanged(nameof(Jobs)); 
+                _logger.UpdateAllJobsState();
+                OnPropertyChanged(nameof(Jobs));
             }
         }
-
         /// <summary>
         /// Shows the backup creation view
         /// </summary>
+
         private void CreateNewJob()
         {
-            _mainViewModel.ShowCreateJobViewInternal(); // Corrected method name
-        }        /// <summary>
+            _mainViewModel.ShowCreateJobViewInternal();
+        }
+        /// <summary>
         /// Starts all backup jobs
         /// </summary>
+
+        private bool CanStartAllJobs()
+        {
+            // Check if any job is not in the Working state and if no blocked software is running
+            return Jobs.Any(j => j.State != JobStates.Working) && !_mainViewModel.IsSoftwareRunning();
+        }
+
         private void StartAllJobs()
         {
+            if (_mainViewModel.IsSoftwareRunning())
+            {
+                // If any blocked software is running, set the error message and log it
+                ErrorMessage = $"Cannot start jobs: {_mainViewModel.GetRunningBlockedSoftware()} is running.";
+                _logger.LogBackupDetails(DateTime.Now.ToString("o"), "System", "StartAllJobs", ErrorMessage, 0, 0);
+                return;
+            }
+
             // For each job in Jobs collection, start the backup process asynchronously
             foreach (var job in Jobs)
             {
@@ -100,7 +123,7 @@ namespace better_saving.ViewModels
                     // Start each job in a separate task to allow them to run in parallel
                     Task.Run(async () =>
                     {
-                        // Create a cancellation token source for this job
+                        // Create a CancellationTokenSource for each job
                         var cts = new CancellationTokenSource();
                         try
                         {
@@ -111,18 +134,19 @@ namespace better_saving.ViewModels
                         {
                             job.ErrorMessage = $"Error starting job: {ex.Message}";
                             job.State = JobStates.Failed;
-                            OnPropertyChanged(nameof(Jobs)); // Update UI on error
+                            OnPropertyChanged(nameof(Jobs)); // update UI on error
                         }
                     });
                 }
             }
-            
+
             _logger.UpdateAllJobsState(); // Logger now gets jobs via provider
             // Notify UI to refresh job list after starting all jobs
             OnPropertyChanged(nameof(Jobs));
         }        /// <summary>
-        /// Filters backup jobs based on certain criteria
-        /// </summary>
+                 /// Filters backup jobs based on certain criteria
+                 /// </summary>
+
         private void FilterJobs()
         {
             _isAlphabeticalSort = !_isAlphabeticalSort; // Toggle sort mode
@@ -159,8 +183,7 @@ namespace better_saving.ViewModels
                 _mainViewModel.ShowJobStatus(job);
             }
         }
-
-        // Method to be called by BackupCreationViewModel
+         // Method to be called by BackupCreationViewModel
         // public void AddJobToList(backupJob newJob)
         // {
         //     Jobs.Add(newJob);

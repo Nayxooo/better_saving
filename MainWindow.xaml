@@ -2,56 +2,35 @@
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:vm="clr-namespace:better_saving.ViewModels"
+        xmlns:views="clr-namespace:better_saving.Views"
         xmlns:local="clr-namespace:better_saving"
         Title="EasySave" Height="600" Width="1000" Background="#FF1E1E1E">
     <Window.Resources>
         <local:NullToVisibilityConverter x:Key="NullToVisibilityConverter"/>
         <DataTemplate DataType="{x:Type vm:BackupCreationViewModel}">
-            <StackPanel Margin="10">
-                <TextBlock Text="Create New Backup Job" Foreground="White" FontSize="16"/>
-                <TextBlock Text="Name:" Foreground="White"/>
-                <TextBox Text="{Binding Name}" Margin="0,5"/>
-                <TextBlock Text="Source Directory:" Foreground="White"/>
-                <TextBox Text="{Binding SourceDirectory}" Margin="0,5"/>
-                <Button Content="Browse..." Command="{Binding SelectSourceDirectoryCommand}" Margin="0,5"/>
-                <TextBlock Text="Target Directory:" Foreground="White"/>
-                <TextBox Text="{Binding TargetDirectory}" Margin="0,5"/>
-                <Button Content="Browse..." Command="{Binding SelectTargetDirectoryCommand}" Margin="0,5"/>
-                <TextBlock Text="Backup Type:" Foreground="White"/>
-                <RadioButton Content="Full" IsChecked="{Binding IsFullBackup}" Foreground="White" Margin="0,5"/>
-                <RadioButton Content="Differential" IsChecked="{Binding IsDiffBackup}" Foreground="White" Margin="0,5"/>
-                <StackPanel Orientation="Horizontal" Margin="0,10">
-                    <Button Content="Create" Command="{Binding CreateCommand}" Margin="5"/>
-                    <Button Content="Cancel" Command="{Binding CancelCommand}" Margin="5"/>
-                </StackPanel>
-            </StackPanel>
+            <views:BackupCreationView />
         </DataTemplate>
         <DataTemplate DataType="{x:Type vm:BackupStatusViewModel}">
-            <StackPanel Margin="10">
-                <TextBlock Text="Job Status" Foreground="White" FontSize="16"/>
-                <TextBlock Text="{Binding JobName}" Foreground="White"/>
-                <TextBlock Text="{Binding JobState}" Foreground="White"/>
-                <TextBlock Text="{Binding ErrorMessage}" Foreground="Red" Visibility="{Binding ErrorMessage, Converter={StaticResource NullToVisibilityConverter}}"/>
-                <StackPanel Orientation="Horizontal" Margin="0,10">
-                    <Button Content="Pause/Resume" Command="{Binding PauseResumeJobCommand}" Margin="5"/>
-                    <Button Content="Delete" Command="{Binding DeleteJobCommand}" Margin="5"/>
-                </StackPanel>
-            </StackPanel>
+            <views:BackupStatusView />
         </DataTemplate>
         <DataTemplate DataType="{x:Type vm:SettingsViewModel}">
             <StackPanel Margin="10">
-                <!-- En-tête -->
                 <TextBlock Text="{DynamicResource SettingsTitle}"
                    Foreground="White"
                    FontSize="16"/>
 
-                <!-- Liste des logiciels bloqués -->
                 <TextBlock Text="{DynamicResource BlockedSoftwareLabel}"
                    Foreground="White"/>
                 <TextBox Text="{Binding BlockedSoftwareText}"
                  Margin="0,5"/>
 
-                <!-- Sélecteur de langue -->
+                <TextBlock Text="Extensions de fichiers à chiffrer :"
+                 Foreground="White"
+                 Margin="0,10,0,0"/>
+                <TextBox Text="{Binding FileExtensionsText}"
+                 Margin="0,5"
+                 ToolTip="Exemple : .json, .mp4"/>
+
                 <StackPanel Orientation="Horizontal"
                     HorizontalAlignment="Left"
                     Margin="0,10 0,0">
@@ -66,7 +45,6 @@
                     CommandParameter="en-US"/>
                 </StackPanel>
 
-                <!-- Actions principales -->
                 <StackPanel Orientation="Horizontal"
                     Margin="0,10">
                     <Button Content="{DynamicResource Save}"

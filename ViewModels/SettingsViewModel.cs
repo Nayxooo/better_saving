@@ -1,5 +1,6 @@
 using System.Linq;
 using System.Windows.Input;
+using System.Collections.Generic;
 
 namespace better_saving.ViewModels
 {
@@ -7,6 +8,7 @@ namespace better_saving.ViewModels
     {
         private readonly MainViewModel _mainVM;
         private string _blockedSoftwareText;
+        private string _fileExtensionsText;
 
         #region Propriétés liées à l’interface
 
@@ -16,16 +18,18 @@ namespace better_saving.ViewModels
             set => SetProperty(ref _blockedSoftwareText, value);
         }
 
+        public string FileExtensionsText
+        {
+            get => _fileExtensionsText;
+            set => SetProperty(ref _fileExtensionsText, value);
+        }
+
         #endregion
 
         #region Commandes
 
         public ICommand SaveCommand { get; }
         public ICommand CancelCommand { get; }
-
-        /// <summary>
-        /// Commande appelée par les boutons « FR » / « EN ».
-        /// </summary>
         public ICommand SetLanguageCommand { get; }
 
         #endregion
@@ -34,17 +38,14 @@ namespace better_saving.ViewModels
         {
             _mainVM = mainVM;
 
-            // Texte initial (= liste bloquée courante)
             _blockedSoftwareText = string.Join(",", _mainVM.GetBlockedSoftware());
+            _fileExtensionsText = ""; // valeur initiale vide ou à récupérer depuis une source de config
 
-            /*---------- Commandes ----------*/
             SaveCommand = new RelayCommand(_ => Save());
             CancelCommand = new RelayCommand(_ => Cancel());
 
             SetLanguageCommand = _mainVM.ChangeLanguageCommand;
         }
-
-        /*------------------ Méthodes privées ------------------*/
 
         private void Save()
         {
@@ -56,7 +57,14 @@ namespace better_saving.ViewModels
 
             _mainVM.SetBlockedSoftware(softwareList);
 
-            // On ferme la vue ( CurrentView = null => retour à la liste )
+            var extensions = FileExtensionsText
+                             .Split(',', System.StringSplitOptions.RemoveEmptyEntries)
+                             .Select(e => e.Trim().ToLower())
+                             .Where(e => e.StartsWith("."))
+                             .ToList();
+
+            _mainVM.EncryptFilesInLogs(extensions);
+
             _mainVM.CurrentView = null;
         }
 

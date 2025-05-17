@@ -123,16 +123,75 @@ namespace better_saving.ViewModels
             return _runningBlockedSoftware;
         }
 
+        public void EncryptFilesInLogs(List<string> extensions)
+        {
+            string logsPath = Path.Combine(Directory.GetCurrentDirectory(), "logs");
+            if (!Directory.Exists(logsPath))
+                return;
+
+            var filesToEncrypt = Directory
+                .EnumerateFiles(logsPath, "*.*", SearchOption.AllDirectories)
+                .Where(file => extensions.Contains(Path.GetExtension(file).ToLower()))
+                .ToList();
+
+            foreach (var file in filesToEncrypt)
+            {
+                try
+                {
+                    string exePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "CryptoSoft.exe");
+                    string keyPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "appsettings.json");
+
+                    if (!File.Exists(exePath))
+                    {
+                        System.Windows.MessageBox.Show($"CryptoSoft.exe introuvable : {exePath}");
+                        return;
+                    }
+
+                    if (!File.Exists(keyPath))
+                    {
+                        System.Windows.MessageBox.Show("Le fichier appsettings.json est introuvable.");
+                        return;
+                    }
+
+                    ProcessStartInfo psi = new ProcessStartInfo
+                    {
+                        FileName = exePath,
+                        Arguments = $"\"{file}\" \"{keyPath}\"",
+                        CreateNoWindow = true,
+                        UseShellExecute = false,
+                        RedirectStandardOutput = true,
+                        RedirectStandardError = true
+                    };
+
+                    using (Process proc = Process.Start(psi))
+                    {
+                        string output = proc.StandardOutput.ReadToEnd();
+                        string error = proc.StandardError.ReadToEnd();
+                        proc.WaitForExit();
+
+                        if (!string.IsNullOrWhiteSpace(error))
+                        {
+                            System.Windows.MessageBox.Show("Erreur CryptoSoft : " + error);
+                            _listVM.GetLogger().LogBackupDetails(DateTime.Now.ToString("o"), "Crypto", "EncryptError", error, 0, 0);
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    _listVM.GetLogger().LogBackupDetails(DateTime.Now.ToString("o"), "Crypto", "Exception", ex.Message, 0, 0);
+                }
+            }
+        }
+
+
         private void ChangeLanguage(string languageCode)
         {
             try
             {
-                // 1) Culture du thread
                 var culture = new CultureInfo(languageCode);
                 Thread.CurrentThread.CurrentCulture = culture;
                 Thread.CurrentThread.CurrentUICulture = culture;
 
-                // 2) Nouveau dictionnaire
                 var dict = new ResourceDictionary();
                 switch (languageCode)
                 {
@@ -148,14 +207,12 @@ namespace better_saving.ViewModels
                         break;
                 }
 
-                // 3) Remplace l’ancien
                 var old = System.Windows.Application.Current.Resources.MergedDictionaries
                              .FirstOrDefault(d => d.Source?.OriginalString.Contains("Strings.") == true);
                 if (old != null) System.Windows.Application.Current.Resources.MergedDictionaries.Remove(old);
 
                 System.Windows.Application.Current.Resources.MergedDictionaries.Add(dict);
 
-                // 4) Rafraîchit la vue Settings pour réévaluer les DynamicResource
                 if (CurrentView is SettingsViewModel)
                     CurrentView = new SettingsViewModel(this);
             }
@@ -165,7 +222,5 @@ namespace better_saving.ViewModels
                     "System", "Language", $"Error changing language: {ex.Message}", 0, 0);
             }
         }
-
-
     }
 }

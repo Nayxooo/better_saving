@@ -1,12 +1,12 @@
 ﻿using System.Windows;
 
-namespace EasySave
+namespace better_saving
 {
     public partial class MainWindow : Window
-    {
-        public MainWindow()
+    {        public MainWindow()
         {
             InitializeComponent();
+            // Assign our MainViewModel as the DataContext
             DataContext = new ViewModels.MainViewModel();
         }
     }

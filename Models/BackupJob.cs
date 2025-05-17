@@ -1,267 +1,335 @@
 using System;
 using System.Collections.Generic;
-using System.Data;
+using System.ComponentModel;
 using System.IO;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
-using EasySave.Models;
-
+using better_saving.Models; // For JobType, JobStates, Hashing, Backup
 
 // Job class to store job information
-public class backupJob // If this class needs to notify changes, it should implement INotifyPropertyChanged
+public class backupJob : INotifyPropertyChanged
 {
-    public string Name { get; set; }
-    private string SourceDirectory { get; set; }
-    private string TargetDirectory { get; set; }
-    private JobType Type { get; set; }
-    
-    private JobState _state;
-    public JobState State // Made public for ViewModel binding and direct updates
-    { 
-        get { return _state; }
-        set 
-        { 
+    private string _name = string.Empty; // Initialize to default
+    public string Name
+    {
+        get => _name;
+        set
+        {
+            if (_name != value)
+            {
+                _name = value;
+                OnPropertyChanged();
+            }
+        }
+    }
+
+    private string _sourceDirectory = string.Empty; // Initialize to default
+    public string SourceDirectory
+    {
+        get => _sourceDirectory;
+        private set
+        {
+            if (_sourceDirectory != value)
+            {
+                _sourceDirectory = value;
+                OnPropertyChanged();
+            }
+        }
+    }
+
+    private string _targetDirectory = string.Empty; // Initialize to default
+    public string TargetDirectory
+    {
+        get => _targetDirectory;
+        private set
+        {
+            if (_targetDirectory != value)
+            {
+                _targetDirectory = value;
+                OnPropertyChanged();
+            }
+        }
+    }
+
+    private JobType _type;
+    public JobType Type
+    {
+        get => _type;
+        private set
+        {
+            if (_type != value)
+            {
+                _type = value;
+                OnPropertyChanged();
+            }
+        }
+    }
+
+    private JobStates _state;
+    public JobStates State
+    {
+        get => _state;
+        set
+        {
             if (_state != value)
             {
                 _state = value;
-                // Consider how to notify ViewModel: either this class implements INotifyPropertyChanged,
-                // or ViewModel subscribes to an event, or ViewModel polls.
-                // For simplicity in this step, direct update from ViewModel or via ExecuteAsync's outcome.
+                OnPropertyChanged();
+            }
+        }
+    }
+
+    private int _totalFilesToCopy;
+    public int TotalFilesToCopy
+    {
+        get => _totalFilesToCopy;
+        private set
+        {
+            if (_totalFilesToCopy != value)
+            {
+                _totalFilesToCopy = value;
+                OnPropertyChanged();
+            }
+        }
+    }
+
+    private long _totalFilesCopied;
+    public long TotalFilesCopied
+    {
+        get => _totalFilesCopied;
+        internal set // Can be set from within the assembly, e.g. by ExecuteAsync
+        {
+            if (_totalFilesCopied != value)
+            {
+                _totalFilesCopied = value;
+                OnPropertyChanged();
             }
         }
     }
     
-    private int TotalFilesToCopy { get; set; }
-    private ulong TotalFilesSize { get; set; }
-    private int NumberFilesLeftToDo { get; set; }
-    private List<string> FilesToBackup { get; set; } = new List<string>(); // Initialize
+    private ulong _totalSizeToCopy;
+    public ulong TotalSizeToCopy
+    {
+        get => _totalSizeToCopy;
+        private set
+        {
+            if (_totalSizeToCopy != value)
+            {
+                _totalSizeToCopy = value;
+                OnPropertyChanged();
+            }
+        }
+    }
+
+    private long _totalSizeCopied;
+    public long TotalSizeCopied
+    {
+        get => _totalSizeCopied;
+        internal set // Can be set from within the assembly
+        {
+            if (_totalSizeCopied != value)
+            {
+                _totalSizeCopied = value;
+                OnPropertyChanged();
+            }
+        }
+    }
+
+    private int _numberFilesLeftToDo;
+    public int NumberFilesLeftToDo
+    {
+        get => _numberFilesLeftToDo;
+        private set
+        {
+            if (_numberFilesLeftToDo != value)
+            {
+                _numberFilesLeftToDo = value;
+                OnPropertyChanged();
+            }
+        }
+    }
+
+    private List<string> FilesToBackup { get; set; } = new List<string>();
     
-    private int IdleTime { get; set; } = 100; // Default idle time
+    public int IdleTime { get; set; } = 300000; // 5 minutes default idle time
 
     private byte _progress;
-    public byte Progress // Made public for ViewModel binding and direct updates
-    { 
-        get { return _progress; }
-        set 
+    public byte Progress
+    {
+        get => _progress;
+        set
         {
             if (_progress != value)
             {
                 _progress = value;
-                // Similar to State, consider notification mechanism.
+                OnPropertyChanged();
             }
-        } 
+        }
     }
-    
-    public string? ErrorMessage { get; set; } // Made public
-    private readonly Logger? BackupJobLogger; // Nullable if a job might not have its own logger
 
-    // Constructor
-    public backupJob(string name, string sourceDir, string targetDir, JobType type, Logger logger)
+    private string? _errorMessage;
+    public string? ErrorMessage
     {
+        get => _errorMessage;
+        set
+        {
+            if (_errorMessage != value)
+            {
+                _errorMessage = value;
+                OnPropertyChanged();
+            }
+        }
+    }
+
+    private readonly Logger? BackupJobLogger;
+    public event PropertyChangedEventHandler? PropertyChanged;
+
+    protected virtual void OnPropertyChanged([CallerMemberName] string? propertyName = null)
+    {
+        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+    }
+
+    public backupJob(string name, string sourceDir, string targetDir, JobType type, Logger? loggerInstance)
+    {
+        // Initialize properties first
         Name = name;
         SourceDirectory = sourceDir;
         TargetDirectory = targetDir;
-        BackupJobLogger = logger;
         Type = type;
-        State = JobState.Idle;
-        Progress = 0;
-        // Initialize BackupJobLogger if a separate log file per job is desired
-        // For now, let's assume job-specific logging might be simpler or handled by the main app logger.
-        // If each job needs its own Logger instance:
-        // BackupJobLogger = new Logger(Path.GetDirectoryName(jobLogFilePath), Path.GetFileName(jobLogFilePath));
-        // For this refactoring, we'll assume detailed file copy logs go through the applicationLogger passed to ExecuteAsync.
+        State = JobStates.Idle;
+        BackupJobLogger = loggerInstance;
         
-        InitializeJobDetails();
+        Progress = 0;
+        TotalFilesCopied = 0; // Represents files skipped during scan + files copied during execution
+        TotalSizeCopied = 0;  // Represents size of files skipped + size of files copied
+
+        if (!Directory.Exists(sourceDir))
+        {
+            ErrorMessage = $"Source directory '{sourceDir}' does not exist.";
+            State = JobStates.Failed; 
+            // Initialize counts to reflect failure/no files
+            TotalFilesToCopy = 0;
+            TotalSizeToCopy = 0;
+            NumberFilesLeftToDo = 0;
+            // UpdateFilesCountInternalAsync will not be called or will return early if state is Failed.
+            // However, to be safe, ensure progress is updated.
+            UpdateProgress(); 
+        }
+        else
+        {
+            // Initial scan to set up counts asynchronously
+            _ = UpdateFilesCountInternalAsync();
+        }
     }
-    
-    // Parameterless constructor for JSON deserialization if needed, ensure properties are handled.
-    public backupJob() {
-        // Initialize with default or indicate they need to be set, e.g. by deserializer
-        Name = string.Empty; 
-        SourceDirectory = string.Empty;
-        TargetDirectory = string.Empty;
-        Type = JobType.Full; // Default type
-        State = JobState.Idle;
-        FilesToBackup = new List<string>();
-        // BackupJobLogger can be null if not always used or initialized later
-    }
 
-
-    public string GetSourceDirectory() => SourceDirectory;
-    public string GetTargetDirectory() => TargetDirectory;
-    public JobType GetJobType() => Type;
-    public JobState GetState() => State; // Public property 'State' can be used directly
-    public int GetProgress() => Progress; // Public property 'Progress' can be used directly
-    public string GetErrorMessage() => ErrorMessage ?? "";
-    public int GetTotalFilesToCopy() => TotalFilesToCopy;
-    public ulong GetTotalFilesSize() => TotalFilesSize;
-    public int GetNumberFilesLeftToDo() => NumberFilesLeftToDo;
-
-    private void InitializeJobDetails()
+    private async Task UpdateFilesCountInternalAsync()
     {
+        // Reset state for the new scan.
+        // FilesToBackup is cleared, other counters are reset to accumulate new values.
+        FilesToBackup.Clear();
+        // If this method is called when a job is already in a terminal state (Failed, Stopped),
+        // it might not be desired to change it back to Working.
+        // However, typically this is called for Idle jobs or as part of ExecuteAsync.
+        // For now, let's assume it's okay to set to Working if not already Failed.
+        if (State != JobStates.Failed && State != JobStates.Stopped)
+        {
+            State = JobStates.Working; // Indicate scanning is in progress
+        }
+
+        TotalSizeToCopy = 0;    // Will accumulate total size of ALL files in source.
+        TotalFilesCopied = 0;   // Will accumulate count of files already present/skipped during this scan.
+        TotalSizeCopied = 0;    // Will accumulate size of files already present/skipped during this scan.
+        NumberFilesLeftToDo = 0;// Will be set to FilesToBackup.Count after the scan.
+
+        string[] sourceFiles;
         try
         {
-            FilesToBackup.Clear();
-            TotalFilesToCopy = 0;
-            TotalFilesSize = 0;
-            NumberFilesLeftToDo = 0;
-
-            if (!Directory.Exists(SourceDirectory))
-            {
-                State = JobState.Failed;
-                ErrorMessage = $"Source directory '{SourceDirectory}' not found.";
-                return;
-            }
-
-            var files = Directory.GetFiles(SourceDirectory, "*.*", SearchOption.AllDirectories);
-            FilesToBackup.AddRange(files);
-            TotalFilesToCopy = files.Length;
-            NumberFilesLeftToDo = TotalFilesToCopy;
-            TotalFilesSize = (ulong)files.Sum(f => new FileInfo(f).Length);
-            
-            if (TotalFilesToCopy == 0)
-            {
-                State = JobState.Finished; // Or Idle if no files means nothing to do.
-                Progress = 100;
-            }
-            else
-            {
-                State = JobState.Idle;
-                Progress = 0;
-            }
+            sourceFiles = await Task.Run(() => Directory.GetFiles(SourceDirectory, "*", SearchOption.AllDirectories));
         }
         catch (Exception ex)
         {
-            State = JobState.Failed;
-            ErrorMessage = $"Error initializing job details: {ex.Message}";
+            ErrorMessage = $"Error scanning source directory: {ex.Message}";
+            State = JobStates.Failed;
+            TotalFilesToCopy = 0; // No files to process
+            // Other counts (TotalSizeToCopy, TotalFilesCopied, TotalSizeCopied) remain 0 as initialized.
+            NumberFilesLeftToDo = 0;
+            UpdateProgress(); // Update progress based on failed state
+            return;
         }
-    }
 
+        TotalFilesToCopy = sourceFiles.Length; // Total number of files found in source
 
-    /// <summary>
-    /// Asynchronously executes the backup job.
-    /// </summary>
-    /// <param name="applicationLogger">The main application logger for general logging.</param>
-    /// <param name="onProgressChanged">Action to report progress changes.</param>
-    /// <param name="cancellationToken">Token to monitor for cancellation requests.</param>
-    public async Task ExecuteAsync(Logger applicationLogger, Action<int> onProgressChanged, CancellationToken cancellationToken)
-    {
-        State = JobState.Working;
-        ErrorMessage = null;
-        onProgressChanged(Progress); // Initial progress
-
-        try
+        if (TotalFilesToCopy == 0)
         {
-            if (!Directory.Exists(SourceDirectory))
+            // No files in source, job is effectively finished or idle.
+            // UpdateProgress will handle setting state to Finished if appropriate (e.g., if Idle).
+            if (State == JobStates.Working) State = JobStates.Idle; // If scanning made it working, but no files.
+            UpdateProgress(); 
+            return;
+        }
+
+        // This Task.Run offloads the file processing (FileInfo, Hashing)
+        await Task.Run(() =>
+        {
+            foreach (var file in sourceFiles)
             {
-                throw new DirectoryNotFoundException($"Source directory '{SourceDirectory}' not found.");
-            }
-            if (!Directory.Exists(TargetDirectory))
-            {
-                Directory.CreateDirectory(TargetDirectory);
-            }
+                // Check for cancellation if this scan is part of a cancellable operation
+                // For now, assuming this scan itself isn't directly cancelled mid-way,
+                // but relies on the job's overall state (e.g. if ExecuteAsync is cancelled).
 
-            // Re-evaluate files to backup, especially for differential.
-            // For simplicity, this example re-evaluates all files. A more robust diff backup
-            // would compare against a manifest or last backup state.
-            InitializeJobDetails(); // Recalculate file list and sizes.
-            if (State == JobState.Failed) // If InitializeJobDetails failed
-            {
-                 throw new InvalidOperationException(ErrorMessage ?? "Failed to initialize job details for execution.");
-            }
-            if (TotalFilesToCopy == 0)
-            {
-                State = JobState.Finished;
-                Progress = 100;
-                onProgressChanged(Progress);
-                applicationLogger.UpdateAllJobsState(new List<backupJob> { this }); // Update its own state
-                return;
-            }
-
-
-            NumberFilesLeftToDo = TotalFilesToCopy; // Reset counter
-
-            foreach (var sourceFilePath in new List<string>(FilesToBackup)) // Iterate over a copy in case FilesToBackup is modified
-            {
-                cancellationToken.ThrowIfCancellationRequested();
-
-                string relativePath = Path.GetRelativePath(SourceDirectory, sourceFilePath);
-                string targetFilePath = Path.Combine(TargetDirectory, relativePath);
-
-                // Ensure target subdirectory exists
-                Directory.CreateDirectory(Path.GetDirectoryName(targetFilePath)!);
-
-                bool shouldCopy = true;
-                if (Type == JobType.Diff && File.Exists(targetFilePath))
+                try
                 {
-                    // Basic diff: copy if source is newer or sizes differ.
-                    // A more robust diff would use hashing or compare against a state file.
-                    var sourceInfo = new FileInfo(sourceFilePath);
-                    var targetInfo = new FileInfo(targetFilePath);
-                    if (sourceInfo.LastWriteTimeUtc <= targetInfo.LastWriteTimeUtc && sourceInfo.Length == targetInfo.Length)
-                    {
-                        shouldCopy = false;
-                    }
-                }
+                    var fileInfo = new FileInfo(file);
+                    ulong currentFileSize = (ulong)fileInfo.Length;
 
-                if (shouldCopy)
-                {
-                    int timeTaken = Backup.backupFile(sourceFilePath, targetFilePath); // Corrected: Removed 'Models.' prefix, assuming Backup class is in the same global namespace or accessible via using static.
-                    if (timeTaken >= 0)
+                    // Accumulate total size of all source files
+                    TotalSizeToCopy += currentFileSize;
+
+                    var targetFilePath = Path.Combine(TargetDirectory, Path.GetRelativePath(SourceDirectory, file));
+
+                    if (!File.Exists(targetFilePath) || Type == JobType.Full || (Type == JobType.Diff && !Hashing.CompareFiles(file, targetFilePath)))
                     {
-                        applicationLogger.LogBackupDetails(
-                            DateTime.Now.ToString("o"), // ISO 8601 format
-                            Name,
-                            sourceFilePath,
-                            targetFilePath,
-                            (ulong)new FileInfo(sourceFilePath).Length,
-                            timeTaken
-                        );
+                        // File needs to be backed up
+                        FilesToBackup.Add(file); // Directly add to the member list
                     }
                     else
                     {
-                        // Log failure for this specific file, but continue if possible?
-                        // Or throw to fail the whole job. For now, let's assume we log and continue.
-                        // This part needs more robust error handling strategy.
-                        Console.WriteLine($"Failed to copy {sourceFilePath}"); // Placeholder for more robust logging
+                        // File is already backed up or skipped for this scan
+                        TotalFilesCopied++;         // Directly increment member counter for skipped files
+                        TotalSizeCopied += (long)currentFileSize; // Directly increment member counter for size of skipped files
                     }
                 }
-                
-                NumberFilesLeftToDo--;
-                UpdateProgress();
-                onProgressChanged(Progress); // Report progress
-                
-                // Simulate work or allow other tasks to run
-                await Task.Delay(IdleTime > 0 ? IdleTime : 1, cancellationToken); 
-            }
+                catch (Exception ex)
+                {
+                    // Log or handle individual file scanning errors
+                    Console.WriteLine($"Error processing file {file} during scan: {ex.Message}");
+                    // Optionally, count this as an error for the job or skip the file.
+                    // If a file error makes the job fail, set State = JobStates.Failed and potentially ErrorMessage.
+                }
+            } // End foreach
+        }); // End Task.Run
 
-            State = JobState.Finished;
-            Progress = 100;
-        }
-        catch (OperationCanceledException)
+        // After processing all files, update NumberFilesLeftToDo based on the populated FilesToBackup list
+        NumberFilesLeftToDo = FilesToBackup.Count;
+
+        // If the state was 'Working' due to scan, and scan is done, revert to Idle if no files to backup,
+        // or let ExecuteAsync handle it. UpdateProgress will set to Finished if applicable.
+        if (State == JobStates.Working)
         {
-            State = JobState.Stopped;
-            ErrorMessage = "Job was cancelled by the user.";
+             // UpdateProgress will set to Finished if TotalFilesCopied == TotalFilesToCopy
+             // Otherwise, it remains Working, which is fine if ExecuteAsync is about to run.
+             // If UpdateFilesCount is called standalone, and it's done, it should be Idle if there's work, or Finished.
         }
-        catch (Exception ex)
-        {
-            State = JobState.Failed;
-            ErrorMessage = $"Job execution failed: {ex.Message}";
-            // applicationLogger.LogCriticalEvent($"Job '{Name}' failed: {ex.ToString()}"); // Example of more detailed logging
-        }
-        finally
-        {
-            onProgressChanged(Progress); // Final progress update
-            // The MainViewModel will call UpdateAllJobsState after ExecuteAsync completes.
-        }
+        UpdateProgress(); // Update overall progress and potentially state
+    }
+    
+    public async Task UpdateFilesCountAsync() // Public method to allow external refresh if needed, now async
+    {
+        await UpdateFilesCountInternalAsync();
     }
 
-    /// <summary>
-    /// Updates the progress percentage based on the number of files left to do.
-    /// The progress is calculated as the ratio of completed files to total files.
-    /// If all files are copied, the state is set to Finished.
-    /// </summary>
     private void UpdateProgress()
     {
         if (TotalFilesToCopy == 0)
@@ -270,13 +338,204 @@ public class backupJob // If this class needs to notify changes, it should imple
         }
         else
         {
-            Progress = (byte)(((TotalFilesToCopy - NumberFilesLeftToDo) * 100) / TotalFilesToCopy);
+            Progress = (byte)(TotalFilesCopied * 100 / TotalFilesToCopy);
         }
 
-        if (NumberFilesLeftToDo == 0 && TotalFilesToCopy > 0) // Ensure it was not 0 from start
+        if (Progress >= 100 && (State == JobStates.Working || State == JobStates.Idle) && TotalFilesToCopy > 0)
         {
-            // State will be set to Finished in ExecuteAsync upon successful completion of all files.
-            // This method just updates the Progress byte.
+             // If all files are copied (TotalFilesCopied == TotalFilesToCopy)
+            if (TotalFilesCopied == TotalFilesToCopy)
+            {
+                State = JobStates.Finished;
+            }
         }
+        else if (TotalFilesToCopy == 0 && State == JobStates.Idle) // Empty job considered finished
+        {
+            State = JobStates.Finished;
+        }
+    }
+
+    public async Task ExecuteAsync(CancellationToken cancellationToken)
+    {
+        State = JobStates.Working;
+        await UpdateFilesCountInternalAsync(); // Initial scan or rescan, now async
+
+        try
+        {
+            while (State != JobStates.Stopped && State != JobStates.Failed && !cancellationToken.IsCancellationRequested)
+            {
+                if (NumberFilesLeftToDo == 0)
+                {
+                    // If all files were processed and it became 0, UpdateProgress might have set it to Finished.
+                    // If Finished, we should not go to Idle for continuous backup unless explicitly designed.
+                    // For now, replicating console logic: if finished, it will idle and rescan.
+                    if (State == JobStates.Finished) // If UpdateProgress set it to Finished
+                    {
+                        // Behavior for continuous backup: after finishing, go to Idle and wait.
+                        State = JobStates.Idle; 
+                    }
+
+                    if (State == JobStates.Idle)
+                    {
+                        try
+                        {
+                            await Task.Delay(IdleTime, cancellationToken);
+                        }
+                        catch (TaskCanceledException)
+                        {
+                            State = JobStates.Stopped;
+                            return;
+                        }
+                        if (cancellationToken.IsCancellationRequested) { State = JobStates.Stopped; return; }
+                        
+                        State = JobStates.Working; // Assume work will be done after delay
+                        await UpdateFilesCountInternalAsync(); // Re-scan for changes, now async
+                        if (NumberFilesLeftToDo == 0 && State != JobStates.Failed) // If still nothing after re-scan
+                        {
+                            State = JobStates.Idle; // Go back to idle
+                            continue; 
+                        }
+                    }
+                }
+                
+                if (State == JobStates.Finished && NumberFilesLeftToDo == 0) // If it was set to finished and no files left
+                {
+                     State = JobStates.Idle; // For continuous backup, go to idle then rescan after delay
+                     continue;
+                }
+
+
+                State = JobStates.Working; // Ensure state is working if there are files
+                foreach (var file in FilesToBackup.ToArray()) // ToArray for safe iteration if list could change (though it shouldn't here)
+                {
+                    if (cancellationToken.IsCancellationRequested)
+                    {
+                        State = JobStates.Stopped;
+                        return;
+                    }
+
+                    var relativePath = Path.GetRelativePath(SourceDirectory, file);
+                    var targetFilePath = Path.Combine(TargetDirectory, relativePath);
+                    string? fileTargetDirectory = Path.GetDirectoryName(targetFilePath);
+
+                    if (fileTargetDirectory != null)
+                    {
+                        Directory.CreateDirectory(fileTargetDirectory);
+                    }
+                    else
+                    {
+                        ErrorMessage = $"Error creating target directory for file: {file}";
+                        State = JobStates.Failed;
+                        return;
+                    }
+                    
+                    int timeElapsed = -1;
+                    ulong fileSize = 0;
+                    try
+                    {
+                        var fileInfo = new FileInfo(file);
+                        fileSize = (ulong)fileInfo.Length;
+                        timeElapsed = await Task.Run(() => Backup.backupFile(file, targetFilePath), cancellationToken);
+                    }
+                    catch (Exception ex) // Catch errors during backupFile or FileInfo
+                    {
+                         ErrorMessage = $"Error processing file {file}: {ex.Message}";
+                         State = JobStates.Failed;
+                         // Log this error specifically if needed
+                         // Adjusted to 6 arguments: combine error details into a single message if necessary or log separately.
+                         BackupJobLogger?.LogBackupDetails(DateTime.Now.ToString("yyyy-MM-ddTHH:mm:sszzz"), Name, file, targetFilePath, fileSize, -1 /*, $"TaskRun/BackupFile Error: {ex.Message}"*/);
+                         return;
+                    }
+
+
+                    if (timeElapsed == -1)
+                    {
+                        ErrorMessage = $"Error copying file: {file}";
+                        // Adjusted to 6 arguments
+                        BackupJobLogger?.LogBackupDetails(DateTime.Now.ToString("yyyy-MM-ddTHH:mm:sszzz"), Name, file, targetFilePath, fileSize, timeElapsed /*, ErrorMessage*/);
+                        State = JobStates.Failed;
+                        return;
+                    }
+
+                    BackupJobLogger?.LogBackupDetails(DateTime.Now.ToString("yyyy-MM-ddTHH:mm:sszzz"), Name, file, targetFilePath, fileSize, timeElapsed);
+                    
+                    // Successfully copied
+                    NumberFilesLeftToDo--;
+                    TotalFilesCopied++;
+                    TotalSizeCopied += (long)fileSize;
+                    UpdateProgress(); // Update overall progress and potentially state to Finished
+
+                    if (State == JobStates.Finished) // If UpdateProgress set state to Finished
+                    {
+                        break; // Exit the foreach loop, outer loop will handle idle/rescan
+                    }
+                }
+
+                // After processing a batch, if not stopped/failed/finished, re-scan for continuous backup.
+                if (State == JobStates.Working && !cancellationToken.IsCancellationRequested)
+                {
+                    await UpdateFilesCountInternalAsync(); // Check for new files that might have appeared, now async
+                }
+            }
+        }
+        catch (TaskCanceledException)
+        {
+            State = JobStates.Stopped;
+        }
+        catch (Exception ex)
+        {
+            ErrorMessage = $"Error executing backup: {ex.Message}";
+            State = JobStates.Failed;
+        }
+        finally
+        {
+            if (cancellationToken.IsCancellationRequested && State != JobStates.Failed)
+            {
+                State = JobStates.Stopped;
+            }
+            else if (State == JobStates.Working) // If loop terminated while still "Working"
+            {
+                State = JobStates.Stopped;
+            }
+        }
+    }
+
+    public void Execute()
+    {
+        // For synchronous execution, create a CancellationTokenSource if not managed externally for this call
+        var cts = new CancellationTokenSource();
+        try
+        {
+            ExecuteAsync(cts.Token).ConfigureAwait(false).GetAwaiter().GetResult();
+        }
+        catch (Exception ex)
+        {
+            ErrorMessage = $"Synchronous execution wrapper error: {ex.Message}";
+            State = JobStates.Failed;
+            // Log or handle as needed
+        }
+    }
+
+    public override string ToString()
+    {
+        string escapedSourceDir = SourceDirectory.Replace("\\\\", "\\\\\\\\").Replace("\\", "\\\\");
+        string escapedTargetDir = TargetDirectory.Replace("\\\\", "\\\\\\\\").Replace("\\", "\\\\");
+        string escapedErrorMessage = ErrorMessage?.Replace("\\\\", "\\\\\\\\").Replace("\\", "\\\\") ?? "";
+
+        return string.Format(@"    {{
+        ""Name"": ""{0}"",
+        ""SourceDirectory"": ""{1}"",
+        ""TargetDirectory"": ""{2}"",
+        ""Type"": ""{3}"",
+        ""State"": ""{4}"",
+        ""ErrorMessage"": ""{5}"",
+        ""TotalFilesToCopy"": {6},
+        ""TotalFilesCopied"": {7},
+        ""TotalSizeToCopy"": {8},
+        ""TotalSizeCopied"": {9},
+        ""NumberFilesLeftToDo"": {10},
+        ""Progress"": {11},
+        ""IdleTime"": {12}
+    }}", Name, escapedSourceDir, escapedTargetDir, Type, State, escapedErrorMessage, TotalFilesToCopy, TotalFilesCopied, TotalSizeToCopy, TotalSizeCopied, NumberFilesLeftToDo, Progress, IdleTime);
     }
 }

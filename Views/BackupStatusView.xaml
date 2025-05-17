@@ -1,0 +1,173 @@
+﻿<UserControl x:Class="better_saving.Views.BackupStatusView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:local="clr-namespace:better_saving.Views"
+             xmlns:viewModels="clr-namespace:better_saving.ViewModels"
+             mc:Ignorable="d"
+             d:DataContext="{d:DesignInstance viewModels:BackupStatusViewModel, IsDesignTimeCreatable=True}"
+             d:DesignHeight="450"
+              d:DesignWidth="800"
+              Background="#FF1E1E1E">
+       <Grid Margin="10">
+              <Grid.RowDefinitions>
+                     <RowDefinition Height="Auto"/>
+                     <!-- Title -->
+                     <RowDefinition Height="Auto"/>
+                     <!-- Job Name -->
+                     <RowDefinition Height="Auto"/>
+                     <!-- Source Directory -->
+                     <RowDefinition Height="Auto"/>
+                     <!-- Target Directory -->
+                     <RowDefinition Height="Auto"/>
+                     <!-- Job Type -->
+                     <RowDefinition Height="Auto"/>
+                     <!-- Progress Bar and Text -->
+                     <RowDefinition Height="Auto"/>
+                     <!-- Job State -->
+                     <RowDefinition Height="Auto"/>
+                     <!-- Error Message -->
+                     <RowDefinition Height="*"/>
+                     <!-- Spacer -->
+                     <RowDefinition Height="Auto"/>
+                     <!-- Action Buttons -->
+              </Grid.RowDefinitions>
+
+              <TextBlock Grid.Row="0"
+                            Text="Job Status Details"
+                            FontSize="20"
+                            FontWeight="Bold"
+                            Foreground="White"
+                            Margin="0,0,0,15"/>
+
+              <StackPanel Grid.Row="1"
+                            Orientation="Horizontal"
+                            Margin="0,3">
+                     <TextBlock Text="Job Name:"
+                                   FontWeight="SemiBold"
+                                   Foreground="White"
+                                   Width="130"
+                                   TextAlignment="Right"
+                                   Margin="0,0,5,0"/>
+                     <TextBlock Text="{Binding JobName, Mode=OneWay}"
+                                   Foreground="White"/>
+              </StackPanel>
+
+              <StackPanel Grid.Row="2"
+                            Orientation="Horizontal"
+                            Margin="0,3">
+                     <TextBlock Text="Source Directory:"
+                                   FontWeight="SemiBold"
+                                   Foreground="White"
+                                   Width="130"
+                                   TextAlignment="Right"
+                                   Margin="0,0,5,0"/>
+                     <TextBlock Text="{Binding SourceDirectory, Mode=OneWay}"
+                                   Foreground="White"
+                                   TextWrapping="Wrap"/>
+              </StackPanel>
+
+              <StackPanel Grid.Row="3"
+                            Orientation="Horizontal"
+                            Margin="0,3">
+                     <TextBlock Text="Target Directory:"
+                                   FontWeight="SemiBold"
+                                   Foreground="White"
+                                   Width="130"
+                                   TextAlignment="Right"
+                                   Margin="0,0,5,0"/>
+                     <TextBlock Text="{Binding TargetDirectory, Mode=OneWay}"
+                                   Foreground="White"
+                                   TextWrapping="Wrap"/>
+              </StackPanel>
+
+              <StackPanel Grid.Row="4"
+                            Orientation="Horizontal"
+                            Margin="0,3">
+                     <TextBlock Text="Job Type:"
+                                   FontWeight="SemiBold"
+                                   Foreground="White"
+                                   Width="130"
+                                   TextAlignment="Right"
+                                   Margin="0,0,5,0"/>
+                     <TextBlock Text="{Binding JobType, Mode=OneWay}"
+                                   Foreground="White"/>
+              </StackPanel>
+
+              <StackPanel Grid.Row="7"
+                            Orientation="Horizontal"
+                            Margin="0,5"
+                            Visibility="{Binding ErrorMessage, Mode=OneWay, Converter={StaticResource NullOrEmptyToVisibilityConverter}, FallbackValue=Collapsed}">
+                     <TextBlock Text="Error:"
+                                   FontWeight="Bold"
+                                   Foreground="Red"
+                                   Width="130"
+                                TextAlignment="Right"
+                                Margin="0,0,5,0"/>
+                     <TextBox Text="{Binding ErrorMessage, Mode=OneWay}"
+                                   Foreground="Red"
+                                   TextWrapping="Wrap"
+                                   IsReadOnly="True"
+                                   BorderThickness="0"
+                                   Background="Transparent"/>
+              </StackPanel>
+
+              <!-- Combined Progress Display -->
+              <Grid Grid.Row="5"
+                            Margin="0,10,0,5">
+                     <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <!-- Single column for both ProgressBar and TextBlock -->
+                     </Grid.ColumnDefinitions>
+                     <ProgressBar Grid.Column="0"
+                                   Value="{Binding JobProgress, Mode=OneWay}"
+                                   Minimum="0"
+                                   Maximum="100"
+                                   Height="22"
+                                   VerticalAlignment="Center"/>
+                     <TextBlock Grid.Column="0"
+                                   Foreground="Black"
+                                   VerticalAlignment="Center"
+                                   HorizontalAlignment="Right"
+                                   Margin="0,0,5,0">
+                <Run Text="{Binding JobProgress, Mode=OneWay, StringFormat={}{0:0.0}%}"/>
+                <Run Text=" - "/>
+                <Run Text="{Binding TotalFilesCopied, Mode=OneWay}"/>/<Run Text="{Binding TotalFilesToCopy, Mode=OneWay}"/>
+                     </TextBlock>
+              </Grid>
+
+              <StackPanel Grid.Row="6"
+                            Orientation="Horizontal"
+                            Margin="0,5,0,10"
+                            HorizontalAlignment="Center">
+                     <TextBlock Text="{Binding JobState, Mode=OneWay}"
+                                   FontWeight="Bold"
+                                   Foreground="LightSkyBlue"
+                                   Width="100"
+                                   Height="25" />
+              </StackPanel>
+
+              <!-- Action Buttons -->
+              <StackPanel Grid.Row="9"
+                            Orientation="Horizontal"
+                            HorizontalAlignment="Right"
+                            Margin="0,10,0,0">
+                     <Button Content="🗑️"
+                                   ToolTip="Delete Job"
+                                   Width="40"
+                                   Height="40"
+                                   Margin="5"
+                                   Command="{Binding DeleteJobCommand}"
+                                   Style="{StaticResource IconButton}"/>
+                     <Button Content="⏯️"
+                                   ToolTip="Pause/Resume Job"
+                                   Width="40"
+                                   Height="40"
+                                   Margin="5"
+                                   Command="{Binding PauseResumeJobCommand}"
+                                   Style="{StaticResource IconButton}"/>
+              </StackPanel>
+
+       </Grid>
+</UserControl>

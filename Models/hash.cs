@@ -3,9 +3,10 @@ using System.IO;
 using System.IO.Hashing;
 using System.Security.Cryptography;
 using System.Text;
-using System.Buffers.Binary;
 
-public class Hashing
+namespace better_saving.Models
+{
+    public class Hashing
 {
     /// <summary>
     /// Generates a hash for the given file using XxHash64.
@@ -51,9 +52,10 @@ public class Hashing
     /// </summary>
     /// <param name="filePath1"></param>
     /// <param name="filePath2"></param>
-    /// <returns></returns>
+    /// <returns></returns
     public static bool CompareFiles(string filePath1, string filePath2)
     {
         return GetFileHash(filePath1) == GetFileHash(filePath2);
     }
+}
 }

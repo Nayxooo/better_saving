@@ -1,0 +1,156 @@
+﻿<UserControl x:Class="better_saving.Views.BackupListView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             Background="#FF1E1E1E">
+    <UserControl.Resources>
+        <Style x:Key="FocusVisual">
+            <Setter Property="Control.Template">
+                <Setter.Value>
+                    <ControlTemplate>
+                        <Rectangle Margin="2"
+                                StrokeDashArray="1 2"
+                                Stroke="{DynamicResource {x:Static SystemColors.ControlTextBrushKey}}"
+                                SnapsToDevicePixels="true"
+                                StrokeThickness="1"/>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        <SolidColorBrush x:Key="Button.Static.Background"
+                Color="#FFDDDDDD"/>
+        <SolidColorBrush x:Key="Button.Static.Border"
+                Color="#FF707070"/>
+        <SolidColorBrush x:Key="Button.MouseOver.Background"
+                Color="#FFBEE6FD"/>
+        <SolidColorBrush x:Key="Button.MouseOver.Border"
+                Color="#FF3C7FB1"/>
+        <SolidColorBrush x:Key="Button.Pressed.Background"
+                Color="#FFC4E5F6"/>
+        <SolidColorBrush x:Key="Button.Pressed.Border"
+                Color="#FF2C628B"/>
+        <SolidColorBrush x:Key="Button.Disabled.Background"
+                Color="#FFF4F4F4"/>
+        <SolidColorBrush x:Key="Button.Disabled.Border"
+                Color="#FFADB2B5"/>
+        <SolidColorBrush x:Key="Button.Disabled.Foreground"
+                Color="#FF838383"/>
+        <Style TargetType="{x:Type Button}">
+            <Setter Property="FocusVisualStyle"
+                    Value="{StaticResource FocusVisual}"/>
+            <Setter Property="Background"
+                    Value="{StaticResource Button.Static.Background}"/>
+            <Setter Property="BorderBrush"
+                    Value="{StaticResource Button.Static.Border}"/>
+            <Setter Property="Foreground"
+                    Value="{DynamicResource {x:Static SystemColors.ControlTextBrushKey}}"/>
+            <Setter Property="BorderThickness"
+                    Value="1"/>
+            <Setter Property="HorizontalContentAlignment"
+                    Value="Center"/>
+            <Setter Property="VerticalContentAlignment"
+                    Value="Center"/>
+            <Setter Property="Padding"
+                    Value="1"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="{x:Type Button}">
+                        <Border CornerRadius="10"
+                                x:Name="border"
+                                Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                SnapsToDevicePixels="true">
+                            <ContentPresenter x:Name="contentPresenter"
+                                    Focusable="False"
+                                    HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                    Margin="{TemplateBinding Padding}"
+                                    RecognizesAccessKey="True"
+                                    SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}"
+                                    VerticalAlignment="{TemplateBinding VerticalContentAlignment}"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsDefaulted"
+                                    Value="true">
+                                <Setter Property="BorderBrush"
+                                        TargetName="border"
+                                        Value="{DynamicResource {x:Static SystemColors.HighlightBrushKey}}"/>
+                            </Trigger>
+                            <Trigger Property="IsMouseOver"
+                                    Value="true">
+                                <Setter Property="Background"
+                                        TargetName="border"
+                                        Value="{StaticResource Button.MouseOver.Background}"/>
+                                <Setter Property="BorderBrush"
+                                        TargetName="border"
+                                        Value="{StaticResource Button.MouseOver.Border}"/>
+                            </Trigger>
+                            <Trigger Property="IsPressed"
+                                    Value="true">
+                                <Setter Property="Background"
+                                        TargetName="border"
+                                        Value="{StaticResource Button.Pressed.Background}"/>
+                                <Setter Property="BorderBrush"
+                                        TargetName="border"
+                                        Value="{StaticResource Button.Pressed.Border}"/>
+                            </Trigger>
+                            <Trigger Property="IsEnabled"
+                                    Value="false">
+                                <Setter Property="Background"
+                                        TargetName="border"
+                                        Value="{StaticResource Button.Disabled.Background}"/>
+                                <Setter Property="BorderBrush"
+                                        TargetName="border"
+                                        Value="{StaticResource Button.Disabled.Border}"/>
+                                <Setter Property="TextElement.Foreground"
+                                        TargetName="contentPresenter"
+                                        Value="{StaticResource Button.Disabled.Foreground}"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </UserControl.Resources>
+    <StackPanel>
+        <StackPanel Orientation="Horizontal"
+                Margin="10"
+                VerticalAlignment="Center">
+            <TextBlock Text="Backup job list"
+                    Foreground="White"
+                    FontSize="18"/>
+            <Button Name="StartAllJobsButton"
+				    Content="▶"
+                    Command="{Binding StartAllJobsCommand}"
+                    Margin="10,0,5,0"
+                    Width="25"
+                    Height="25"/>
+            <Button Name="FilterJobListButton"
+				    Content="⏳"
+                    Command="{Binding FilterJobsCommand}"
+                    Margin="5,0,0,0"
+                    Width="25"
+                    Height="25"/> <!-- for sylers, change the hourGlass icon to a hopper/filter icon-->
+        </StackPanel>
+        <ListBox ItemsSource="{Binding Jobs}"
+                Margin="10"
+                Height="300"
+                Background="{x:Null}"
+                HorizontalContentAlignment="Stretch"> <!-- Add this to make items stretch -->
+            <ListBox.ItemTemplate>
+                <DataTemplate>
+                    <Button Content="{Binding Name}"
+                            Command="{Binding DataContext.ShowJobDetailsCommand, RelativeSource={RelativeSource AncestorType=ListBox}}"
+                            CommandParameter="{Binding}"
+                            HorizontalAlignment="Stretch"
+                            HorizontalContentAlignment="Center"/>
+                </DataTemplate>
+            </ListBox.ItemTemplate>
+        </ListBox>
+        <Button Name="CreateJobButton"
+                Content="+"
+                FontSize="20"
+                Height="40"
+                Margin="10"
+                Command="{Binding CreateJobCommand}"/>
+    </StackPanel>
+</UserControl>

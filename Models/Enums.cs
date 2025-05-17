@@ -1,4 +1,4 @@
-namespace EasySave.Models
+namespace better_saving.Models
 {
     // Enum for job types
     public enum JobType
@@ -7,7 +7,7 @@ namespace EasySave.Models
         Diff // Differential backup
     }
 
-    public enum JobState
+    public enum JobStates
     {
         Working, // Job is currently running
         Finished, // Job has finished successfully

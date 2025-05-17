@@ -15,11 +15,7 @@ public class Backup
     {
         // copy the file from source to target
         // keep track of the file size and time taken for the backup
-        // return the time taken for the backup (-1 for failure)
-        if (string.IsNullOrEmpty(sourceFilePath) || string.IsNullOrEmpty(targetFilePath))
-        {
-            return -1; // Indicate failure
-        }
+        // return the time taken for the backup (-1 for failure)        if (string.IsNullOrEmpty(sourceFilePath) || string.IsNullOrEmpty(targetFilePath))
         try
         {
             // copy the file

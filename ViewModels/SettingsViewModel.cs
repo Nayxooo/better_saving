@@ -1,12 +1,14 @@
-using System.Collections.Generic;
+using System.Linq;
 using System.Windows.Input;
 
 namespace better_saving.ViewModels
 {
     public class SettingsViewModel : ViewModelBase
     {
-        private readonly MainViewModel _mainViewModel;
+        private readonly MainViewModel _mainVM;
         private string _blockedSoftwareText;
+
+        #region Propriétés liées à l’interface
 
         public string BlockedSoftwareText
         {
@@ -14,31 +16,53 @@ namespace better_saving.ViewModels
             set => SetProperty(ref _blockedSoftwareText, value);
         }
 
+        #endregion
+
+        #region Commandes
+
         public ICommand SaveCommand { get; }
         public ICommand CancelCommand { get; }
 
-        public SettingsViewModel(MainViewModel mainViewModel)
+        /// <summary>
+        /// Commande appelée par les boutons « FR » / « EN ».
+        /// </summary>
+        public ICommand SetLanguageCommand { get; }
+
+        #endregion
+
+        public SettingsViewModel(MainViewModel mainVM)
         {
-            _mainViewModel = mainViewModel;
-            _blockedSoftwareText = string.Join(",", _mainViewModel.GetBlockedSoftware());
+            _mainVM = mainVM;
+
+            // Texte initial (= liste bloquée courante)
+            _blockedSoftwareText = string.Join(",", _mainVM.GetBlockedSoftware());
+
+            /*---------- Commandes ----------*/
             SaveCommand = new RelayCommand(_ => Save());
             CancelCommand = new RelayCommand(_ => Cancel());
+
+            SetLanguageCommand = _mainVM.ChangeLanguageCommand;
         }
+
+        /*------------------ Méthodes privées ------------------*/
 
         private void Save()
         {
             var softwareList = BlockedSoftwareText
-                .Split(',', System.StringSplitOptions.RemoveEmptyEntries)
-                .Select(s => s.Trim())
-                .Where(s => !string.IsNullOrEmpty(s))
-                .ToList();
-            _mainViewModel.SetBlockedSoftware(softwareList);
-            _mainViewModel.CurrentView = null;
+                               .Split(',', System.StringSplitOptions.RemoveEmptyEntries)
+                               .Select(s => s.Trim())
+                               .Where(s => !string.IsNullOrEmpty(s))
+                               .ToList();
+
+            _mainVM.SetBlockedSoftware(softwareList);
+
+            // On ferme la vue ( CurrentView = null => retour à la liste )
+            _mainVM.CurrentView = null;
         }
 
         private void Cancel()
         {
-            _mainViewModel.CurrentView = null;
+            _mainVM.CurrentView = null;
         }
     }
 }

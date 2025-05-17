@@ -40,15 +40,46 @@
         </DataTemplate>
         <DataTemplate DataType="{x:Type vm:SettingsViewModel}">
             <StackPanel Margin="10">
-                <TextBlock Text="Settings" Foreground="White" FontSize="16"/>
-                <TextBlock Text="Blocked Software (comma-separated, e.g., calc.exe,notepad.exe):" Foreground="White"/>
-                <TextBox Text="{Binding BlockedSoftwareText}" Margin="0,5"/>
-                <StackPanel Orientation="Horizontal" Margin="0,10">
-                    <Button Content="Save" Command="{Binding SaveCommand}" Margin="5"/>
-                    <Button Content="Cancel" Command="{Binding CancelCommand}" Margin="5"/>
+                <!-- En-tête -->
+                <TextBlock Text="{DynamicResource SettingsTitle}"
+                   Foreground="White"
+                   FontSize="16"/>
+
+                <!-- Liste des logiciels bloqués -->
+                <TextBlock Text="{DynamicResource BlockedSoftwareLabel}"
+                   Foreground="White"/>
+                <TextBox Text="{Binding BlockedSoftwareText}"
+                 Margin="0,5"/>
+
+                <!-- Sélecteur de langue -->
+                <StackPanel Orientation="Horizontal"
+                    HorizontalAlignment="Left"
+                    Margin="0,10 0,0">
+                    <Button Content="FR"
+                    Width="60"
+                    Margin="0,0,5,0"
+                    Command="{Binding SetLanguageCommand}"
+                    CommandParameter="fr-FR"/>
+                    <Button Content="EN"
+                    Width="60"
+                    Command="{Binding SetLanguageCommand}"
+                    CommandParameter="en-US"/>
+                </StackPanel>
+
+                <!-- Actions principales -->
+                <StackPanel Orientation="Horizontal"
+                    Margin="0,10">
+                    <Button Content="{DynamicResource Save}"
+                    Command="{Binding SaveCommand}"
+                    Margin="5"/>
+                    <Button Content="{DynamicResource Cancel}"
+                    Command="{Binding CancelCommand}"
+                    Margin="5"/>
                 </StackPanel>
             </StackPanel>
         </DataTemplate>
+
+
     </Window.Resources>
     <Grid>
         <Grid.ColumnDefinitions>

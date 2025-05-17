@@ -10,7 +10,21 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Page Remove="Resources\Localization\Strings.en-US.xaml" />
+    <Page Remove="Resources\Localization\Strings.fr-FR.xaml" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="System.IO.Hashing" Version="9.0.5" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Resource Include="Resources\Localization\Strings.en-US.xaml">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="Resources\Localization\Strings.fr-FR.xaml">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Resource>
   </ItemGroup>
 
 </Project>

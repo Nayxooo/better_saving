@@ -144,7 +144,7 @@
             </Grid>
 
             <!-- Target Directory -->
-            <TextBlock Text="Target Directory:" Foreground="White" Margin="0,0,0,5"/>
+            <TextBlock Text="{DynamicResource TargetDir}" Foreground="White" Margin="0,0,0,5"/>
             <Grid Margin="0,0,0,10">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*"/>

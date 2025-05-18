@@ -15,156 +15,255 @@ skinparam package {
 title "Backup Job Manager Class Diagram"
 
 ' MVVM Packages
-package "Model" {
+package "Models" {
+  class Backup {
+    + {static} backupFile(sourceFilePath: string, targetFilePath: string): int
+  }
+
+  class BackupJob {
+    + Name: string
+    + SourceDirectory: string
+    + TargetDirectory: string
+    + Type: JobType
+    + State: JobStates
+    + Progress: double
+    + TotalFilesToCopy: int
+    + TotalFilesCopied: int
+    + ErrorMessage: string
+    + {static} LoadJobs(logger: Logger): List<BackupJob>
+    + {static} SaveJobs(jobs: IEnumerable<BackupJob>, logger: Logger)
+    + Start(cancellationToken: CancellationToken, progressCallback: IProgress<double>): Task
+    + Pause()
+    + Resume()
+    + Stop()
+  }
+
   enum JobType {
     Full
     Diff
   }
-  
-  enum jobState {
+
+  enum JobStates {
     Working
     Finished
     Stopped
     Failed
     Idle
   }
-  
-  class backupJob {
-    - String name
-    - String sourceDirectory
-    - String targetDirectory
-    - JobType type
-    - int maxThreads
-    - Logger logger
-    - jobState state
-    - int progress
-    - int totalFilesToCopy
-    - int remainingFiles
-    - String errorMessage
-    + backupJob(name, sourceDir, targetDir, type, maxThreads, logger)
-    + String GetName()
-    + String GetSourceDirectory()
-    + String GetTargetDirectory()
-    + JobType GetJobType()
-    + jobState GetState()
-    + int GetProgress()
-    + int GetTotalFilesToCopy()
-    + int GetNumberFilesLeftToDo()
-    + String GetErrorMessage()
-    + Task ExecuteAsync(CancellationToken)
-    + String ToString()
+
+  class Hashing {
+    + {static} GetFileHash(filePath: string): string
+    + {static} CompareFiles(filePath1: string, filePath2: string): bool
   }
-  
-  class Backup {
-    + static Task CopyFileAsync(String, String, CancellationToken)
-    + static Task BackupFilesAsync(String, String, List<String>, CancellationToken, backupJob)
-  }
-  
-  class hash {
-    + static String GetFileHash(String)
-    + static bool CompareFileHash(String, String)
-  }
-  
+
   class Logger {
-    - String logDirectory
-    - String dailyLogFilePath
-    - String stateLogFilePath
-    - Object logLock
-    + Logger(String)
-    + void Log(String)
-    + void LogError(String, Exception)
-    + void UpdateAllJobsState()
+    - LogDirectory: string
+    - DailyLogFilePath: string
+    - StateLogFilePath: string
+    - {static} logLock: object
+    - _jobProvider: Func<IEnumerable<BackupJob>>
+    + Logger()
+    + SetJobProvider(jobProvider: Func<IEnumerable<BackupJob>>)
+    + GetLogDirectoryPath(): string
+    + Log(jobName: string, source: string, target: string, fileSize: long, transferTimeMs: int)
+    + LogError(jobName: string, error: string)
+    + LogState()
+    + LoadState(): IEnumerable<BackupJob>
+    + GetTodaysLogEntries(): IEnumerable<LogEntry>
+  }
+
+  class LogEntry {
+    + Timestamp: DateTime
+    + JobName: string
+    + Source: string
+    + Target: string
+    + FileSize: long
+    + TransferTimeMs: int
+    + Error: string
   }
 }
 
-package "View" {
-  enum ConsoleMenu {
-    MainMenu
-    Language
-    CreateJob
-    ShowJob
-    StartJob
-    StopJob
-    DeleteJob
-    Exit
+package "ViewModels" {
+  class ViewModelBase <<abstract>> {
+    # {event} PropertyChanged: PropertyChangedEventHandler
+    # SetProperty<T>(field: ref T, value: T, propertyName: string): bool
+    # OnPropertyChanged(propertyName: string)
   }
-  
-  class ConsoleInterface {
-    - MainViewModel mainViewModel
-    - String Language
-    - Logger logger
-    - ConsoleMenu currentMenu
-    - Dictionary<String, Dictionary<String, String>> uiText
-    + static void Initialize(Logger, MainViewModel)
-    - static void InitializeLanguages()
-    + static void Start()
-    - static String GetText(String)
-    - static void ShowMainMenu()
-    - static void RequestExit()
-    - static String GetProgressBar(int, int, int)
-    - static void SetLanguageDialog()
-    - static void CreateJobDialog()
-    - static void ListJobsDialog()
-    - static void ShowJob(String)
-    - static void DisplayMessage(String)
-    - static String NormalizePath(String)
-    - static Attribute GetStateColor(jobState)
-    - static bool IsInMenu(ConsoleMenu)
-    - static String GetMenuTitle()
+
+  class MainViewModel extends ViewModelBase {
+    - _listVM: BackupListViewModel
+    - _currentView: ViewModelBase
+    - _blockedSoftware: List<string>
+    - _runningBlockedSoftware: string
+    - _selectedLanguage: string
+    + ListVM: BackupListViewModel
+    + CurrentView: ViewModelBase
+    + ShowCreateJobViewCommand: ICommand
+    + ShowSettingsViewCommand: ICommand
+    + ChangeLanguageCommand: ICommand
+    + SelectedLanguage: string
+    + MainViewModel()
+    + GetBlockedSoftware(): List<string>
+    + SetBlockedSoftware(softwareList: List<string>)
+    + CheckForBlockedSoftware(): Task
+    + LoadSettings()
+    + SaveSettings()
+    + ChangeLanguage(languageCode: string)
+  }
+
+  class BackupListViewModel extends ViewModelBase {
+    - _mainViewModel: MainViewModel
+    - _isAlphabeticalSort: bool
+    - _jobs: ObservableCollection<BackupJob>
+    - _logger: Logger
+    - _errorMessage: string
+    + Jobs: ObservableCollection<BackupJob>
+    + ErrorMessage: string
+    + CreateJobCommand: ICommand
+    + StartAllJobsCommand: ICommand
+    + FilterJobsCommand: ICommand
+    + ShowJobDetailsCommand: ICommand
+    + BackupListViewModel(mainViewModel: MainViewModel)
+    + LoadJobs()
+    + AddJob(job: BackupJob)
+    + StartAllJobs()
+    + FilterJobs()
+    + GetLogger(): Logger
+  }
+
+  class BackupCreationViewModel extends ViewModelBase {
+    - _mainViewModel: MainViewModel
+    - _name: string
+    - _sourceDirectory: string
+    - _targetDirectory: string
+    - _isFullBackup: bool
+    - _isDiffBackup: bool
+    + Name: string
+    + SourceDirectory: string
+    + TargetDirectory: string
+    + IsFullBackup: bool
+    + IsDiffBackup: bool
+    + CreateCommand: ICommand
+    + CancelCommand: ICommand
+    + SelectSourceDirectoryCommand: ICommand
+    + SelectTargetDirectoryCommand: ICommand
+    + BackupCreationViewModel(mainViewModel: MainViewModel)
+  }
+
+  class BackupStatusViewModel extends ViewModelBase {
+    - _mainViewModel: MainViewModel
+    - _job: BackupJob
+    - _cancellationTokenSource: CancellationTokenSource
+    + JobName: string
+    + SourceDirectory: string
+    + TargetDirectory: string
+    + JobType: string
+    + JobProgress: double
+    + TotalFilesToCopy: int
+    + TotalFilesCopied: int
+    + JobState: string
+    + ErrorMessage: string
+    + DeleteJobCommand: ICommand
+    + PauseResumeJobCommand: ICommand
+    + BackupStatusViewModel(job: BackupJob, mainViewModel: MainViewModel)
+    - UpdateProperties()
+    - DeleteJob()
+    - PauseResumeJob()
+    + Cleanup()
+  }
+
+  class SettingsViewModel extends ViewModelBase {
+    - _mainVM: MainViewModel
+    - _blockedSoftwareText: string
+    - _fileExtensionsText: string
+    + BlockedSoftwareText: string
+    + FileExtensionsText: string
+    + SaveCommand: ICommand
+    + CancelCommand: ICommand
+    + SetLanguageCommand: ICommand
+    + SettingsViewModel(mainVM: MainViewModel)
+    - Save()
+    - Cancel()
+  }
+
+  class RelayCommand implements ICommand {
+    - _execute: Action<object>
+    - _canExecute: Func<object, bool>
+    + RelayCommand(execute: Action<object>, canExecute: Func<object, bool>)
+    + {event} CanExecuteChanged: EventHandler
+    + CanExecute(parameter: object): bool
+    + Execute(parameter: object)
+    + RaiseCanExecuteChanged()
   }
 }
 
-package "ViewModel" {
-  class MainViewModel {
-    + ObservableCollection<BackupJobViewModel> BackupJobs { get; }
-    + ICommand CreateJobCommand { get; }
-    + ICommand StartJobCommand { get; }
-    + ICommand StopJobCommand { get; }
-    + ICommand DeleteJobCommand { get; }
-    + ICommand StartAllJobsCommand { get; }
-    + Logger ApplicationLogger { get; }
-    + MainViewModel(Logger)
-    + void LoadBackupJobs()
-    - void CreateBackupJob(params)
-    - void StartJob(BackupJobViewModel)
-    - void StopJob(BackupJobViewModel)
-    - void DeleteJob(BackupJobViewModel)
-    - void StartAllJobs()
-    + event PropertyChangedEventHandler PropertyChanged
+package "Views" {
+  class MainWindow {
   }
+  class BackupListView {
+  }
+  class BackupCreationView {
+  }
+  class BackupStatusView {
+  }
+}
 
-  class BackupJobViewModel {
-    - backupJob _backupJobModel
-    + string Name { get; set; }
-    + string SourceDirectory { get; set; }
-    + string TargetDirectory { get; set; }
-    + JobType Type { get; set; }
-    + jobState State { get; }
-    + int Progress { get; }
-    + string ErrorMessage { get; }
-    + ICommand StartCommand { get; }
-    + ICommand StopCommand { get; }
-    + BackupJobViewModel(backupJob)
-    + void UpdateState(jobState, int, string)
-    + event PropertyChangedEventHandler PropertyChanged
+package "Converters" {
+  class NullOrEmptyToVisibilityConverter implements IValueConverter {
+    + Convert(value: object, targetType: Type, parameter: object, culture: CultureInfo): object
+    + ConvertBack(value: object, targetType: Type, parameter: object, culture: CultureInfo): object
   }
+}
+
+package "Application" {
+ class App {
+    + {static} LoadLanguageDictionary(cultureName: string)
+ }
 }
 
 ' Relationships
-' MVVM Pattern Relationships
-View ..> ViewModel : interacts with / binds to >
-ViewModel ..> Model : manages / updates >
-Model ..> ViewModel : notifies of changes > ' (Implicitly, via events or INotifyPropertyChanged)
+MainViewModel --> BackupListViewModel : uses >
+MainViewModel --> ViewModelBase : currentView
+MainViewModel --> SettingsViewModel : uses >
+MainViewModel --> BackupCreationViewModel : uses >
+MainViewModel --> BackupStatusViewModel : uses >
 
-' Specific Relationships
-MainViewModel --> BackupJobViewModel : aggregates / manages
-MainViewModel --> Logger : uses
-ConsoleInterface --> MainViewModel : uses / interacts with
-BackupJobViewModel --> backupJob : wraps / exposes
-backupJob --> JobType : has
-backupJob --> jobState : has state
-backupJob --> Backup : uses
-backupJob --> Logger : uses for logging
-Backup ..> hash : uses for differentials
+BackupListViewModel --> BackupJob : displays <
+BackupListViewModel --> MainViewModel : notifies <
+BackupListViewModel --> Logger : uses >
+
+BackupCreationViewModel --> MainViewModel : notifies <
+BackupCreationViewModel --> BackupJob : creates >
+
+BackupStatusViewModel --> BackupJob : displays <
+BackupStatusViewModel --> MainViewModel : notifies <
+
+SettingsViewModel --> MainViewModel : notifies <
+
+BackupJob --> JobType
+BackupJob --> JobStates
+BackupJob --> Hashing : uses >
+BackupJob --> Backup : uses >
+BackupJob ..> Logger : (persisted by)
+
+Logger --> BackupJob : (loads/saves state of)
+Logger --> LogEntry : creates >
+
+MainWindow --> MainViewModel : DataContext
+
+BackupListView ..> BackupListViewModel : DataContext
+BackupCreationView ..> BackupCreationViewModel : DataContext
+BackupStatusView ..> BackupStatusViewModel : DataContext
+
+App ..> MainViewModel : (indirectly, via MainWindow)
+
+ViewModelBase <|-- MainViewModel
+ViewModelBase <|-- BackupListViewModel
+ViewModelBase <|-- BackupCreationViewModel
+ViewModelBase <|-- BackupStatusViewModel
+ViewModelBase <|-- SettingsViewModel
+
+ICommand <|.. RelayCommand
+IValueConverter <|.. NullOrEmptyToVisibilityConverter
 
 @enduml

@@ -121,21 +121,21 @@
         </Grid.RowDefinitions>
 
         <!-- Cancel Button -->
-        <Button Content="&#x2190;" Command="{Binding CancelCommand}" 
+        <Button Content="{DynamicResource BackArrow}" Command="{Binding CancelCommand}" 
                 HorizontalAlignment="Left" VerticalAlignment="Top" 
                 Grid.Row="0" Margin="0,0,0,10" Padding="10,5" Width="30" Height="30"/>
 
-        <TextBlock Text="Backup Job Creation²" Foreground="White" FontSize="18" FontWeight="Bold" 
+        <TextBlock Text="{DynamicResource BackupCreationTitle}" Foreground="White" FontSize="18" FontWeight="Bold" 
                    Grid.Row="1" Margin="0,0,0,20" HorizontalAlignment="Center"/>
 
         <!-- Main Content StackPanel -->
         <StackPanel Grid.Row="2">
             <!-- Job Name -->
-            <TextBlock Text="Name:" Foreground="White" Margin="0,0,0,5"/>
+            <TextBlock Text="{DynamicResource Name}" Foreground="White" Margin="0,0,0,5"/>
             <TextBox Text="{Binding Name, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,10"/>
 
             <!-- Source Directory -->
-            <TextBlock Text="Source Directory:" Foreground="White" Margin="0,0,0,5"/>
+            <TextBlock Text="{DynamicResource SourceDir}" Foreground="White" Margin="0,0,0,5"/>
             <Grid Margin="0,0,0,10">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*"/>
@@ -157,19 +157,19 @@
             </Grid>
 
             <!-- Job Type -->
-            <TextBlock Text="Type:" Foreground="White" Margin="0,0,0,5"/>
+            <TextBlock Text="{DynamicResource Type}" Foreground="White" Margin="0,0,0,5"/>
             <StackPanel Orientation="Horizontal" Margin="0,0,0,20" HorizontalAlignment="Center">
-                <RadioButton Content="Full" 
+                <RadioButton Content="{DynamicResource Full}" 
                              IsChecked="{Binding IsFullBackup}" 
                              Style="{StaticResource SegmentLeftButtonStyle}" GroupName="JobTypeGroup"/>
-                <RadioButton Content="Differential" 
+                <RadioButton Content="{DynamicResource Diff}" 
                              IsChecked="{Binding IsDiffBackup}" 
                              Style="{StaticResource SegmentRightButtonStyle}" GroupName="JobTypeGroup"/>
             </StackPanel>
         </StackPanel>
 
         <!-- Create Button -->
-        <Button Content="Create" Command="{Binding CreateCommand}" 
+        <Button Content="{DynamicResource Create}" Command="{Binding CreateCommand}" 
                 Grid.Row="3" HorizontalAlignment="Center" Margin="0,10,0,0" Padding="20,10"/>
 
     </Grid>

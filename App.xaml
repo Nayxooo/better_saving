@@ -22,10 +22,10 @@
 
         <DataTemplate DataType="{x:Type vm:BackupStatusViewModel}">
             <views:BackupStatusView />
-        </DataTemplate>
+        </DataTemplate> 
 
-        <!-- Styles de boutons segmentés -->
-        <Style x:Key="SegmentLeftButtonStyle" TargetType="RadioButton" BasedOn="{StaticResource {x:Type RadioButton}}">
+        <!-- Segmented button style -->
+        <Style x:Key="SegmentLeftButtoStyle" TargetType="RadioButton" BasedOn="{StaticResource {x:Type RadioButton}}">
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="RadioButton">

@@ -2,12 +2,13 @@
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" 
                     xmlns:sys="clr-namespace:System;assembly=System.Runtime">
     <sys:String x:Key="SettingsTitle">Settings</sys:String>
-    <sys:String x:Key="BlockedSoftwareLabel">Blocked Software (comma-separated, e.g., calc.exe,notepad.exe):</sys:String>
+    <sys:String x:Key="BlockedSoftwareLabel">Blocked Software (comma-separated, e.g.: 'calc.exe','notepad.exe'):</sys:String>
+    <sys:String x:Key="FileExtensionsLabel">File extensions to encrypt (comma-separated, e.g.: '.txt', '.docx'):</sys:String>
     <sys:String x:Key="Save">Save</sys:String>
     <sys:String x:Key="Cancel">Cancel</sys:String>
 
     <!-- BackupCreationView -->
-    <sys:String x:Key="BackupCreationTitle">Backup Job Creation</sys:String>
+    <sys:String x:Key="BackupCreationTitle">Backup Job Creation²</sys:String> <!-- don't ask about the '²' -->
     <sys:String x:Key="Name">Name:</sys:String>
     <sys:String x:Key="SourceDir">Source Directory:</sys:String>
     <sys:String x:Key="TargetDir">Target Directory:</sys:String>
@@ -15,4 +16,16 @@
     <sys:String x:Key="Full">Full</sys:String>
     <sys:String x:Key="Diff">Differential</sys:String>
     <sys:String x:Key="Create">Create</sys:String>
+
+    <!-- BackupListView -->
+    <sys:String x:Key="BackupJobListTitle">Backup job list</sys:String>
+
+    <!-- BackupStatusView -->
+    <sys:String x:Key="JobStatusDetailsTitle">Job Status Details</sys:String>
+    <sys:String x:Key="ErrorLabel">Error:</sys:String>
+    <sys:String x:Key="DeleteJobToolTip">Delete Job</sys:String>
+    <sys:String x:Key="PauseResumeJobToolTip">Pause/Resume Job</sys:String>
+
+    <!-- Common -->
+    <sys:String x:Key="BackArrow">←</sys:String>
 </ResourceDictionary>

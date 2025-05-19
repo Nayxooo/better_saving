@@ -4,100 +4,143 @@
              xmlns:vm="clr-namespace:better_saving.ViewModels"
              xmlns:views="clr-namespace:better_saving.Views"
              xmlns:local="clr-namespace:better_saving"
-             xmlns:converters="clr-namespace:better_saving.Converters" 
+             xmlns:converters="clr-namespace:better_saving.Converters"
              StartupUri="MainWindow.xaml">
     <Application.Resources>
-        <converters:NullOrEmptyToVisibilityConverter x:Key="NullOrEmptyToVisibilityConverter"/>
-        <!-- ViewModels Globaux (si besoin) -->
-        <vm:MainViewModel x:Key="MainViewModel" />
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="Resources/Localization/Strings.en-US.xaml"/>
+            </ResourceDictionary.MergedDictionaries>
 
-        <!-- DataTemplates to map ViewModels to Views -->
-        <DataTemplate DataType="{x:Type vm:BackupListViewModel}">
-            <views:BackupListView />
-        </DataTemplate>
+            <converters:NullOrEmptyToVisibilityConverter x:Key="NullOrEmptyToVisibilityConverter"/>
+            <!-- ViewModels Globaux (si besoin) -->
+            <vm:MainViewModel x:Key="MainViewModel"/>
 
-        <DataTemplate DataType="{x:Type vm:BackupCreationViewModel}">
-            <views:BackupCreationView />
-        </DataTemplate>
+            <!-- DataTemplates to map ViewModels to Views -->
+            <DataTemplate DataType="{x:Type vm:BackupListViewModel}">
+                <views:BackupListView/>
+            </DataTemplate>
 
-        <DataTemplate DataType="{x:Type vm:BackupStatusViewModel}">
-            <views:BackupStatusView />
-        </DataTemplate> 
+            <DataTemplate DataType="{x:Type vm:BackupCreationViewModel}">
+                <views:BackupCreationView/>
+            </DataTemplate>
 
-        <!-- Segmented button style -->
-        <Style x:Key="SegmentLeftButtoStyle" TargetType="RadioButton" BasedOn="{StaticResource {x:Type RadioButton}}">
-            <Setter Property="Template">
-                <Setter.Value>
-                    <ControlTemplate TargetType="RadioButton">
-                        <Border CornerRadius="20,0,0,20"
-                            Background="{TemplateBinding Background}"
-                            BorderBrush="White"
-                            BorderThickness="1">
-                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" Margin="10,4"/>
-                        </Border>
-                        <ControlTemplate.Triggers>
-                            <Trigger Property="IsChecked" Value="True">
-                                <Setter Property="Background" Value="#1E88E5"/>
-                                <Setter Property="Foreground" Value="White"/>
-                            </Trigger>
-                            <Trigger Property="IsChecked" Value="False">
-                                <Setter Property="Background" Value="Transparent"/>
-                                <Setter Property="Foreground" Value="Gray"/>
-                            </Trigger>
-                        </ControlTemplate.Triggers>
-                    </ControlTemplate>
-                </Setter.Value>
-            </Setter>
-        </Style>
+            <DataTemplate DataType="{x:Type vm:BackupStatusViewModel}">
+                <views:BackupStatusView/>
+            </DataTemplate>
 
-        <Style x:Key="SegmentRightButtonStyle" TargetType="RadioButton" BasedOn="{StaticResource {x:Type RadioButton}}">
-            <Setter Property="Template">
-                <Setter.Value>
-                    <ControlTemplate TargetType="RadioButton">
-                        <Border CornerRadius="0,20,20,0"
-                            Background="{TemplateBinding Background}"
-                            BorderBrush="White"
-                            BorderThickness="1">
-                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" Margin="10,4"/>
-                        </Border>
-                        <ControlTemplate.Triggers>
-                            <Trigger Property="IsChecked" Value="True">
-                                <Setter Property="Background" Value="#1E88E5"/>
-                                <Setter Property="Foreground" Value="White"/>
-                            </Trigger>
-                            <Trigger Property="IsChecked" Value="False">
-                                <Setter Property="Background" Value="Transparent"/>
-                                <Setter Property="Foreground" Value="Gray"/>
-                            </Trigger>
-                        </ControlTemplate.Triggers>
-                    </ControlTemplate>
-                </Setter.Value>
-            </Setter>
-        </Style>
-        <Style x:Key="IconButton" TargetType="Button">
-            <Setter Property="Background" Value="Transparent"/>
-            <Setter Property="BorderBrush" Value="Transparent"/>
-            <Setter Property="Foreground" Value="White"/>
-            <Setter Property="FontSize" Value="20"/>
-            <Setter Property="Margin" Value="2"/>
-            <Setter Property="Padding" Value="5"/>
-            <Setter Property="Template">
-                <Setter.Value>
-                    <ControlTemplate TargetType="Button">
-                        <Border Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="1" CornerRadius="5">
-                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                        </Border>
-                    </ControlTemplate>
-                </Setter.Value>
-            </Setter>
-            <Style.Triggers>
-                <Trigger Property="IsMouseOver" Value="True">
-                    <Setter Property="Background" Value="#444"/>
-                </Trigger>
-                <Trigger Property="IsPressed" Value="True">
-                    <Setter Property="Background" Value="#666"/>
-                </Trigger>
-            </Style.Triggers>
-        </Style>
+            <!-- Segmented button style -->
+            <Style x:Key="SegmentLeftButtoStyle"
+                    TargetType="RadioButton"
+                    BasedOn="{StaticResource {x:Type RadioButton}}">
+                <Setter Property="Template">
+                    <Setter.Value>
+                        <ControlTemplate TargetType="RadioButton">
+                            <Border CornerRadius="20,0,0,20"
+                                    Background="{TemplateBinding Background}"
+                                    BorderBrush="White"
+                                    BorderThickness="1">
+                                <ContentPresenter HorizontalAlignment="Center"
+                                        VerticalAlignment="Center"
+                                        Margin="10,4"/>
+                            </Border>
+                            <ControlTemplate.Triggers>
+                                <Trigger Property="IsChecked"
+                                        Value="True">
+                                    <Setter Property="Background"
+                                            Value="#1E88E5"/>
+                                    <Setter Property="Foreground"
+                                            Value="White"/>
+                                </Trigger>
+                                <Trigger Property="IsChecked"
+                                        Value="False">
+                                    <Setter Property="Background"
+                                            Value="Transparent"/>
+                                    <Setter Property="Foreground"
+                                            Value="Gray"/>
+                                </Trigger>
+                            </ControlTemplate.Triggers>
+                        </ControlTemplate>
+                    </Setter.Value>
+                </Setter>
+            </Style>
+
+            <Style x:Key="SegmentRightButtonStyle"
+                    TargetType="RadioButton"
+                    BasedOn="{StaticResource {x:Type RadioButton}}">
+                <Setter Property="Template">
+                    <Setter.Value>
+                        <ControlTemplate TargetType="RadioButton">
+                            <Border CornerRadius="0,20,20,0"
+                                    Background="{TemplateBinding Background}"
+                                    BorderBrush="White"
+                                    BorderThickness="1">
+                                <ContentPresenter HorizontalAlignment="Center"
+                                        VerticalAlignment="Center"
+                                        Margin="10,4"/>
+                            </Border>
+                            <ControlTemplate.Triggers>
+                                <Trigger Property="IsChecked"
+                                        Value="True">
+                                    <Setter Property="Background"
+                                            Value="#1E88E5"/>
+                                    <Setter Property="Foreground"
+                                            Value="White"/>
+                                </Trigger>
+                                <Trigger Property="IsChecked"
+                                        Value="False">
+                                    <Setter Property="Background"
+                                            Value="Transparent"/>
+                                    <Setter Property="Foreground"
+                                            Value="Gray"/>
+                                </Trigger>
+                            </ControlTemplate.Triggers>
+                        </ControlTemplate>
+                    </Setter.Value>
+                </Setter>
+            </Style>
+            <Style x:Key="IconButton"
+                    TargetType="Button">
+                <Setter Property="Background"
+                        Value="Transparent"/>
+                <Setter Property="BorderBrush"
+                        Value="Transparent"/>
+                <Setter Property="Foreground"
+                        Value="White"/>
+                <Setter Property="FontSize"
+                        Value="20"/>
+                <Setter Property="Margin"
+                        Value="2"/>
+                <Setter Property="Padding"
+                        Value="5"/>
+                <Setter Property="Cursor"
+                        Value="Hand"/>
+                <Setter Property="Template">
+                    <Setter.Value>
+                        <ControlTemplate TargetType="Button">
+                            <Border Background="{TemplateBinding Background}"
+                                    BorderBrush="{TemplateBinding BorderBrush}"
+                                    BorderThickness="1"
+                                    CornerRadius="5">
+                                <ContentPresenter HorizontalAlignment="Center"
+                                        VerticalAlignment="Center"/>
+                            </Border>
+                        </ControlTemplate>
+                    </Setter.Value>
+                </Setter>
+                <Style.Triggers>
+                    <Trigger Property="IsMouseOver"
+                            Value="True">
+                        <Setter Property="Background"
+                                Value="#444"/>
+                    </Trigger>
+                    <Trigger Property="IsPressed"
+                            Value="True">
+                        <Setter Property="Background"
+                                Value="#666"/>
+                    </Trigger>
+                </Style.Triggers>
+            </Style>
+        </ResourceDictionary>
     </Application.Resources>
 </Application>

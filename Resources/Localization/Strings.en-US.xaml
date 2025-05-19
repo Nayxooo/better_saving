@@ -22,9 +22,19 @@
 
     <!-- BackupStatusView -->
     <sys:String x:Key="JobStatusDetailsTitle">Job Status Details</sys:String>
-    <sys:String x:Key="ErrorLabel">Error:</sys:String>
-    <sys:String x:Key="DeleteJobToolTip">Delete Job</sys:String>
+    <sys:String x:Key="ErrorLabel">Error:</sys:String>    <sys:String x:Key="DeleteJobToolTip">Delete Job</sys:String>
     <sys:String x:Key="PauseResumeJobToolTip">Pause/Resume Job</sys:String>
+    <sys:String x:Key="StartAllJobsToolTip">Start All Jobs</sys:String>
+    <sys:String x:Key="FilterJobsToolTip">Filter Jobs</sys:String>
+    <sys:String x:Key="SettingsToolTip">Open Settings</sys:String>
+    <sys:String x:Key="CreateJobToolTip">Create New Job</sys:String>
+    <sys:String x:Key="BackButtonToolTip">Go Back</sys:String>
+    <sys:String x:Key="SourceFolderToolTip">Select Source Folder</sys:String>
+    <sys:String x:Key="TargetFolderToolTip">Select Target Folder</sys:String>
+    <sys:String x:Key="CreateButtonToolTip">Create This Backup Job</sys:String>
+    <sys:String x:Key="SaveButtonToolTip">Save Settings</sys:String>    <sys:String x:Key="CancelButtonToolTip">Cancel Changes</sys:String>
+    <sys:String x:Key="FileExtensionsToolTip">Example: .json, .mp4</sys:String>
+    <sys:String x:Key="BlockedSoftwareToolTip">Example: calc.exe, notepad.exe</sys:String>
 
     <!-- Common -->
     <sys:String x:Key="BackArrow">←</sys:String>

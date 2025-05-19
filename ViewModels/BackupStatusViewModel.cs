@@ -65,9 +65,11 @@ namespace better_saving.ViewModels
                     break;
                 case nameof(backupJob.TotalSizeCopied):
                     OnPropertyChanged(nameof(TotalSizeCopied));
-                    break;
-                case nameof(backupJob.ErrorMessage):
+                    break;                case nameof(backupJob.ErrorMessage):
                     OnPropertyChanged(nameof(ErrorMessage));
+                    break;
+                case nameof(backupJob.IsPausing):
+                    OnPropertyChanged(nameof(IsJobPausing));
                     break;
                 // Add other properties if needed
             }
@@ -77,8 +79,8 @@ namespace better_saving.ViewModels
         public string JobName => SelectedJob.Name;
         public string SourceDirectory => SelectedJob.SourceDirectory;
         public string TargetDirectory => SelectedJob.TargetDirectory;
-        public string JobType => SelectedJob.Type.ToString();
-        public string JobState => SelectedJob.State.ToString();
+        public string JobType => SelectedJob.Type.ToString();        public string JobState => SelectedJob.State.ToString();
+        public bool IsJobPausing => SelectedJob.IsPausing;
         public byte JobProgress => SelectedJob.Progress;
         public long TotalFilesToCopy => SelectedJob.TotalFilesToCopy;
         public long TotalFilesCopied => SelectedJob.TotalFilesCopied;
@@ -126,12 +128,14 @@ namespace better_saving.ViewModels
             }
 
             try
-            {
-                if (SelectedJob.State == JobStates.Working)
+            {                if (SelectedJob.State == JobStates.Working)
                 {
                     // PAUSE action
                     if (_jobExecutionCts != null && !_jobExecutionCts.IsCancellationRequested)
                     {
+                        // Set IsPausing flag to true
+                        SelectedJob.IsPausing = true;
+                        
                         _jobExecutionCts.Cancel();
                         // ExecuteAsync in BackupJob should handle the OperationCanceledException
                         // and set the job's state to Stopped.

@@ -22,9 +22,19 @@
 
     <!-- BackupStatusView -->
     <sys:String x:Key="JobStatusDetailsTitle">Détails de la tâche</sys:String>
-    <sys:String x:Key="ErrorLabel">Erreur:</sys:String>
-    <sys:String x:Key="DeleteJobToolTip">Supprimer la tâche</sys:String>
+    <sys:String x:Key="ErrorLabel">Erreur:</sys:String>    <sys:String x:Key="DeleteJobToolTip">Supprimer la tâche</sys:String>
     <sys:String x:Key="PauseResumeJobToolTip">Mettre en pause/Reprendre la tâche</sys:String>
+    <sys:String x:Key="StartAllJobsToolTip">Démarrer toutes les tâches</sys:String>
+    <sys:String x:Key="FilterJobsToolTip">Filtrer les tâches</sys:String>
+    <sys:String x:Key="SettingsToolTip">Ouvrir les paramètres</sys:String>
+    <sys:String x:Key="CreateJobToolTip">Créer une nouvelle tâche</sys:String>
+    <sys:String x:Key="BackButtonToolTip">Retour</sys:String>
+    <sys:String x:Key="SourceFolderToolTip">Sélectionner le dossier source</sys:String>
+    <sys:String x:Key="TargetFolderToolTip">Sélectionner le dossier cible</sys:String>
+    <sys:String x:Key="CreateButtonToolTip">Créer cette tâche de sauvegarde</sys:String>
+    <sys:String x:Key="SaveButtonToolTip">Enregistrer les paramètres</sys:String>    <sys:String x:Key="CancelButtonToolTip">Annuler les modifications</sys:String>
+    <sys:String x:Key="FileExtensionsToolTip">Exemple : .json, .mp4</sys:String>
+    <sys:String x:Key="BlockedSoftwareToolTip">Exemple : calc.exe, notepad.exe</sys:String>
     
     <!-- Common -->
     <sys:String x:Key="BackArrow">←</sys:String>

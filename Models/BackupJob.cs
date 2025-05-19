@@ -66,7 +66,6 @@ public class backupJob : INotifyPropertyChanged
             }
         }
     }
-
     private JobStates _state;
     public JobStates State
     {
@@ -76,6 +75,20 @@ public class backupJob : INotifyPropertyChanged
             if (_state != value)
             {
                 _state = value;
+                OnPropertyChanged();
+            }
+        }
+    }
+
+    private bool _isPausing;
+    public bool IsPausing
+    {
+        get => _isPausing;
+        set
+        {
+            if (_isPausing != value)
+            {
+                _isPausing = value;
                 OnPropertyChanged();
             }
         }
@@ -108,7 +121,7 @@ public class backupJob : INotifyPropertyChanged
             }
         }
     }
-    
+
     private ulong _totalSizeToCopy;
     public ulong TotalSizeToCopy
     {
@@ -152,7 +165,7 @@ public class backupJob : INotifyPropertyChanged
     }
 
     private List<string> FilesToBackup { get; set; } = new List<string>();
-    
+
     public int IdleTime { get; set; } = 300000; // 5 minutes default idle time
 
     private byte _progress;
@@ -200,7 +213,7 @@ public class backupJob : INotifyPropertyChanged
         Type = type;
         State = JobStates.Idle;
         BackupJobLogger = loggerInstance;
-        
+
         Progress = 0;
         TotalFilesCopied = 0; // Represents files skipped during scan + files copied during execution
         TotalSizeCopied = 0;  // Represents size of files skipped + size of files copied
@@ -208,14 +221,14 @@ public class backupJob : INotifyPropertyChanged
         if (!Directory.Exists(sourceDir))
         {
             ErrorMessage = $"Source directory '{sourceDir}' does not exist.";
-            State = JobStates.Failed; 
+            State = JobStates.Failed;
             // Initialize counts to reflect failure/no files
             TotalFilesToCopy = 0;
             TotalSizeToCopy = 0;
             NumberFilesLeftToDo = 0;
             // UpdateFilesCountInternalAsync will not be called or will return early if state is Failed.
             // However, to be safe, ensure progress is updated.
-            UpdateProgress(); 
+            UpdateProgress();
         }
         else
         {
@@ -266,7 +279,7 @@ public class backupJob : INotifyPropertyChanged
             // No files in source, job is effectively finished or idle.
             // UpdateProgress will handle setting state to Finished if appropriate (e.g., if Idle).
             if (State == JobStates.Working) State = JobStates.Idle; // If scanning made it working, but no files.
-            UpdateProgress(); 
+            UpdateProgress();
             return;
         }
 
@@ -318,13 +331,13 @@ public class backupJob : INotifyPropertyChanged
         // or let ExecuteAsync handle it. UpdateProgress will set to Finished if applicable.
         if (State == JobStates.Working)
         {
-             // UpdateProgress will set to Finished if TotalFilesCopied == TotalFilesToCopy
-             // Otherwise, it remains Working, which is fine if ExecuteAsync is about to run.
-             // If UpdateFilesCount is called standalone, and it's done, it should be Idle if there's work, or Finished.
+            // UpdateProgress will set to Finished if TotalFilesCopied == TotalFilesToCopy
+            // Otherwise, it remains Working, which is fine if ExecuteAsync is about to run.
+            // If UpdateFilesCount is called standalone, and it's done, it should be Idle if there's work, or Finished.
         }
         UpdateProgress(); // Update overall progress and potentially state
     }
-    
+
     public async Task UpdateFilesCountAsync() // Public method to allow external refresh if needed, now async
     {
         await UpdateFilesCountInternalAsync();
@@ -343,7 +356,7 @@ public class backupJob : INotifyPropertyChanged
 
         if (Progress >= 100 && (State == JobStates.Working || State == JobStates.Idle) && TotalFilesToCopy > 0)
         {
-             // If all files are copied (TotalFilesCopied == TotalFilesToCopy)
+            // If all files are copied (TotalFilesCopied == TotalFilesToCopy)
             if (TotalFilesCopied == TotalFilesToCopy)
             {
                 State = JobStates.Finished;
@@ -372,7 +385,7 @@ public class backupJob : INotifyPropertyChanged
                     if (State == JobStates.Finished) // If UpdateProgress set it to Finished
                     {
                         // Behavior for continuous backup: after finishing, go to Idle and wait.
-                        State = JobStates.Idle; 
+                        State = JobStates.Idle;
                     }
 
                     if (State == JobStates.Idle)
@@ -387,21 +400,21 @@ public class backupJob : INotifyPropertyChanged
                             return;
                         }
                         if (cancellationToken.IsCancellationRequested) { State = JobStates.Stopped; return; }
-                        
+
                         State = JobStates.Working; // Assume work will be done after delay
                         await UpdateFilesCountInternalAsync(); // Re-scan for changes, now async
                         if (NumberFilesLeftToDo == 0 && State != JobStates.Failed) // If still nothing after re-scan
                         {
                             State = JobStates.Idle; // Go back to idle
-                            continue; 
+                            continue;
                         }
                     }
                 }
-                
+
                 if (State == JobStates.Finished && NumberFilesLeftToDo == 0) // If it was set to finished and no files left
                 {
-                     State = JobStates.Idle; // For continuous backup, go to idle then rescan after delay
-                     continue;
+                    State = JobStates.Idle; // For continuous backup, go to idle then rescan after delay
+                    continue;
                 }
 
 
@@ -428,7 +441,7 @@ public class backupJob : INotifyPropertyChanged
                         State = JobStates.Failed;
                         return;
                     }
-                    
+
                     int timeElapsed = -1;
                     ulong fileSize = 0;
                     try
@@ -439,12 +452,12 @@ public class backupJob : INotifyPropertyChanged
                     }
                     catch (Exception ex) // Catch errors during backupFile or FileInfo
                     {
-                         ErrorMessage = $"Error processing file {file}: {ex.Message}";
-                         State = JobStates.Failed;
-                         // Log this error specifically if needed
-                         // Adjusted to 6 arguments: combine error details into a single message if necessary or log separately.
-                         BackupJobLogger?.LogBackupDetails(DateTime.Now.ToString("yyyy-MM-ddTHH:mm:sszzz"), Name, file, targetFilePath, fileSize, -1 /*, $"TaskRun/BackupFile Error: {ex.Message}"*/);
-                         return;
+                        ErrorMessage = $"Error processing file {file}: {ex.Message}";
+                        State = JobStates.Failed;
+                        // Log this error specifically if needed
+                        // Adjusted to 6 arguments: combine error details into a single message if necessary or log separately.
+                        BackupJobLogger?.LogBackupDetails(DateTime.Now.ToString("yyyy-MM-ddTHH:mm:sszzz"), Name, file, targetFilePath, fileSize, -1 /*, $"TaskRun/BackupFile Error: {ex.Message}"*/);
+                        return;
                     }
 
 
@@ -458,7 +471,7 @@ public class backupJob : INotifyPropertyChanged
                     }
 
                     BackupJobLogger?.LogBackupDetails(DateTime.Now.ToString("yyyy-MM-ddTHH:mm:sszzz"), Name, file, targetFilePath, fileSize, timeElapsed);
-                    
+
                     // Successfully copied
                     NumberFilesLeftToDo--;
                     TotalFilesCopied++;
@@ -481,21 +494,25 @@ public class backupJob : INotifyPropertyChanged
         catch (TaskCanceledException)
         {
             State = JobStates.Stopped;
+            IsPausing = false; // Reset IsPausing flag when job is stopped
         }
         catch (Exception ex)
         {
             ErrorMessage = $"Error executing backup: {ex.Message}";
             State = JobStates.Failed;
+            IsPausing = false; // Reset IsPausing flag when job fails
         }
         finally
         {
             if (cancellationToken.IsCancellationRequested && State != JobStates.Failed)
             {
                 State = JobStates.Stopped;
+                IsPausing = false; // Ensure IsPausing is reset when job is stopped
             }
             else if (State == JobStates.Working) // If loop terminated while still "Working"
             {
                 State = JobStates.Stopped;
+                IsPausing = false; // Ensure IsPausing is reset when job is stopped
             }
         }
     }

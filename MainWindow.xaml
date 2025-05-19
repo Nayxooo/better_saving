@@ -9,7 +9,7 @@
         Height="800"
         Width="1200"
         MinHeight="600"
-        MinWidth="1000"
+        MinWidth="1200"
         Background="#FF1E1E1E">
     <Window.Resources>
         <converter:NullOrEmptyToVisibilityConverter x:Key="NullToVisibilityConverter"/>
@@ -265,7 +265,6 @@
 
         <ContentControl Grid.Column="0"
                         Content="{Binding ListVM}"
-                        Margin="10,10,10,10"
                         HorizontalAlignment="Stretch"/>
 
         <ContentControl Grid.Column="1"

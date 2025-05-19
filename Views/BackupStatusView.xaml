@@ -8,9 +8,9 @@
              xmlns:converters="clr-namespace:better_saving.Converters"
              mc:Ignorable="d"
              d:DataContext="{d:DesignInstance viewModels:BackupStatusViewModel, IsDesignTimeCreatable=True}"
-             d:DesignHeight="300"
              d:DesignWidth="350"
-             Background="#FF1E1E1E">
+             d:DesignHeight="300"
+             Background="#FF1E1E1E" Margin="0,20,20,20">
        <UserControl.Resources>
               <converters:ProgressToScaleConverter x:Key="ProgressToScaleConverter"/>
               <ScaleTransform x:Key="ViewScale"
@@ -63,17 +63,14 @@
                                    </ControlTemplate>
                             </Setter.Value>
                      </Setter>
-              </Style>
-       </UserControl.Resources>
-       <Grid Margin="10"
-             MinWidth="325"
-             MinHeight="280"
-             Background="#FF1A1A1A">
-             
-              
-                     
-              <Grid.RowDefinitions>
-                     <RowDefinition Height="Auto"/>
+              </Style>       </UserControl.Resources>
+       <Border CornerRadius="30"
+               Background="#FF151515">
+              <Grid MinWidth="330"
+                    MinHeight="280" Margin="10,10,10,10">
+                          
+                    <Grid.RowDefinitions>
+                           <RowDefinition Height="Auto"/>
                      <!-- Title -->
                      <RowDefinition Height="Auto"/>
                      <!-- Job Name -->
@@ -97,7 +94,7 @@
                          FontSize="24"
                          FontWeight="Bold"
                          Foreground="White"
-                         Margin="0,0,0,20"/>
+                         Margin="10,0,0,20"/>
 
               <StackPanel Grid.Row="1"
                           Orientation="Horizontal"
@@ -189,7 +186,7 @@
                                 Foreground="White"
                                 VerticalAlignment="Center"
                                 HorizontalAlignment="Right"
-                                Margin="0,0,5,0">
+                                Margin="0,0,10,0">
                 <Run Text="{Binding JobProgress, Mode=OneWay, StringFormat={}{0:0}%}"/>
                 <Run Text=" - "/>
                 <Run Text="{Binding TotalFilesCopied, Mode=OneWay}"/>/<Run Text="{Binding TotalFilesToCopy, Mode=OneWay}"/>
@@ -455,9 +452,9 @@
                                           <Setter Property="FocusVisualStyle"
                                                   Value="{x:Null}"/>
                                    </Style>
-                            </Button.Style>
-                     </Button>
+                            </Button.Style>                     </Button>
               </Grid>
 
        </Grid>
+       </Border>
 </UserControl>

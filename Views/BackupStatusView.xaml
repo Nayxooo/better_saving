@@ -5,48 +5,69 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:local="clr-namespace:better_saving.Views"
              xmlns:viewModels="clr-namespace:better_saving.ViewModels"
+             xmlns:converters="clr-namespace:better_saving.Converters"
              mc:Ignorable="d"
              d:DataContext="{d:DesignInstance viewModels:BackupStatusViewModel, IsDesignTimeCreatable=True}"
-             d:DesignHeight="450"
-             d:DesignWidth="800"
+             d:DesignHeight="300"
+             d:DesignWidth="350"
              Background="#FF1E1E1E">
-       <UserControl.Resources>              <ScaleTransform x:Key="ViewScale"
+       <UserControl.Resources>
+              <converters:ProgressToScaleConverter x:Key="ProgressToScaleConverter"/>
+              <ScaleTransform x:Key="ViewScale"
                               ScaleX="1.5"
-                              ScaleY="1.5"/>              <!-- Rotation animation for the pausing icon -->
-              <Storyboard x:Key="RotateArrows" RepeatBehavior="Forever">
-                     <DoubleAnimation 
-                            Storyboard.TargetProperty="(UIElement.RenderTransform).(RotateTransform.Angle)" 
-                            From="0" 
-                            To="360" 
-                            Duration="0:0:1.5" />
+                              ScaleY="1.5"/>
+              <!-- Rotation animation for the pausing icon -->
+              <Storyboard x:Key="RotateArrows"
+                          RepeatBehavior="Forever">
+                     <DoubleAnimation
+                            Storyboard.TargetProperty="(UIElement.RenderTransform).(RotateTransform.Angle)"
+                            From="0"
+                            To="360"
+                            Duration="0:0:1.5"/>
               </Storyboard>
-
               <!-- Style for rounded ProgressBar -->
               <Style x:Key="RoundedProgressBar"
-                            TargetType="ProgressBar">
+                     TargetType="ProgressBar">
                      <Setter Property="Background"
-                                   Value="#FF001A2E"/>
+                             Value="#FF001A2E"/>
                      <Setter Property="Foreground"
-                                   Value="#FF1776BA"/>
+                             Value="#FF1776BA"/>
+                     <Setter Property="BorderThickness"
+                             Value="0"/>
                      <Setter Property="Template">
                             <Setter.Value>
                                    <ControlTemplate TargetType="ProgressBar">
-                                          <Border BorderThickness="0"
-                                                        Background="{TemplateBinding Background}"
-                                                        CornerRadius="10">
-                                                 <Border x:Name="PART_Indicator"
-                                                         Background="{TemplateBinding Foreground}"
-                                                         CornerRadius="10"
-                                                         HorizontalAlignment="Left"/>
-                                          </Border>
+                                          <Grid x:Name="TemplateRoot">
+                                                 <Border x:Name="PART_Track"
+                                                         BorderThickness="0"
+                                                         Background="{TemplateBinding Background}"
+                                                         CornerRadius="10"/>
+                                                 <Canvas ClipToBounds="False">
+                                                        <Border x:Name="PART_Indicator"
+                                                                BorderThickness="0"
+                                                                Background="{TemplateBinding Foreground}"
+                                                                CornerRadius="10"
+                                                                Height="{Binding ElementName=PART_Track, Path=ActualHeight}"
+                                                                HorizontalAlignment="Left">
+                                                               <Border.Width>
+                                                                      <MultiBinding Converter="{StaticResource ProgressToScaleConverter}">
+                                                                             <Binding RelativeSource="{RelativeSource TemplatedParent}"
+                                                                                           Path="Value"/>
+                                                                             <Binding ElementName="PART_Track"
+                                                                                           Path="ActualWidth"/>
+                                                                      </MultiBinding>
+                                                               </Border.Width>
+                                                        </Border>
+                                                 </Canvas>
+                                          </Grid>
                                    </ControlTemplate>
                             </Setter.Value>
                      </Setter>
               </Style>
        </UserControl.Resources>
        <Grid Margin="10"
-             MinWidth="450"
-             MinHeight="250">
+             MinWidth="325"
+             MinHeight="280">
               <Grid.RowDefinitions>
                      <RowDefinition Height="Auto"/>
                      <!-- Title -->
@@ -165,7 +186,7 @@
                                 VerticalAlignment="Center"
                                 HorizontalAlignment="Right"
                                 Margin="0,0,5,0">
-                <Run Text="{Binding JobProgress, Mode=OneWay, StringFormat={}{0:0.0}%}"/>
+                <Run Text="{Binding JobProgress, Mode=OneWay, StringFormat={}{0:0}%}"/>
                 <Run Text=" - "/>
                 <Run Text="{Binding TotalFilesCopied, Mode=OneWay}"/>/<Run Text="{Binding TotalFilesToCopy, Mode=OneWay}"/>
                      </TextBlock>
@@ -179,11 +200,12 @@
                                 FontWeight="Bold"
                                 Foreground="LightSkyBlue"
                                 Width="100"
-                                Height="25"/>
+                                Height="25"
+                                HorizontalAlignment="Center"/>
               </StackPanel>
               <!-- Action Buttons -->
               <Grid Grid.Row="9"
-                            Margin="0,10,0,0">
+                    Margin="0,10,0,0">
                      <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="Auto"/>
                             <ColumnDefinition Width="*"/>
@@ -204,8 +226,8 @@
                             <Path Data="M24,6.75 C27.3750735,6.75 30.1253119,9.4252368 30.245878,12.7708731 L30.25,13.0010013 L37,13 C37.9664983,13 38.75,13.7835017 38.75,14.75 C38.75,15.6681734 38.0428897,16.4211923 37.1435272,16.4941988 L37,16.5 L35.833,16.5 L34.2058308,38.0698451 C34.0385226,40.2866784 32.1910211,42 29.9678833,42 L18.0321167,42 C15.8089789,42 13.9614774,40.2866784 13.7941692,38.0698451 L12.166,16.5 L11,16.5 C10.0818266,16.5 9.32880766,15.7928897 9.2558012,14.8935272 L9.25,14.75 C9.25,13.8318266 9.95711027,13.0788077 10.8564728,13.0058012 L11,13 L17.75,13 C17.75,9.70163274 20.305017,7.00002168 23.5438239,6.76639376 L23.7708731,6.75412198 L24,6.75 Z M27.75,19.75 C27.1027913,19.75 26.5704661,20.2418747 26.5064536,20.8721948 L26.5,21 L26.5,33 L26.5064536,33.1278052 C26.5704661,33.7581253 27.1027913,34.25 27.75,34.25 C28.3972087,34.25 28.9295339,33.7581253 28.9935464,33.1278052 L29,33 L29,21 L28.9935464,20.8721948 C28.9295339,20.2418747 28.3972087,19.75 27.75,19.75 Z M20.25,19.75 C19.6027913,19.75 19.0704661,20.2418747 19.0064536,20.8721948 L19,21 L19,33 L19.0064536,33.1278052 C19.0704661,33.7581253 19.6027913,34.25 20.25,34.25 C20.8972087,34.25 21.4295339,33.7581253 21.4935464,33.1278052 L21.5,33 L21.5,21 L21.4935464,20.8721948 C21.4295339,20.2418747 20.8972087,19.75 20.25,19.75 Z M24.1675223,10.2550188 L24,10.25 C22.5374682,10.25 21.3415957,11.3917046 21.2550188,12.8324777 L21.2500002,13.0010036 L26.7500002,13 C26.7500002,11.5374682 25.6082954,10.3415957 24.1675223,10.2550188 Z"
                                   Fill="White"
                                   Stretch="Uniform"
-                                  Width="27"
-                                  Height="27"/>
+                                  Width="20"
+                                  Height="20"/>
                             <Button.Style>
                                    <Style TargetType="Button">
                                           <Setter Property="Template">
@@ -258,45 +280,50 @@
                                                  <Style.Triggers>
                                                         <!-- Show rotating arrows icon when job is in the process of pausing -->
                                                         <DataTrigger Binding="{Binding IsJobPausing}"
-                                                                      Value="True">                                                               <Setter Property="Content">
-                                                                      <Setter.Value>                                                                             <Canvas Width="24" Height="24">
+                                                                     Value="True">
+                                                               <Setter Property="Content">
+                                                                      <Setter.Value>
+                                                                             <Canvas Width="20"
+                                                                                     Height="20">
                                                                                     <!-- Arrow-sync.svg based icon -->
-                                                                                    <Path 
-                                                                                         Data="M7.94822962,5.02850432 C8.2831456,5.46765091 8.19865,6.09515261 7.75950341,6.4300686 C6.03254452,7.74713709 5,9.78703304 5,12 C5,15.4973075 7.56475199,18.395585 10.9159977,18.9165744 L10.2071068,18.2071068 C9.81658249,17.8165825 9.81658249,17.1834175 10.2071068,16.7928932 C10.5976311,16.4023689 11.2307961,16.4023689 11.6213203,16.7928932 L14.1213203,19.2928932 C14.5118446,19.6834175 14.5118446,20.3165825 14.1213203,20.7071068 L11.6213203,23.2071068 C11.2307961,23.5976311 10.5976311,23.5976311 10.2071068,23.2071068 C9.81658249,22.8165825 9.81658249,22.1834175 10.2071068,21.7928932 L11.0502786,20.9504867 C6.52614758,20.4760098 3,16.6497928 3,12 C3,9.15643984 4.32881972,6.5312223 6.54666534,4.83977811 C6.98581193,4.50486213 7.61331363,4.58935773 7.94822962,5.02850432 Z M9.87867966,3.29289322 L12.3786797,0.792893219 C12.7692039,0.402368927 13.4023689,0.402368927 13.7928932,0.792893219 C14.1533772,1.15337718 14.1811067,1.72060824 13.8760818,2.11289944 L13.7928932,2.20710678 L12.9497214,3.0495133 C17.4738524,3.52399021 21,7.35020716 21,12 C21,14.7198329 19.7848559,17.243156 17.7284056,18.9418543 C17.3026041,19.2935809 16.6722931,19.2335313 16.3205666,18.8077299 C15.96884,18.3819284 16.0288896,17.7516174 16.454691,17.3998909 C18.0559569,16.0771906 19,14.1168256 19,12 C19,8.50269253 16.435248,5.60441498 13.0840023,5.08342564 L13.7928932,5.79289322 C14.1834175,6.18341751 14.1834175,6.81658249 13.7928932,7.20710678 C13.4324093,7.56759074 12.8651782,7.59532028 12.472887,7.29029539 L12.3786797,7.20710678 L9.87867966,4.70710678 C9.51819569,4.34662282 9.49046616,3.77939176 9.79549105,3.38710056 L9.87867966,3.29289322 L12.3786797,0.792893219 L9.87867966,3.29289322 Z"
-                                                                                         Fill="White"
-                                                                                         Width="24"
-                                                                                         Height="24"
-                                                                                         Stretch="Uniform"
-                                                                                         Canvas.Left="0"
-                                                                                         Canvas.Top="0">
-                                                                                        <Path.RenderTransform>
-                                                                                            <RotateTransform CenterX="12" CenterY="12" />
-                                                                                        </Path.RenderTransform>
+                                                                                    <Path
+                                                                                           Data="M7.94822962,5.02850432 C8.2831456,5.46765091 8.19865,6.09515261 7.75950341,6.4300686 C6.03254452,7.74713709 5,9.78703304 5,12 C5,15.4973075 7.56475199,18.395585 10.9159977,18.9165744 L10.2071068,18.2071068 C9.81658249,17.8165825 9.81658249,17.1834175 10.2071068,16.7928932 C10.5976311,16.4023689 11.2307961,16.4023689 11.6213203,16.7928932 L14.1213203,19.2928932 C14.5118446,19.6834175 14.5118446,20.3165825 14.1213203,20.7071068 L11.6213203,23.2071068 C11.2307961,23.5976311 10.5976311,23.5976311 10.2071068,23.2071068 C9.81658249,22.8165825 9.81658249,22.1834175 10.2071068,21.7928932 L11.0502786,20.9504867 C6.52614758,20.4760098 3,16.6497928 3,12 C3,9.15643984 4.32881972,6.5312223 6.54666534,4.83977811 C6.98581193,4.50486213 7.61331363,4.58935773 7.94822962,5.02850432 Z M9.87867966,3.29289322 L12.3786797,0.792893219 C12.7692039,0.402368927 13.4023689,0.402368927 13.7928932,0.792893219 C14.1533772,1.15337718 14.1811067,1.72060824 13.8760818,2.11289944 L13.7928932,2.20710678 L12.9497214,3.0495133 C17.4738524,3.52399021 21,7.35020716 21,12 C21,14.7198329 19.7848559,17.243156 17.7284056,18.9418543 C17.3026041,19.2935809 16.6722931,19.2335313 16.3205666,18.8077299 C15.96884,18.3819284 16.0288896,17.7516174 16.454691,17.3998909 C18.0559569,16.0771906 19,14.1168256 19,12 C19,8.50269253 16.435248,5.60441498 13.0840023,5.08342564 L13.7928932,5.79289322 C14.1834175,6.18341751 14.1834175,6.81658249 13.7928932,7.20710678 C13.4324093,7.56759074 12.8651782,7.59532028 12.472887,7.29029539 L12.3786797,7.20710678 L9.87867966,4.70710678 C9.51819569,4.34662282 9.49046616,3.77939176 9.79549105,3.38710056 L9.87867966,3.29289322 L12.3786797,0.792893219 L9.87867966,3.29289322 Z"
+                                                                                           Fill="White"
+                                                                                           Width="20"
+                                                                                           Height="20"
+                                                                                           Stretch="Uniform"
+                                                                                           Canvas.Left="0"
+                                                                                           Canvas.Top="0">
+                                                                                           <Path.RenderTransform>
+                                                                                                  <RotateTransform CenterX="10"
+                                                                                                                   CenterY="10"/>
+                                                                                           </Path.RenderTransform>
                                                                                     </Path>
                                                                              </Canvas>
                                                                       </Setter.Value>
-                                                               </Setter>                                                               <DataTrigger.EnterActions>
+                                                               </Setter>
+                                                               <DataTrigger.EnterActions>
                                                                       <BeginStoryboard Name="RotateStoryboard">
-                                                                            <Storyboard RepeatBehavior="Forever">
-                                                                                <DoubleAnimation 
-                                                                                    Storyboard.TargetProperty="(Path.RenderTransform).(RotateTransform.Angle)"
-                                                                                    From="0"
-                                                                                    To="360"
-                                                                                    Duration="0:0:1.5" />
-                                                                            </Storyboard>
+                                                                             <Storyboard RepeatBehavior="Forever">
+                                                                                    <DoubleAnimation
+                                                                                           Storyboard.TargetProperty="(Path.RenderTransform).(RotateTransform.Angle)"
+                                                                                           From="0"
+                                                                                           To="360"
+                                                                                           Duration="0:0:1.5"/>
+                                                                             </Storyboard>
                                                                       </BeginStoryboard>
                                                                </DataTrigger.EnterActions>
                                                                <DataTrigger.ExitActions>
-                                                                      <StopStoryboard BeginStoryboardName="RotateStoryboard" />
+                                                                      <StopStoryboard BeginStoryboardName="RotateStoryboard"/>
                                                                </DataTrigger.ExitActions>
                                                         </DataTrigger>
                                                         <!-- Show pause icon when job is working (and not pausing) -->
                                                         <MultiDataTrigger>
                                                                <MultiDataTrigger.Conditions>
                                                                       <Condition Binding="{Binding JobState}"
-                                                                                    Value="Working"/>
+                                                                                 Value="Working"/>
                                                                       <Condition Binding="{Binding IsJobPausing}"
-                                                                                    Value="False"/>
+                                                                                 Value="False"/>
                                                                </MultiDataTrigger.Conditions>
                                                                <Setter Property="Content">
                                                                       <Setter.Value>
@@ -304,8 +331,8 @@
                                                                              <Path Data="M17.75,7 C19.5449254,7 21,8.45507456 21,10.25 L21,37.75 C21,39.5449254 19.5449254,41 17.75,41 L12.25,41 C10.4550746,41 9,39.5449254 9,37.75 L9,10.25 C9,8.45507456 10.4550746,7 12.25,7 L17.75,7 Z M35.75,7 C37.5449254,7 39,8.45507456 39,10.25 L39,37.75 C39,39.5449254 37.5449254,41 35.75,41 L30.25,41 C28.4550746,41 27,39.5449254 27,37.75 L27,10.25 C27,8.45507456 28.4550746,7 30.25,7 L35.75,7 Z"
                                                                                    Fill="White"
                                                                                    Stretch="Uniform"
-                                                                                   Width="25"
-                                                                                   Height="25"/>
+                                                                                   Width="20"
+                                                                                   Height="20"/>
                                                                       </Setter.Value>
                                                                </Setter>
                                                         </MultiDataTrigger>
@@ -313,9 +340,9 @@
                                                         <MultiDataTrigger>
                                                                <MultiDataTrigger.Conditions>
                                                                       <Condition Binding="{Binding JobState}"
-                                                                                    Value="Stopped"/>
+                                                                                 Value="Stopped"/>
                                                                       <Condition Binding="{Binding IsJobPausing}"
-                                                                                    Value="False"/>
+                                                                                 Value="False"/>
                                                                </MultiDataTrigger.Conditions>
                                                                <Setter Property="Content">
                                                                       <Setter.Value>
@@ -323,8 +350,9 @@
                                                                              <Path Data="M13.7501344,8.41212026 L38.1671892,21.1169293 C39.7594652,21.9454306 40.3786269,23.9078584 39.5501255,25.5001344 C39.2420737,26.0921715 38.7592263,26.5750189 38.1671892,26.8830707 L13.7501344,39.5878797 C12.1578584,40.4163811 10.1954306,39.7972194 9.36692926,38.2049434 C9.12586301,37.7416442 9,37.2270724 9,36.704809 L9,11.295191 C9,9.50026556 10.4550746,8.045191 12.25,8.045191 C12.6976544,8.045191 13.1396577,8.13766178 13.5485655,8.31589049 L13.7501344,8.41212026 Z"
                                                                                    Fill="White"
                                                                                    Stretch="Uniform"
-                                                                                   Width="27"
-                                                                                   Height="27"/>
+                                                                                   Width="20"
+                                                                                   Height="20"
+                                                                                   Margin="2,0,0,0"/>
                                                                       </Setter.Value>
                                                                </Setter>
                                                         </MultiDataTrigger>
@@ -332,9 +360,9 @@
                                                         <MultiDataTrigger>
                                                                <MultiDataTrigger.Conditions>
                                                                       <Condition Binding="{Binding JobState}"
-                                                                                    Value="Idle"/>
+                                                                                 Value="Idle"/>
                                                                       <Condition Binding="{Binding IsJobPausing}"
-                                                                                    Value="False"/>
+                                                                                 Value="False"/>
                                                                </MultiDataTrigger.Conditions>
                                                                <Setter Property="Content">
                                                                       <Setter.Value>
@@ -342,8 +370,9 @@
                                                                              <Path Data="M13.7501344,8.41212026 L38.1671892,21.1169293 C39.7594652,21.9454306 40.3786269,23.9078584 39.5501255,25.5001344 C39.2420737,26.0921715 38.7592263,26.5750189 38.1671892,26.8830707 L13.7501344,39.5878797 C12.1578584,40.4163811 10.1954306,39.7972194 9.36692926,38.2049434 C9.12586301,37.7416442 9,37.2270724 9,36.704809 L9,11.295191 C9,9.50026556 10.4550746,8.045191 12.25,8.045191 C12.6976544,8.045191 13.1396577,8.13766178 13.5485655,8.31589049 L13.7501344,8.41212026 Z"
                                                                                    Fill="White"
                                                                                    Stretch="Uniform"
-                                                                                   Width="27"
-                                                                                   Height="27"/>
+                                                                                   Width="20"
+                                                                                   Height="20"
+                                                                                   Margin="2,0,0,0"/>
                                                                       </Setter.Value>
                                                                </Setter>
                                                         </MultiDataTrigger>
@@ -351,9 +380,9 @@
                                                         <MultiDataTrigger>
                                                                <MultiDataTrigger.Conditions>
                                                                       <Condition Binding="{Binding JobState}"
-                                                                                    Value="Failed"/>
+                                                                                 Value="Failed"/>
                                                                       <Condition Binding="{Binding IsJobPausing}"
-                                                                                    Value="False"/>
+                                                                                 Value="False"/>
                                                                </MultiDataTrigger.Conditions>
                                                                <Setter Property="Content">
                                                                       <Setter.Value>
@@ -361,8 +390,9 @@
                                                                              <Path Data="M13.7501344,8.41212026 L38.1671892,21.1169293 C39.7594652,21.9454306 40.3786269,23.9078584 39.5501255,25.5001344 C39.2420737,26.0921715 38.7592263,26.5750189 38.1671892,26.8830707 L13.7501344,39.5878797 C12.1578584,40.4163811 10.1954306,39.7972194 9.36692926,38.2049434 C9.12586301,37.7416442 9,37.2270724 9,36.704809 L9,11.295191 C9,9.50026556 10.4550746,8.045191 12.25,8.045191 C12.6976544,8.045191 13.1396577,8.13766178 13.5485655,8.31589049 L13.7501344,8.41212026 Z"
                                                                                    Fill="White"
                                                                                    Stretch="Uniform"
-                                                                                   Width="27"
-                                                                                   Height="27"/>
+                                                                                   Width="20"
+                                                                                   Height="20"
+                                                                                   Margin="2,0,0,0"/>
                                                                       </Setter.Value>
                                                                </Setter>
                                                         </MultiDataTrigger>
@@ -370,9 +400,9 @@
                                                         <MultiDataTrigger>
                                                                <MultiDataTrigger.Conditions>
                                                                       <Condition Binding="{Binding JobState}"
-                                                                                    Value="Finished"/>
+                                                                                 Value="Finished"/>
                                                                       <Condition Binding="{Binding IsJobPausing}"
-                                                                                    Value="False"/>
+                                                                                 Value="False"/>
                                                                </MultiDataTrigger.Conditions>
                                                                <Setter Property="Content">
                                                                       <Setter.Value>
@@ -380,8 +410,8 @@
                                                                              <Path Data="M13.7501344,8.41212026 L38.1671892,21.1169293 C39.7594652,21.9454306 40.3786269,23.9078584 39.5501255,25.5001344 C39.2420737,26.0921715 38.7592263,26.5750189 38.1671892,26.8830707 L13.7501344,39.5878797 C12.1578584,40.4163811 10.1954306,39.7972194 9.36692926,38.2049434 C9.12586301,37.7416442 9,37.2270724 9,36.704809 L9,11.295191 C9,9.50026556 10.4550746,8.045191 12.25,8.045191 C12.6976544,8.045191 13.1396577,8.13766178 13.5485655,8.31589049 L13.7501344,8.41212026 Z"
                                                                                    Fill="White"
                                                                                    Stretch="Uniform"
-                                                                                   Width="27"
-                                                                                   Height="27"/>
+                                                                                   Width="20"
+                                                                                   Height="20"/>
                                                                       </Setter.Value>
                                                                </Setter>
                                                         </MultiDataTrigger>

@@ -21,7 +21,7 @@
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="RadioButton">
-                        <Border CornerRadius="15,0,0,15"
+                        <Border CornerRadius="10,0,0,10"
                                 BorderBrush="#FF868688"
                                 BorderThickness="1"
                                 Background="{TemplateBinding Background}">
@@ -55,7 +55,7 @@
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="RadioButton">
-                        <Border CornerRadius="0,15,15,0"
+                        <Border CornerRadius="0,10,10,0"
                                 BorderBrush="#FF868688"
                                 BorderThickness="1"
                                 Background="{TemplateBinding Background}">

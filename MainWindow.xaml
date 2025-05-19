@@ -60,6 +60,37 @@
             </Setter>
         </Style>
 
+        <!-- TextBox Style with Rounded Corners -->
+        <Style x:Key="RoundedTextBoxStyle"
+       TargetType="TextBox">
+            <Setter Property="Background"
+            Value="#FF22272A"/>
+            <Setter Property="Foreground"
+            Value="White"/>
+            <Setter Property="BorderBrush"
+            Value="Gray"/>
+            <Setter Property="BorderThickness"
+            Value="1"/>
+            <Setter Property="Padding"
+            Value="5,3"/>
+            <Setter Property="Height"
+            Value="30"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="TextBox">
+                        <Border Background="{TemplateBinding Background}"
+                        BorderBrush="{TemplateBinding BorderBrush}"
+                        BorderThickness="{TemplateBinding BorderThickness}"
+                        CornerRadius="10">
+                            <ScrollViewer x:Name="PART_ContentHost"
+                                  Margin="{TemplateBinding Padding}"
+                                  VerticalAlignment="Center"/>
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
         <DataTemplate DataType="{x:Type vm:BackupCreationViewModel}">
             <views:BackupCreationView/>
         </DataTemplate>
@@ -75,14 +106,15 @@
                            Foreground="White"/>
                 <TextBox Text="{Binding BlockedSoftwareText}"
                          Margin="0,5"
-                         ToolTip="{DynamicResource BlockedSoftwareToolTip}"/>
-
+                         ToolTip="{DynamicResource BlockedSoftwareToolTip}"
+                         Style="{StaticResource RoundedTextBoxStyle}"/>
                 <TextBlock Text="{DynamicResource FileExtensionsLabel}"
                            Foreground="White"
                            Margin="0,10,0,0"/>
                 <TextBox Text="{Binding FileExtensionsText}"
                          Margin="0,5"
-                         ToolTip="{DynamicResource FileExtensionsToolTip}"/>
+                         ToolTip="{DynamicResource FileExtensionsToolTip}"
+                         Style="{StaticResource RoundedTextBoxStyle}"/>
                 <StackPanel Orientation="Horizontal"
                             HorizontalAlignment="Left"
                             Margin="0,10 0,0">
@@ -191,29 +223,30 @@
                     </Button>
                 </StackPanel>
                 <StackPanel Orientation="Horizontal"
-                            Margin="0,10">
+                    Margin="0,10"
+                    HorizontalAlignment="Left">
                     <Button Content="{DynamicResource Cancel}"
-                            Command="{Binding CancelCommand}"
-                            Width="80"
-                            Height="30"
-                            Margin="5"
-                            Cursor="Hand"
-                            Background="#22272A"
-                            BorderThickness="0"
-                            Foreground="White"
-                            ToolTip="{DynamicResource CancelButtonToolTip}"
-                            Style="{StaticResource SettingsButtonStyle}"/>
+                        Command="{Binding CancelCommand}"
+                        Width="80"
+                        Height="30"
+                        Margin="0"
+                        Cursor="Hand"
+                        Background="#22272A"
+                        BorderThickness="0"
+                        Foreground="White"
+                        ToolTip="{DynamicResource CancelButtonToolTip}"
+                        Style="{StaticResource SettingsButtonStyle}"/>
                     <Button Content="{DynamicResource Save}"
-                            Command="{Binding SaveCommand}"
-                            Width="80"
-                            Height="30"
-                            Margin="5"
-                            Cursor="Hand"
-                            Background="#22272A"
-                            BorderThickness="0"
-                            Foreground="White"
-                            ToolTip="{DynamicResource SaveButtonToolTip}"
-                            Style="{StaticResource SettingsButtonStyle}"/>
+                        Command="{Binding SaveCommand}"
+                        Width="80"
+                        Height="30"
+                        Margin="5"
+                        Cursor="Hand"
+                        Background="#22272A"
+                        BorderThickness="0"
+                        Foreground="White"
+                        ToolTip="{DynamicResource SaveButtonToolTip}"
+                        Style="{StaticResource SettingsButtonStyle}"/>
                 </StackPanel>
             </StackPanel>
         </DataTemplate>

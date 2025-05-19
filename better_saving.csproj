@@ -19,6 +19,7 @@
     <PackageReference Include="System.IO.Hashing" Version="9.0.5" />
   </ItemGroup>
   <ItemGroup>
+    <Resource Include="font\Inter\static\Inter_18pt-Medium.ttf" />
     <Resource Include="Resources\Localization\Strings.en-US.xaml">
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </Resource>
@@ -29,6 +30,10 @@
 
   <ItemGroup>
     <Resource Include="Assets\Icons\*.svg" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Remove="font\Inter\static\Inter_18pt-Medium.ttf" />
   </ItemGroup>
 
 </Project>

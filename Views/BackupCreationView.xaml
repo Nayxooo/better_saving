@@ -198,7 +198,7 @@
             <Setter Property="Padding"
                     Value="5,3"/>
             <Setter Property="Height"
-                    Value="25"/>
+                    Value="30"/>
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="TextBox">

@@ -67,7 +67,11 @@
        </UserControl.Resources>
        <Grid Margin="10"
              MinWidth="325"
-             MinHeight="280">
+             MinHeight="280"
+             Background="#FF1A1A1A">
+             
+              
+                     
               <Grid.RowDefinitions>
                      <RowDefinition Height="Auto"/>
                      <!-- Title -->
@@ -217,7 +221,7 @@
                              ToolTip="{DynamicResource DeleteJobToolTip}"
                              Width="40"
                              Height="40"
-                             Margin="0,0,8,0"
+                             Margin="10,0,0,0"
                              Command="{Binding DeleteJobCommand}"
                              Background="#7A201F"
                              BorderThickness="0"
@@ -268,7 +272,7 @@
                              ToolTip="{DynamicResource PauseResumeJobToolTip}"
                              Width="40"
                              Height="40"
-                             Margin="8,0,0,0"
+                             Margin="0,0,10,0"
                              Command="{Binding PauseResumeJobCommand}"
                              Background="#1F547A"
                              BorderThickness="0"

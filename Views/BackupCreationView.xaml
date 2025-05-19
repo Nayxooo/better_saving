@@ -14,7 +14,7 @@
             <Setter Property="Foreground"
                     Value="Gray"/>
             <Setter Property="Background"
-                    Value="Transparent"/>
+                    Value="#FF161618"/>
             <Setter Property="MinWidth"
                     Value="100"/>
             <!-- Added MinWidth -->
@@ -22,7 +22,7 @@
                 <Setter.Value>
                     <ControlTemplate TargetType="RadioButton">
                         <Border CornerRadius="15,0,0,15"
-                                BorderBrush="White"
+                                BorderBrush="#FF868688"
                                 BorderThickness="1"
                                 Background="{TemplateBinding Background}">
                             <ContentPresenter HorizontalAlignment="Center"
@@ -33,8 +33,10 @@
                             <Trigger Property="IsChecked"
                                      Value="True">
                                 <Setter Property="Background"
-                                        Value="#2D7DDB"/>
+                                        Value="#FF1776BA"/>
                                 <Setter Property="Foreground"
+                                        Value="White"/>
+                                <Setter Property="BorderBrush"
                                         Value="White"/>
                             </Trigger>
                         </ControlTemplate.Triggers>
@@ -54,7 +56,7 @@
                 <Setter.Value>
                     <ControlTemplate TargetType="RadioButton">
                         <Border CornerRadius="0,15,15,0"
-                                BorderBrush="White"
+                                BorderBrush="#FF868688"
                                 BorderThickness="1"
                                 Background="{TemplateBinding Background}">
                             <ContentPresenter HorizontalAlignment="Center"
@@ -65,8 +67,10 @@
                             <Trigger Property="IsChecked"
                                      Value="True">
                                 <Setter Property="Background"
-                                        Value="#2D7DDB"/>
+                                        Value="#FF1776BA"/>
                                 <Setter Property="Foreground"
+                                        Value="White"/>
+                                <Setter Property="BorderBrush"
                                         Value="White"/>
                             </Trigger>
                         </ControlTemplate.Triggers>
@@ -297,8 +301,8 @@
                        Foreground="White"
                        Margin="0,0,0,5"/>
             <TextBox Text="{Binding Name, UpdateSourceTrigger=PropertyChanged}"
-                     Margin="0,0,45,10"
-                     Style="{StaticResource RoundedTextBoxStyle}"/>
+                     Margin="0,0,47,10"
+                     Style="{StaticResource RoundedTextBoxStyle}" Background="#FF161618" BorderBrush="#FF868688"/>
 
             <!-- Source Directory -->
             <TextBlock Text="{DynamicResource SourceDir}"
@@ -311,14 +315,14 @@
                 <TextBox Text="{Binding SourceDirectory, UpdateSourceTrigger=PropertyChanged}"
                          Grid.Column="0"
                          IsReadOnly="True"
-                         Style="{StaticResource RoundedTextBoxStyle}"/>
+                         Style="{StaticResource RoundedTextBoxStyle}" Background="#FF161618" BorderBrush="#FF868688"/>
                 <Button Command="{Binding SelectSourceDirectoryCommand}"
                         Grid.Column="1"
                         Margin="5,0,0,0"
                         Cursor="Hand"
-                        Background="#22272A"
+                        Background="#FF161618"
                         BorderThickness="0"
-                        Width="40"
+                        Width="42"
                         Height="35"
                         ToolTip="{DynamicResource SourceFolderToolTip}">
                     <Path Data="M41.68,13.02H24.77c-2-0.1-5.93-4.23-8.19-4.23H6.68c-1.2,0-2.18,0.98-2.18,2.18c0,0.02,0,0.03,0,0.05v7.29h39v-3.42c0.02-1.01-0.78-1.85-1.79-1.87c-0.01,0-0.02,0-0.03,0Z M4.5,18.3v18.72c-0.01,1.2,0.96,2.19,2.16,2.2c0,0,0.01,0,0.01,0h34.65c1.2,0,2.18-0.98,2.18-2.18c0-0.01,0-0.01,0-0.02v-18.72 M34.42,23.24v-13 M41.5,28.09L34.42,20.74L27.34,28.09"
@@ -374,14 +378,14 @@
                 <TextBox Text="{Binding TargetDirectory, UpdateSourceTrigger=PropertyChanged}"
                          Grid.Column="0"
                          IsReadOnly="True"
-                         Style="{StaticResource RoundedTextBoxStyle}"/>
+                         Style="{StaticResource RoundedTextBoxStyle}" Background="#FF161618" BorderBrush="#FF868688"/>
                 <Button Command="{Binding SelectTargetDirectoryCommand}"
                         Grid.Column="1"
                         Margin="5,0,0,0"
                         Cursor="Hand"
-                        Background="#22272A"
+                        Background="#FF161618"
                         BorderThickness="0"
-                        Width="40"
+                        Width="42"
                         Height="35"
                         ToolTip="{DynamicResource TargetFolderToolTip}">
                     <Path Data="M41.68,13.02H24.77c-2-0.1-5.93-4.23-8.19-4.23H6.68c-1.2,0-2.18,0.98-2.18,2.18c0,0.02,0,0.03,0,0.05v7.29h39v-3.42c0.02-1.01-0.78-1.85-1.79-1.87c-0.01,0-0.02,0-0.03,0Z M4.5,18.3v18.72c-0.01,1.2,0.96,2.19,2.16,2.2c0,0,0.01,0,0.01,0h34.65c1.2,0,2.18-0.98,2.18-2.18c0-0.01,0-0.01,0-0.02v-18.72 M34.42,21.24v13 M27.34,27.39L34.42,34.74L41.5,27.39"

@@ -1,0 +1,41 @@
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" 
+                    xmlns:sys="clr-namespace:System;assembly=System.Runtime">
+    <sys:String x:Key="SettingsTitle">Settings</sys:String>
+    <sys:String x:Key="BlockedSoftwareLabel">Blocked Software (comma-separated, e.g.: 'calc.exe','notepad.exe'):</sys:String>
+    <sys:String x:Key="FileExtensionsLabel">File extensions to encrypt (comma-separated, e.g.: '.txt', '.docx'):</sys:String>
+    <sys:String x:Key="Save">Save</sys:String>
+    <sys:String x:Key="Cancel">Cancel</sys:String>
+
+    <!-- BackupCreationView -->
+    <sys:String x:Key="BackupCreationTitle">Backup Job Creation²</sys:String> <!-- don't ask about the '²' -->
+    <sys:String x:Key="Name">Name:</sys:String>
+    <sys:String x:Key="SourceDir">Source Directory:</sys:String>
+    <sys:String x:Key="TargetDir">Target Directory:</sys:String>
+    <sys:String x:Key="Type">Type:</sys:String>
+    <sys:String x:Key="Full">Full</sys:String>
+    <sys:String x:Key="Diff">Differential</sys:String>
+    <sys:String x:Key="Create">Create</sys:String>
+
+    <!-- BackupListView -->
+    <sys:String x:Key="BackupJobListTitle">Backup job list</sys:String>
+
+    <!-- BackupStatusView -->
+    <sys:String x:Key="JobStatusDetailsTitle">Job Status Details</sys:String>
+    <sys:String x:Key="ErrorLabel">Error:</sys:String>    <sys:String x:Key="DeleteJobToolTip">Delete Job</sys:String>
+    <sys:String x:Key="PauseResumeJobToolTip">Pause/Resume Job</sys:String>
+    <sys:String x:Key="StartAllJobsToolTip">Start All Jobs</sys:String>
+    <sys:String x:Key="FilterJobsToolTip">Filter Jobs</sys:String>
+    <sys:String x:Key="SettingsToolTip">Open Settings</sys:String>
+    <sys:String x:Key="CreateJobToolTip">Create New Job</sys:String>
+    <sys:String x:Key="BackButtonToolTip">Go Back</sys:String>
+    <sys:String x:Key="SourceFolderToolTip">Select Source Folder</sys:String>
+    <sys:String x:Key="TargetFolderToolTip">Select Target Folder</sys:String>
+    <sys:String x:Key="CreateButtonToolTip">Create This Backup Job</sys:String>
+    <sys:String x:Key="SaveButtonToolTip">Save Settings</sys:String>    <sys:String x:Key="CancelButtonToolTip">Cancel Changes</sys:String>
+    <sys:String x:Key="FileExtensionsToolTip">Example: .json, .mp4</sys:String>
+    <sys:String x:Key="BlockedSoftwareToolTip">Example: calc.exe, notepad.exe</sys:String>
+
+    <!-- Common -->
+    <sys:String x:Key="BackArrow">←</sys:String>
+</ResourceDictionary>

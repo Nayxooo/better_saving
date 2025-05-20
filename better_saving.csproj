@@ -1,0 +1,39 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net8.0-windows</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <UseWPF>true</UseWPF>
+    <UseWindowsForms>true</UseWindowsForms>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Page Remove="Resources\Localization\Strings.en-US.xaml" />
+    <Page Remove="Resources\Localization\Strings.fr-FR.xaml" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="SharpVectors.Wpf" Version="1.8.4" />
+    <PackageReference Include="System.IO.Hashing" Version="9.0.5" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="font\Inter\static\Inter_18pt-Medium.ttf" />
+    <Resource Include="Resources\Localization\Strings.en-US.xaml">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="Resources\Localization\Strings.fr-FR.xaml">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Resource>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Resource Include="Assets\Icons\*.svg" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Remove="font\Inter\static\Inter_18pt-Medium.ttf" />
+  </ItemGroup>
+
+</Project>

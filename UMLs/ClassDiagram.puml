@@ -127,7 +127,7 @@ package "ViewModels" {
     + LoadJobs()
     + AddJob(job: BackupJob)
     + StartAllJobs()
-    + FilterJobs()
+    + SortJobs()
     + GetLogger(): Logger
   }
 

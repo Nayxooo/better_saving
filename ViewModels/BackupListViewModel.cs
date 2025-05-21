@@ -44,7 +44,7 @@ namespace better_saving.ViewModels
 
             CreateJobCommand = new RelayCommand(_ => CreateNewJob());
             StartAllJobsCommand = new RelayCommand(_ => StartAllJobs(), _ => CanStartAllJobs());
-            FilterJobsCommand = new RelayCommand(_ => FilterJobs());
+            FilterJobsCommand = new RelayCommand(_ => SortJobs());
             ShowJobDetailsCommand = new RelayCommand(param => ShowJobDetails(param as backupJob));
         }
 
@@ -147,7 +147,7 @@ namespace better_saving.ViewModels
                  /// Filters backup jobs based on certain criteria
                  /// </summary>
 
-        private void FilterJobs()
+        private void SortJobs()
         {
             _isAlphabeticalSort = !_isAlphabeticalSort; // Toggle sort mode
 
@@ -156,19 +156,20 @@ namespace better_saving.ViewModels
             if (_isAlphabeticalSort)
             {
                 // Sort alphabetically by name
-                tempList = tempList.OrderBy(j => j.Name).ToList();
+                tempList = [.. tempList.OrderBy(j => j.Name)];
             }
             else
             {
                 // Sort by state: Finished > Working > Idle > Failed
-                tempList = tempList.OrderBy(j => j.State switch
+                tempList = [.. tempList.OrderBy(j => j.State switch
                 {
                     JobStates.Finished => 0,
                     JobStates.Working => 1,
-                    JobStates.Idle => 2,
-                    JobStates.Failed => 3,
-                    _ => 4 // Default case for any other states
-                }).ThenBy(j => j.Name).ToList();
+                    JobStates.Failed => 2,
+                    JobStates.Stopped => 3,
+                    JobStates.Idle => 4,
+                    _ => 5 // Default case for any other states
+                }).ThenBy(j => j.Name)];
             }
 
             // Clear the original collection and add sorted items

@@ -200,11 +200,12 @@
                           Margin="0,5,0,10"
                           HorizontalAlignment="Center">
                 <TextBlock Text="{Binding JobState, Mode=OneWay}"
-                                FontWeight="Bold"
-                                Foreground="LightSkyBlue"
-                                Width="100"
-                                Height="25"
-                                HorizontalAlignment="Center"/>
+                           FontWeight="Bold"
+                           Foreground="LightSkyBlue"
+                           Width="100"
+                           Height="25"
+                           HorizontalAlignment="Center"
+                           TextAlignment="Center"/>
             </StackPanel>
             <!-- Action Buttons -->
             <Grid Grid.Row="9"

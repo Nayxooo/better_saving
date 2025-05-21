@@ -84,9 +84,9 @@ namespace better_saving.ViewModels
 
         public void SetBlockedSoftware(List<string> softwareList)
         {
-            _blockedSoftware = softwareList ?? new List<string>();
+            _blockedSoftware = softwareList ?? [];
             _listVM.GetLogger().LogBackupDetails(System.DateTime.Now.ToString("o"), "System", "Settings",
-                $"Blocked software updated to: {(softwareList.Any() ? string.Join(", ", softwareList) : "(empty)")}", 0, 0);
+                $"Blocked software updated to: {(_blockedSoftware.Count != 0 ? string.Join(", ", _blockedSoftware) : "(empty)")}", 0, 0);
             (_listVM.StartAllJobsCommand as RelayCommand)?.RaiseCanExecuteChanged();
         }
 
@@ -163,17 +163,20 @@ namespace better_saving.ViewModels
                         RedirectStandardError = true
                     };
 
-                    using (Process proc = Process.Start(psi))
+                    using Process? proc = Process.Start(psi);
+                    if (proc == null)
                     {
-                        string output = proc.StandardOutput.ReadToEnd();
-                        string error = proc.StandardError.ReadToEnd();
-                        proc.WaitForExit();
+                        System.Windows.MessageBox.Show("Erreur lors du démarrage de CryptoSoft.");
+                        return;
+                    }
+                    string output = proc.StandardOutput.ReadToEnd();
+                    string error = proc.StandardError.ReadToEnd();
+                    proc.WaitForExit();
 
-                        if (!string.IsNullOrWhiteSpace(error))
-                        {
-                            System.Windows.MessageBox.Show("Erreur CryptoSoft : " + error);
-                            _listVM.GetLogger().LogBackupDetails(DateTime.Now.ToString("o"), "Crypto", "EncryptError", error, 0, 0);
-                        }
+                    if (!string.IsNullOrWhiteSpace(error))
+                    {
+                        System.Windows.MessageBox.Show("Erreur CryptoSoft : " + error);
+                        _listVM.GetLogger().LogBackupDetails(DateTime.Now.ToString("o"), "Crypto", "EncryptError", error, 0, 0);
                     }
                 }
                 catch (Exception ex)

@@ -23,3 +23,17 @@
 ### Fixed
 - Corrected logging of blocked software to accurately reflect an empty list.
 - Prevented a potential crash in the `EncryptFilesInLogs` method by adding a null check when starting the `CryptoSoft.exe` process.
+
+## EasySave [v2.0.1] - 2025-05-21
+
+### Fixed
+- Small UI and internal file naming fixes.
+
+## EasySave [v2.0.0] - 2025-05-20
+
+### Added
+- Replace the Console application with a WPF application.
+
+## EasySave [v1.0.1] - 2025-05-15
+
+Console application with a simple menu to create and manage backup jobs.

@@ -180,6 +180,7 @@
                 </Button.Style>
             </Button>
             <TextBlock Text="{DynamicResource BackupJobListTitle}"
+                       MinWidth="180"
                        Foreground="White"
                        FontSize="25"/>
             <Border CornerRadius="15"

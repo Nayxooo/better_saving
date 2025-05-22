@@ -1,3 +1,9 @@
+## EasySave [v2.1.0] - 2025-05-23
+
+### Added
+- Added settings save functionality (settings are now saved in `EasySave33.settings`).
+- Better coloring in the settings view.
+
 ## EasySave [v2.0.4] - 2025-05-23
 
 ### Added

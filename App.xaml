@@ -13,6 +13,7 @@
             </ResourceDictionary.MergedDictionaries>
 
             <converters:NullOrEmptyToVisibilityConverter x:Key="NullOrEmptyToVisibilityConverter"/>
+            <converters:BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter"/>
             <!-- ViewModels Globaux (si besoin) -->
             <vm:MainViewModel x:Key="MainViewModel"/>
 

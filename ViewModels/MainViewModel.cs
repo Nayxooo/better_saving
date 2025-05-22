@@ -67,6 +67,11 @@ namespace better_saving.ViewModels
             _listVM.GetLogger().LogBackupDetails(System.DateTime.Now.ToString("o"), "System", "Settings", "Blocked software initialized to: (empty)", 0, 0);
         }
 
+        internal void ShowBA()
+        {
+            CurrentView = new BAViewModel(this);
+        }
+
         internal void ShowCreateJobViewInternal()
         {
             CurrentView = new BackupCreationViewModel(this);

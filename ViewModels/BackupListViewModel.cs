@@ -51,27 +51,16 @@ namespace better_saving.ViewModels
         public Logger GetLogger() // Added to allow access to the logger instance
         {
             return _logger;
-        }
-
-        private void LoadJobsFromStateLog() // Renamed method
+        }        private void LoadJobsFromStateLog() // Renamed method
         {
             var loadedJobs = _logger.LoadJobsState();
-            if (loadedJobs != null)
+            if (loadedJobs != null && loadedJobs.Count > 0)
             {
                 Jobs = new ObservableCollection<backupJob>(loadedJobs);
-                foreach (var job in Jobs)
-                {
-                    // Ensure each job has a logger instance if it wasn't set during deserialization
-                    // or if the deserialized logger is not the current instance.
-                    // This depends on how backupJob handles its logger dependency.
-                    // If backupJob's constructor requires a logger, it should be provided during LoadJobsState.
-                    // If it can be set post-construction, do it here.
-                    // For now, assuming backupJob handles its logger or it's set in LoadJobsState.
-                }
+                // No additional logger setup needed as the logger is already passed during job creation in LoadJobsState()
             }
-        }
-
-        public void AddJob(backupJob job)
+            // If no jobs are loaded, we keep the empty Jobs collection as is without updating state.json
+        }        public void AddJob(backupJob job)
         {
             Jobs.Add(job);
             _logger.UpdateAllJobsState(); // Logger now gets jobs via provider
@@ -83,7 +72,11 @@ namespace better_saving.ViewModels
             if (Jobs.Contains(jobToRemove))
             {
                 Jobs.Remove(jobToRemove);
-                _logger.UpdateAllJobsState();
+                // Only update state.json if there are still jobs left
+                if (Jobs.Count > 0)
+                {
+                    _logger.UpdateAllJobsState();
+                }
                 OnPropertyChanged(nameof(Jobs));
             }
         }

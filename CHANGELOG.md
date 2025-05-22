@@ -1,3 +1,10 @@
+## EasySave [v2.0.4] - 2025-05-23
+
+### Added
+- add application icon
+### Fixed
+- fixed logger bug where `state.json` would not be properly updated
+
 ## EasySave [v2.0.3] - 2025-05-22
 
 ### Fixed

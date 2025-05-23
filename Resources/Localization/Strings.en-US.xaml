@@ -32,9 +32,9 @@
     <sys:String x:Key="SourceFolderToolTip">Select Source Folder</sys:String>
     <sys:String x:Key="TargetFolderToolTip">Select Target Folder</sys:String>
     <sys:String x:Key="CreateButtonToolTip">Create This Backup Job</sys:String>
-    <sys:String x:Key="SaveButtonToolTip">Save Settings</sys:String>    <sys:String x:Key="CancelButtonToolTip">Cancel Changes</sys:String>
-    <sys:String x:Key="FileExtensionsToolTip">Example: .json, .mp4</sys:String>
+    <sys:String x:Key="SaveButtonToolTip">Save Settings</sys:String>    <sys:String x:Key="CancelButtonToolTip">Cancel Changes</sys:String>    <sys:String x:Key="FileExtensionsToolTip">Example: .json, .mp4</sys:String>
     <sys:String x:Key="BlockedSoftwareToolTip">Example: calc.exe, notepad.exe</sys:String>
+    <sys:String x:Key="CopyablePathToolTip">Click and drag to select, Ctrl+C to copy</sys:String>
 
     <!-- Common -->
     <sys:String x:Key="BackArrow">←</sys:String>

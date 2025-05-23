@@ -110,10 +110,8 @@
                            TextAlignment="Right"
                            Margin="0,0,5,0"/>
                 <TextBlock Text="{Binding JobName, Mode=OneWay}"
-                           Foreground="White"/>
-            </StackPanel>
-
-            <StackPanel Grid.Row="2"
+                           Foreground="White" Padding="0,0,20,0"/>
+            </StackPanel>            <StackPanel Grid.Row="2"
                         Orientation="Horizontal"
                         Margin="0,3,0,3">
                 <TextBlock Text="{DynamicResource SourceDir}"
@@ -122,9 +120,15 @@
                            Width="130"
                            TextAlignment="Right"
                            Margin="0,0,5,0"/>
-                <TextBlock Text="{Binding SourceDirectory, Mode=OneWay}"
-                           Foreground="White"
-                           TextWrapping="Wrap"/>
+                <!-- Using TextBox with IsReadOnly for selectable text -->
+                <TextBox Text="{Binding SourceDirectory, Mode=OneWay}"
+                         Foreground="White"
+                         Background="Transparent"
+                         BorderThickness="0"
+                         IsReadOnly="True"
+                         TextWrapping="Wrap"
+                         Cursor="IBeam"
+                         ToolTip="{DynamicResource CopyablePathToolTip}"/>
             </StackPanel>
 
             <StackPanel Grid.Row="3"
@@ -136,9 +140,15 @@
                            Width="130"
                            TextAlignment="Right"
                            Margin="0,0,5,0"/>
-                <TextBlock Text="{Binding TargetDirectory, Mode=OneWay}"
-                           Foreground="White"
-                           TextWrapping="Wrap"/>
+                <!-- Using TextBox with IsReadOnly for selectable text -->
+                <TextBox Text="{Binding TargetDirectory, Mode=OneWay}"
+                         Foreground="White"
+                         Background="Transparent"
+                         BorderThickness="0"
+                         IsReadOnly="True"
+                         TextWrapping="Wrap"
+                         Cursor="IBeam"
+                         ToolTip="{DynamicResource CopyablePathToolTip}"/>
             </StackPanel>
 
             <StackPanel Grid.Row="4"
@@ -169,7 +179,9 @@
                          TextWrapping="Wrap"
                          IsReadOnly="True"
                          BorderThickness="0"
-                         Width="300" Background="{x:Null}" BorderBrush="{x:Null}"/>
+                         Width="300"
+                        Background="{x:Null}"
+                        BorderBrush="{x:Null}"/>
             </StackPanel>
 
             <!-- Combined Progress Display -->

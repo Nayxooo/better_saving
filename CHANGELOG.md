@@ -1,3 +1,8 @@
+## EasySave [v3.0.0-beta.3] - 2025-05-23
+
+## Added
+- Added copyable paths for directories
+
 ## EasySave [v3.0.0-beta.2] - 2025-05-23
 
 ### Fix

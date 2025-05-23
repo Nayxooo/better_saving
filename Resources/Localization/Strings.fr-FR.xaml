@@ -32,9 +32,9 @@
     <sys:String x:Key="SourceFolderToolTip">Sélectionner le dossier source</sys:String>
     <sys:String x:Key="TargetFolderToolTip">Sélectionner le dossier cible</sys:String>
     <sys:String x:Key="CreateButtonToolTip">Créer cette tâche de sauvegarde</sys:String>
-    <sys:String x:Key="SaveButtonToolTip">Enregistrer les paramètres</sys:String>    <sys:String x:Key="CancelButtonToolTip">Annuler les modifications</sys:String>
-    <sys:String x:Key="FileExtensionsToolTip">Exemple : .json, .mp4</sys:String>
+    <sys:String x:Key="SaveButtonToolTip">Enregistrer les paramètres</sys:String>    <sys:String x:Key="CancelButtonToolTip">Annuler les modifications</sys:String>    <sys:String x:Key="FileExtensionsToolTip">Exemple : .json, .mp4</sys:String>
     <sys:String x:Key="BlockedSoftwareToolTip">Exemple : calc.exe, notepad.exe</sys:String>
+    <sys:String x:Key="CopyablePathToolTip">Cliquez et glissez pour sélectionner, Ctrl+C pour copier</sys:String>
     
     <!-- Common -->
     <sys:String x:Key="BackArrow">←</sys:String>

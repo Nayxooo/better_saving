@@ -47,9 +47,7 @@ public class Logger
     public string GetLogDirectory()
     {
         return LogDirectory;
-    }
-
-    /// <summary>
+    }    /// <summary>
     /// Logs details of a backup operation to the daily log file.
     /// Uses a thread-safe mechanism to prevent concurrent write operations.
     /// </summary>
@@ -61,11 +59,27 @@ public class Logger
     /// <param name="transferTime">The time taken to transfer the file in milliseconds.</param>
     public void LogBackupDetails(string timestamp, string jobName, string sourceFile, string targetFile, ulong fileSize, int transferTime)
     {
+        LogBackupDetails(timestamp, jobName, sourceFile, targetFile, fileSize, transferTime, 0);
+    }
+
+    /// <summary>
+    /// Logs details of a backup operation to the daily log file with encryption exit code.
+    /// Uses a thread-safe mechanism to prevent concurrent write operations.
+    /// </summary>
+    /// <param name="timestamp">The timestamp of the backup operation.</param>
+    /// <param name="jobName">The name of the backup job.</param>
+    /// <param name="sourceFile">The source file path.</param>
+    /// <param name="targetFile">The target file path.</param>
+    /// <param name="fileSize">The size of the file in bytes.</param>
+    /// <param name="transferTime">The time taken to transfer the file in milliseconds.</param>
+    /// <param name="encryptionExitCode">The exit code from the encryption process (0 if no encryption was needed).</param>
+    public void LogBackupDetails(string timestamp, string jobName, string sourceFile, string targetFile, ulong fileSize, int transferTime, int encryptionExitCode)
+    {
         lock (logLock)
         {
             DailyLogFilePath = Path.Combine(LogDirectory, $"{DateTime.Now:yyyy-MM-dd}.json");
 
-            string logEntry = $"{timestamp} | '{jobName}' - '{sourceFile}' - '{targetFile}' - '{fileSize}' - '{transferTime}";
+            string logEntry = $"{timestamp} | '{jobName}' - '{sourceFile}' - '{targetFile}' - '{fileSize}' - '{transferTime}' - '{encryptionExitCode}'";
             
             try
             {
@@ -83,7 +97,7 @@ public class Logger
                 return;
             }
         }
-    }    /// <summary>
+    }/// <summary>
     /// Updates the state.json file with the current state of all backup jobs.
     /// This provides persistence of job information between application runs.
     /// </summary>

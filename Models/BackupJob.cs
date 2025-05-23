@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
@@ -11,6 +12,9 @@ using better_saving.Models; // For JobType, JobStates, Hashing, Backup, Settings
 // Job class to store job information
 public class backupJob : INotifyPropertyChanged
 {
+    // CancellationTokenSource for job execution - persists across ViewModel instances
+    public CancellationTokenSource? _executionCts;
+
     private string _name = string.Empty; // Initialize to default
     public string Name
     {
@@ -219,10 +223,59 @@ public class backupJob : INotifyPropertyChanged
 
     private readonly Logger? BackupJobLogger;
     public event PropertyChangedEventHandler? PropertyChanged;
-
     protected virtual void OnPropertyChanged([CallerMemberName] string? propertyName = null)
     {
         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+    }
+
+
+
+    /// <summary>
+    /// Encrypts a file if its extension is in the list of extensions to encrypt.
+    /// </summary>
+    /// <param name="filePath">The path to the file to encrypt.</param>
+    /// <returns>The exit code from the encryption process (0 if no encryption was needed).</returns>
+    private int EncryptFileIfNeeded(string filePath)
+    {
+        var settings = Settings.LoadSettings();
+        var extensionsToEncrypt = settings.FileExtensions;
+
+        // Check if the file extension is in the list of extensions to encrypt
+        string fileExtension = Path.GetExtension(filePath).ToLower();
+        if (!extensionsToEncrypt.Contains(fileExtension))
+        {
+            return 0; // No encryption needed
+        }
+
+        try
+        {
+            string exePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "CryptoSoft.exe");
+            string keyPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "CryptoSoft.settings");
+
+            // refer to CryptoSoft exit codes to know why the first on is -6 and not -1
+            if (!File.Exists(exePath)) return -6; // CryptoSoft.exe not found 
+            if (!File.Exists(keyPath)) return -7; // CryptoSoft.settings not found
+
+            ProcessStartInfo psi = new()
+            {
+                FileName = exePath,
+                Arguments = $"\"{filePath}\" \"{keyPath}\"",
+                CreateNoWindow = true,
+                UseShellExecute = false,
+                RedirectStandardOutput = true,
+                RedirectStandardError = true
+            };
+
+            using Process? proc = Process.Start(psi);
+            if (proc == null) return -8; // Failed to start process
+
+            proc.WaitForExit();
+            return proc.ExitCode;
+        }
+        catch (Exception)
+        {
+            return -9; // Exception occurred during encryption
+        }
     }
     public backupJob(string name, string sourceDir, string targetDir, JobType type, Logger? loggerInstance)
     {
@@ -510,34 +563,30 @@ public class backupJob : INotifyPropertyChanged
                         ErrorMessage = $"Error processing file {file}: {ex.Message}";
                         State = JobStates.Failed;
                         // Log this error specifically if needed
-                        // Adjusted to 6 arguments: combine error details into a single message if necessary or log separately.
-                        BackupJobLogger?.LogBackupDetails(DateTime.Now.ToString("yyyy-MM-ddTHH:mm:sszzz"), Name, file, targetFilePath, fileSize, -1 /*, $"TaskRun/BackupFile Error: {ex.Message}"*/);
+                        BackupJobLogger?.LogBackupDetails(DateTime.Now.ToString("yyyy-MM-ddTHH:mm:sszzz"), Name, file, targetFilePath, fileSize, -1, 0);
                         return;
                     }
-
-
                     if (timeElapsed == -1)
                     {
                         ErrorMessage = $"Error copying file: {file}";
                         // Adjusted to 6 arguments
-                        BackupJobLogger?.LogBackupDetails(DateTime.Now.ToString("yyyy-MM-ddTHH:mm:sszzz"), Name, file, targetFilePath, fileSize, timeElapsed /*, ErrorMessage*/);
+                        BackupJobLogger?.LogBackupDetails(DateTime.Now.ToString("yyyy-MM-ddTHH:mm:sszzz"), Name, file, targetFilePath, fileSize, -1, 0);
                         State = JobStates.Failed;
                         return;
                     }
-                    BackupJobLogger?.LogBackupDetails(DateTime.Now.ToString("yyyy-MM-ddTHH:mm:sszzz"), Name, file, targetFilePath, fileSize, timeElapsed);
+
+                    // Encrypt the file if needed and get the exit code
+                    int encryptionExitCode = EncryptFileIfNeeded(targetFilePath);
+
+                    BackupJobLogger?.LogBackupDetails(DateTime.Now.ToString("yyyy-MM-ddTHH:mm:sszzz"), Name, file, targetFilePath, fileSize, timeElapsed, encryptionExitCode);
 
                     // Successfully copied
                     // Ensure NumberFilesLeftToDo doesn't go below zero
-                    if (NumberFilesLeftToDo > 0)
-                    {
-                        NumberFilesLeftToDo--;
-                    }
+                    if (NumberFilesLeftToDo > 0) NumberFilesLeftToDo--;
+                    
 
                     // Ensure TotalFilesCopied doesn't exceed TotalFilesToCopy
-                    if (TotalFilesCopied < TotalFilesToCopy)
-                    {
-                        TotalFilesCopied++;
-                    }
+                    if (TotalFilesCopied < TotalFilesToCopy) TotalFilesCopied++;
 
                     TotalSizeCopied += (long)fileSize;
                     UpdateProgress(); // Update overall progress and potentially state to Finished

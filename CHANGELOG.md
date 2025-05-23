@@ -1,14 +1,16 @@
-## EasySave [v3.0.0-beta.4] - 2025-05-23
-
-## Added
-- Added file extensions priority functionality.
-
 ## EasySave [v3.0.0-beta.3] - 2025-05-23
 
-## Added
-- Added copyable paths for directories
+### Added
+- Added file extensions priority functionality.
+
+### Fix
+- `CryptoSoft.exe` encryption call.
+- Bug preventing job from being stopped after viewing another job status.
 
 ## EasySave [v3.0.0-beta.2] - 2025-05-23
+
+### Added
+- Added copyable paths for directories
 
 ### Fix
 - Progress property now uses float for smoother progress bar

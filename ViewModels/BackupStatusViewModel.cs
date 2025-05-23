@@ -4,12 +4,10 @@ using System.Windows.Input; // Added for ICommand
 using System.Threading; // Added for CancellationTokenSource
 using System.Threading.Tasks; // Added for Task
 namespace better_saving.ViewModels
-{
-    public class BackupStatusViewModel : ViewModelBase
+{    public class BackupStatusViewModel : ViewModelBase
     {
         private backupJob _selectedJob;
         private readonly MainViewModel? _mainViewModel;
-        private CancellationTokenSource? _jobExecutionCts; // Added to manage job execution cancellation
 
         public backupJob SelectedJob
         {
@@ -131,12 +129,12 @@ namespace better_saving.ViewModels
             {                if (SelectedJob.State == JobStates.Working)
                 {
                     // PAUSE action
-                    if (_jobExecutionCts != null && !_jobExecutionCts.IsCancellationRequested)
+                    if (SelectedJob._executionCts != null && !SelectedJob._executionCts.IsCancellationRequested)
                     {
                         // Set IsPausing flag to true
                         SelectedJob.IsPausing = true;
                         
-                        _jobExecutionCts.Cancel();
+                        SelectedJob._executionCts.Cancel();
                         // ExecuteAsync in BackupJob should handle the OperationCanceledException
                         // and set the job's state to Stopped.
                     }
@@ -147,8 +145,8 @@ namespace better_saving.ViewModels
                          SelectedJob.State == JobStates.Finished) // Allow re-running/resuming from these states
                 {
                     // START or RESUME action
-                    _jobExecutionCts?.Dispose(); // Dispose any existing CTS
-                    _jobExecutionCts = new CancellationTokenSource();
+                    SelectedJob._executionCts?.Dispose(); // Dispose any existing CTS
+                    SelectedJob._executionCts = new CancellationTokenSource();
 
                     // Execute the job on a background thread    
                     await Task.Run(async () =>
@@ -161,7 +159,7 @@ namespace better_saving.ViewModels
                                 SelectedJob.ErrorMessage = "Critical error: Logger became null before job execution.";
                                 return;
                             }
-                            await SelectedJob.ExecuteAsync(_jobExecutionCts.Token);
+                            await SelectedJob.ExecuteAsync(SelectedJob._executionCts.Token);
                         }
                         catch (OperationCanceledException)
                         {
@@ -204,13 +202,12 @@ namespace better_saving.ViewModels
             if (_selectedJob == null) return;
 
             if (_mainViewModel?.ListVM.Jobs.Contains(_selectedJob) ?? false)
-            {
-                // Stop the job if it's running
+            {                // Stop the job if it's running
                 if (_selectedJob.State == JobStates.Working)
                 {
-                    if (_jobExecutionCts != null && !_jobExecutionCts.IsCancellationRequested)
+                    if (_selectedJob._executionCts != null && !_selectedJob._executionCts.IsCancellationRequested)
                     {
-                        _jobExecutionCts.Cancel(); // Request cancellation
+                        _selectedJob._executionCts.Cancel(); // Request cancellation
                         // ExecuteAsync should catch OperationCanceledException and set State to Stopped.
                     }
                 }
@@ -233,9 +230,6 @@ namespace better_saving.ViewModels
             {
                 _selectedJob.PropertyChanged -= SelectedJob_PropertyChanged;
             }
-            _jobExecutionCts?.Cancel(); // Cancel any ongoing execution
-            _jobExecutionCts?.Dispose(); // Dispose the CancellationTokenSource
-            _jobExecutionCts = null;
         }
     }
 }

@@ -27,14 +27,7 @@ namespace better_saving.ViewModels
         public ViewModelBase? CurrentView
         {
             get => _currentView;
-            set
-            {
-                if (_currentView is BackupStatusViewModel oldStatusVM)
-                {
-                    oldStatusVM.UnsubscribeFromJobEvents();
-                }
-                SetProperty(ref _currentView, value);
-            }
+            set { SetProperty(ref _currentView, value); }
         }
 
         public ICommand ShowCreateJobViewCommand { get; }
@@ -103,9 +96,7 @@ namespace better_saving.ViewModels
         public List<string> GetBlockedSoftware()
         {
             return _blockedSoftware;
-        }
-
-        public void SetFileExtensions(List<string> extensions)
+        }        public void SetFileExtensions(List<string> extensions)
         {
             // Save the file extensions for future use
             var settings = Settings.LoadSettings();
@@ -114,8 +105,8 @@ namespace better_saving.ViewModels
             settings.Language = _selectedLanguage;
             Settings.SaveSettings(settings);
 
-            // Encrypt the files with the provided extensions
-            EncryptFilesInLogs(extensions);
+            _listVM.GetLogger().LogBackupDetails(System.DateTime.Now.ToString("o"), "System", "Settings",
+                $"File extensions updated to: {(extensions.Count != 0 ? string.Join(", ", extensions) : "(empty)")}", 0, 0);
         }
 
         public List<string> GetFileExtensions()
@@ -165,75 +156,11 @@ namespace better_saving.ViewModels
                     $"Error checking software: {ex.Message}", 0, 0);
                 return false;
             }
-        }
-
-        public string? GetRunningBlockedSoftware()
+        }        public string? GetRunningBlockedSoftware()
         {
             return _runningBlockedSoftware;
         }
 
-        public void EncryptFilesInLogs(List<string> extensions)
-        {
-            string logsPath = Path.Combine(Directory.GetCurrentDirectory(), "logs");
-            if (!Directory.Exists(logsPath))
-                return;
-
-            var filesToEncrypt = Directory
-                .EnumerateFiles(logsPath, "*.*", SearchOption.AllDirectories)
-                .Where(file => extensions.Contains(Path.GetExtension(file).ToLower()))
-                .ToList();
-
-            foreach (var file in filesToEncrypt)
-            {
-                try
-                {
-                    string exePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "CryptoSoft.exe");
-                    string keyPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "appsettings.json");
-
-                    if (!File.Exists(exePath))
-                    {
-                        System.Windows.MessageBox.Show($"CryptoSoft.exe introuvable : {exePath}");
-                        return;
-                    }
-
-                    if (!File.Exists(keyPath))
-                    {
-                        System.Windows.MessageBox.Show("Le fichier appsettings.json est introuvable.");
-                        return;
-                    }
-
-                    ProcessStartInfo psi = new()
-                    {
-                        FileName = exePath,
-                        Arguments = $"\"{file}\" \"{keyPath}\"",
-                        CreateNoWindow = true,
-                        UseShellExecute = false,
-                        RedirectStandardOutput = true,
-                        RedirectStandardError = true
-                    };
-
-                    using Process? proc = Process.Start(psi);
-                    if (proc == null)
-                    {
-                        System.Windows.MessageBox.Show("Erreur lors du démarrage de CryptoSoft.");
-                        return;
-                    }
-                    string output = proc.StandardOutput.ReadToEnd();
-                    string error = proc.StandardError.ReadToEnd();
-                    proc.WaitForExit();
-
-                    if (!string.IsNullOrWhiteSpace(error))
-                    {
-                        System.Windows.MessageBox.Show("Erreur CryptoSoft : " + error);
-                        _listVM.GetLogger().LogBackupDetails(DateTime.Now.ToString("o"), "Crypto", "EncryptError", error, 0, 0);
-                    }
-                }
-                catch (Exception ex)
-                {
-                    _listVM.GetLogger().LogBackupDetails(DateTime.Now.ToString("o"), "Crypto", "Exception", ex.Message, 0, 0);
-                }
-            }
-        }
         private void ChangeLanguage(string languageCode)
         {
             try

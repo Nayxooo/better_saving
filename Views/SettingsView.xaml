@@ -1,0 +1,220 @@
+<UserControl x:Class="better_saving.Views.SettingsView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:local="clr-namespace:better_saving"
+             xmlns:converters="clr-namespace:better_saving.Converters"
+             mc:Ignorable="d"
+             d:DesignHeight="300"
+        d:DesignWidth="400">
+    <UserControl.Resources>
+        <!-- Styles -->
+        <Style x:Key="RoundedTextBoxStyle"
+                TargetType="TextBox">
+            <Setter Property="Padding"
+                    Value="5"/>
+            <Setter Property="BorderThickness"
+                    Value="1"/>
+            <Setter Property="BorderBrush"
+                    Value="#3b7a57"/>
+            <Setter Property="Background"
+                    Value="#22272A"/>
+            <Setter Property="Foreground"
+                    Value="White"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="TextBox">
+                        <Border CornerRadius="5"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                Background="{TemplateBinding Background}">
+                            <ScrollViewer x:Name="PART_ContentHost"
+                                    Margin="{TemplateBinding Padding}"/>
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        <Style x:Key="SettingsButtonStyle"
+                TargetType="Button">
+            <Setter Property="Padding"
+                    Value="10,5"/>
+            <Setter Property="BorderThickness"
+                    Value="0"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border CornerRadius="10"
+                                Background="{TemplateBinding Background}"
+                                BorderThickness="0">
+                            <ContentPresenter HorizontalAlignment="Center"
+                                    VerticalAlignment="Center"
+                                    TextElement.Foreground="{TemplateBinding Foreground}"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver"
+                                    Value="True">
+                                <Setter Property="Background"
+                                        Value="#32373A"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        <!-- Convertisseur -->
+        <converters:BooleanToColorConverter x:Key="BooleanToColorConverter"/>
+    </UserControl.Resources>
+    <StackPanel Margin="10">
+        <TextBlock Text="{DynamicResource SettingsTitle}"
+                   Foreground="White"
+                   FontSize="16"/>
+        <TextBlock Text="{DynamicResource BlockedSoftwareLabel}"
+                   Foreground="White"/>
+        <TextBox Text="{Binding BlockedSoftwareText}"
+                 Margin="0,5"
+                 ToolTip="{DynamicResource BlockedSoftwareToolTip}"
+                 Style="{StaticResource RoundedTextBoxStyle}"/>
+        <TextBlock Text="{DynamicResource FileExtensionsLabel}"
+                   Foreground="White"
+                   Margin="0,10,0,0"/>
+        <TextBox Text="{Binding FileExtensionsText}"
+                 Margin="0,5"
+                 ToolTip="{DynamicResource FileExtensionsToolTip}"
+                 Style="{StaticResource RoundedTextBoxStyle}"/>
+        <StackPanel Orientation="Horizontal"
+                    HorizontalAlignment="Left"
+                    Margin="0,10 0,0">
+            <Button Content="FR"
+                    Width="60"
+                    Height="30"
+                    Margin="0,0,5,0"
+                    Command="{Binding SetLanguageCommand}"
+                    CommandParameter="fr-FR"
+                    Cursor="Hand"
+                    Background="{Binding IsCurrentLanguageFR, Converter={StaticResource BooleanToColorConverter}, ConverterParameter='#3b7a57;#22272A'}"
+                    BorderThickness="0"
+                    Foreground="White"
+                    ToolTip="Changer la langue en Français">
+                <Button.Resources>
+                    <Style TargetType="Border">
+                        <Setter Property="CornerRadius"
+                                Value="10"/>
+                    </Style>
+                </Button.Resources>
+                <Button.Style>
+                    <Style TargetType="Button">
+                        <Setter Property="Template">
+                            <Setter.Value>
+                                <ControlTemplate TargetType="{x:Type Button}">
+                                    <Border CornerRadius="10"
+                                            x:Name="border"
+                                            Background="{TemplateBinding Background}"
+                                            BorderThickness="0"
+                                            SnapsToDevicePixels="true">
+                                        <ContentPresenter x:Name="contentPresenter"
+                                                          Focusable="False"
+                                                          HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                                          Margin="{TemplateBinding Padding}"
+                                                          RecognizesAccessKey="True"
+                                                          SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}"
+                                                          VerticalAlignment="{TemplateBinding VerticalContentAlignment}"
+                                                          TextElement.Foreground="{TemplateBinding Foreground}"/>
+                                    </Border>
+                                    <ControlTemplate.Triggers>
+                                        <Trigger Property="IsMouseOver"
+                                                 Value="True">
+                                            <Setter Property="Background"
+                                                    TargetName="border"
+                                                    Value="#32373A"/>
+                                        </Trigger>
+                                    </ControlTemplate.Triggers>
+                                </ControlTemplate>
+                            </Setter.Value>
+                        </Setter>
+                        <Setter Property="FocusVisualStyle"
+                                Value="{x:Null}"/>
+                    </Style>
+                </Button.Style>
+            </Button>
+            <Button Content="EN"
+                    Width="60"
+                    Height="30"
+                    Command="{Binding SetLanguageCommand}"
+                    CommandParameter="en-US"
+                    Cursor="Hand"
+                    Background="{Binding IsCurrentLanguageEN, Converter={StaticResource BooleanToColorConverter}, ConverterParameter='#3b7a57;#22272A'}"
+                    BorderThickness="0"
+                    Foreground="White"
+                    ToolTip="Change language to English">
+                <Button.Resources>
+                    <Style TargetType="Border">
+                        <Setter Property="CornerRadius"
+                                Value="10"/>
+                    </Style>
+                </Button.Resources>
+                <Button.Style>
+                    <Style TargetType="Button">
+                        <Setter Property="Template">
+                            <Setter.Value>
+                                <ControlTemplate TargetType="{x:Type Button}">
+                                    <Border CornerRadius="10"
+                                            x:Name="border"
+                                            Background="{TemplateBinding Background}"
+                                            BorderThickness="0"
+                                            SnapsToDevicePixels="true">
+                                        <ContentPresenter x:Name="contentPresenter"
+                                                          Focusable="False"
+                                                          HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                                          Margin="{TemplateBinding Padding}"
+                                                          RecognizesAccessKey="True"
+                                                          SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}"
+                                                          VerticalAlignment="{TemplateBinding VerticalContentAlignment}"
+                                                          TextElement.Foreground="{TemplateBinding Foreground}"/>
+                                    </Border>
+                                    <ControlTemplate.Triggers>
+                                        <Trigger Property="IsMouseOver"
+                                                 Value="True">
+                                            <Setter Property="Background"
+                                                    TargetName="border"
+                                                    Value="#32373A"/>
+                                        </Trigger>
+                                    </ControlTemplate.Triggers>
+                                </ControlTemplate>
+                            </Setter.Value>
+                        </Setter>
+                        <Setter Property="FocusVisualStyle"
+                                Value="{x:Null}"/>
+                    </Style>
+                </Button.Style>
+            </Button>
+        </StackPanel>
+        <StackPanel Orientation="Horizontal"
+                    Margin="0,10"
+                    HorizontalAlignment="Left">
+            <Button Content="{DynamicResource Cancel}"
+                    Command="{Binding CancelCommand}"
+                    Width="80"
+                    Height="30"
+                    Margin="0"
+                    Cursor="Hand"
+                    Background="#22272A"
+                    BorderThickness="0"
+                    Foreground="White"
+                    ToolTip="{DynamicResource CancelButtonToolTip}"
+                    Style="{StaticResource SettingsButtonStyle}"/>
+            <Button Content="{DynamicResource Save}"
+                    Command="{Binding SaveCommand}"
+                    Width="80"
+                    Height="30"
+                    Margin="5"
+                    Cursor="Hand"
+                    Background="#3b7a57"
+                    BorderThickness="0"
+                    Foreground="White"
+                    ToolTip="{DynamicResource SaveButtonToolTip}"
+                    Style="{StaticResource SettingsButtonStyle}"/>
+        </StackPanel>
+    </StackPanel>
+</UserControl>

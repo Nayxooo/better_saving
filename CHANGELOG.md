@@ -1,3 +1,8 @@
+## EasySave [v3.0.0-beta.1] - 2025-05-23
+
+### Fix
+- Change settings view to be in it's own `.xaml`.
+
 ## EasySave [v2.1.0] - 2025-05-23
 
 ### Added

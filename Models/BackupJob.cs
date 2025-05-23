@@ -188,8 +188,8 @@ public class backupJob : INotifyPropertyChanged
 
     public int IdleTime { get; set; } = 300000; // 5 minutes default idle time
 
-    private byte _progress;
-    public byte Progress
+    private float _progress;
+    public float Progress
     {
         get => _progress;
         set
@@ -273,7 +273,8 @@ public class backupJob : INotifyPropertyChanged
         // For now, let's assume it's okay to set to Working if not already Failed.
         if (State != JobStates.Failed && State != JobStates.Stopped)
         {
-            State = JobStates.Working; // Indicate scanning is in progress
+            if (_initializing) State = JobStates.Idle; // Set to Idle first, then Working in ExecuteAsync
+            else State = JobStates.Working; // Indicate scanning is in progress
         }
 
         TotalSizeToCopy = 0;    // Will accumulate total size of ALL files in source.
@@ -373,14 +374,14 @@ public class backupJob : INotifyPropertyChanged
             Progress = 0;
             return;
         }
-        
-        if (TotalFilesToCopy == 0)
-        {
+          if (TotalFilesToCopy == 0)        {
             Progress = 100;
         }
         else
         {
-            Progress = (byte)(TotalFilesCopied * 100 / TotalFilesToCopy);
+            // Ensure TotalFilesCopied doesn't exceed TotalFilesToCopy
+            long cappedFilesCopied = Math.Min(TotalFilesCopied, TotalFilesToCopy);
+            Progress = (float)(cappedFilesCopied * 100.0 / TotalFilesToCopy);
         }
 
         if (Progress >= 100 && (State == JobStates.Working || State == JobStates.Idle) && TotalFilesToCopy > 0)
@@ -504,13 +505,21 @@ public class backupJob : INotifyPropertyChanged
                         BackupJobLogger?.LogBackupDetails(DateTime.Now.ToString("yyyy-MM-ddTHH:mm:sszzz"), Name, file, targetFilePath, fileSize, timeElapsed /*, ErrorMessage*/);
                         State = JobStates.Failed;
                         return;
-                    }
-
-                    BackupJobLogger?.LogBackupDetails(DateTime.Now.ToString("yyyy-MM-ddTHH:mm:sszzz"), Name, file, targetFilePath, fileSize, timeElapsed);
+                    }                    BackupJobLogger?.LogBackupDetails(DateTime.Now.ToString("yyyy-MM-ddTHH:mm:sszzz"), Name, file, targetFilePath, fileSize, timeElapsed);
 
                     // Successfully copied
-                    NumberFilesLeftToDo--;
-                    TotalFilesCopied++;
+                    // Ensure NumberFilesLeftToDo doesn't go below zero
+                    if (NumberFilesLeftToDo > 0)
+                    {
+                        NumberFilesLeftToDo--;
+                    }
+                    
+                    // Ensure TotalFilesCopied doesn't exceed TotalFilesToCopy
+                    if (TotalFilesCopied < TotalFilesToCopy)
+                    {
+                        TotalFilesCopied++;
+                    }
+                    
                     TotalSizeCopied += (long)fileSize;
                     UpdateProgress(); // Update overall progress and potentially state to Finished
 

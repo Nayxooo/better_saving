@@ -1,3 +1,8 @@
+## EasySave [v3.0.0-beta.2] - 2025-05-23
+
+### Fix
+- Progress property now uses float for smoother progress bar
+
 ## EasySave [v3.0.0-beta.1] - 2025-05-23
 
 ### Fix

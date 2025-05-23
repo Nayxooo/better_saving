@@ -81,7 +81,7 @@ namespace better_saving.ViewModels
         public string TargetDirectory => SelectedJob.TargetDirectory;
         public string JobType => SelectedJob.Type.ToString();        public string JobState => SelectedJob.State.ToString();
         public bool IsJobPausing => SelectedJob.IsPausing;
-        public byte JobProgress => SelectedJob.Progress;
+        public float JobProgress => SelectedJob.Progress;
         public long TotalFilesToCopy => SelectedJob.TotalFilesToCopy;
         public long TotalFilesCopied => SelectedJob.TotalFilesCopied;
         public ulong TotalSizeToCopy => SelectedJob.TotalSizeToCopy;

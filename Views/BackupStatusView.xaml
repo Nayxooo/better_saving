@@ -191,7 +191,7 @@
                            VerticalAlignment="Center"
                            HorizontalAlignment="Right"
                            Margin="0,0,10,0">
-                <Run Text="{Binding JobProgress, Mode=OneWay, StringFormat={}{0:0}%}"/>
+                <Run Text="{Binding JobProgress, Mode=OneWay, StringFormat={}{0:0.0}%}"/>
                 <Run Text=" - "/>
                 <Run Text="{Binding TotalFilesCopied, Mode=OneWay}"/>/<Run Text="{Binding TotalFilesToCopy, Mode=OneWay}"/>
                 </TextBlock>

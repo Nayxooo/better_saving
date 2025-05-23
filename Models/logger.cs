@@ -202,21 +202,20 @@ public class Logger
                     {
                          string jobStatusStr = stateElement.GetString() ?? JobStates.Idle.ToString();
                          JobStates jobState = Enum.Parse<JobStates>(jobStatusStr, true);
-                         job.State = jobState; // Assuming State has a public setter
-                         
-                         // If state is Failed, ensure Progress is 0 regardless of what's in the file
+
+                           // If state is Failed, ensure Progress is 0 regardless of what's in the file
                          if (jobState == JobStates.Failed)
                          {
                              job.Progress = 0;
                          }
                          else if (jobStateElement.TryGetProperty("Progress", out JsonElement progressElement))
                          {
-                             job.Progress = (byte)progressElement.GetInt32(); // Assuming Progress has a public setter
+                             job.Progress = progressElement.GetSingle(); // Progress is now a float
                          }
                     }
                     else if (jobStateElement.TryGetProperty("Progress", out JsonElement progressElement))
                     {
-                         job.Progress = (byte)progressElement.GetInt32(); // Assuming Progress has a public setter
+                         job.Progress = progressElement.GetSingle(); // Progress is now a float
                     }
                     
                     loadedJobs.Add(job);

@@ -1,101 +1,87 @@
-# EasySave
+# CryptoSoft
 
-A robust C# file backup application with a Terminal GUI interface for efficiently managing backup jobs.
+A lightweight file encryption and decryption utility built in C#.
+
+## Overview
+
+CryptoSoft is a simple command-line utility that provides secure file encryption and decryption using XOR cipher. The application automatically detects whether a file needs to be encrypted or decrypted based on the presence of a header signature.
 
 ## Features
 
-- **Multiple Backup Types**: Support for full and differential backups
-- **Job Management**: Create, start, stop, and monitor backup jobs
-- **Interactive Terminal GUI**: User-friendly interface built with Terminal.Gui
-- **Progress Tracking**: Real-time tracking of backup progress
-- **Logging System**: Comprehensive logging of backup activities and states
-- **Multi-language Support**: Support for multiple languages in the interface
-- **File Verification**: Uses XXHash64 algorithm for efficient file comparison
+- **Simple Command-Line Interface**: Easy to use and integrate into scripts or other applications
+- **Automatic Operation Detection**: Automatically determines whether to encrypt or decrypt based on file headers
+- **Performance Metrics**: Reports processing time in milliseconds
+- **Configuration-Based Key Management**: Reads encryption keys from a JSON configuration file
+- **Error Handling**: Comprehensive error handling with specific exit codes
+
+## How It Works
+
+CryptoSoft uses a simple but effective XOR operation with a secret key to transform file contents:
+- When encrypting, it adds a `[CRYPT]` header to the file
+- When decrypting, it detects the header, removes it, and restores the original file
 
 ## Getting Started
 
 ### Prerequisites
 
-- .NET 8.0 SDK or later
+- .NET SDK (version compatible with your build)
 - Windows operating system
 
 ### Installation
 
-1. Clone the repository:
-   ```
-   git clone https://github.com/Nayxooo/better_saving.git
-   ```
-
-2. Navigate to the project directory:
-   ```
-   cd better_saving
-   ```
-
-3. Build the application:
+1. Clone the repository or download the source code
+2. Build the application:
    ```
    dotnet build
    ```
 
-4. Run the application:
-   ```
-   dotnet run
-   ```
+### Usage
 
-## Usage
+```
+CryptoSoft.exe <filepath> <configpath>
+```
 
-1. Launch the application
-2. Create a new backup job by specifying:
-   - Job name
-   - Source directory (files to backup)
-   - Target directory (backup destination)
-   - Backup type (Full or Differential)
-3. Start the job to begin the backup process
-4. Monitor the progress through the Terminal GUI
-5. View logs for detailed information about backup operations
+Parameters:
+- `<filepath>`: Path to the file you want to encrypt or decrypt
+- `<configpath>`: Path to the configuration file (JSON) containing the encryption key
 
-## Interface Screenshots
+Example:
+```
+CryptoSoft.exe C:\path\to\secret.txt C:\path\to\CryptoSoft.settings
+```
 
-Below are screenshots of the EasySave console interface:
+### Configuration
 
-### Main Dashboard
-*The main application interface showing job list and available actions*
-![Main Dashboard](images/main_dashboard.png)
+Create a JSON configuration file with the following structure:
 
-### Job Creation
-*Interface for creating a new backup job*
-![Job Creation](images/create_job.png)
+```json
+{
+  "EncryptionKey": "YourSecretKey"
+}
+```
 
-### Jobs List
-*View of completed backup jobs and their results*
-![Jobs List](images/jobs_list.png)
+Notes:
+- The key must be at least 8 characters long
+- Use a strong, unique key for better security
 
-### Job Details
-*Detailed view of a specific backup job, including progress and status*
-![Job Details](images/job_details.png)
+## Exit Codes
 
-### Backup Execution
-*A backup job in progress with real-time statistics*
-![Backup Execution](images/job_execution.png)
+- **Positive Value**: Success (value represents processing time in milliseconds)
+- **-1**: Invalid argument count
+- **-2**: Source file not found
+- **-3**: Configuration file not found
+- **-4**: Invalid encryption key
+- **-5**: Error during file processing
+- **-99**: Unexpected error
 
-### Language Selection
-*Application settings including language selection*
-![Language Selection](images/language_selection.png)
+## Technical Details
 
-### Main Dashboard in French
-*The main application interface in French*
-![Main Dashboard in French](images/main_dashboard_fr.png)
+- **Encryption Method**: XOR cipher with key rotation
+- **Header Signature**: Files are marked with a `[CRYPT]` header when encrypted
+- **File Processing**: Files are processed in-memory for efficient operation
 
-## Project Structure
+## Security Considerations
 
-- **Controllers/**: Contains the main application controller
-- **Models/**: Contains data models for backup jobs, file hashing, and logging
-- **Views/**: Contains the Terminal.Gui-based user interface
-- **UMLs/**: Contains UML diagrams describing the application architecture
-
-## Documentation
-
-For a comprehensive overview of the codebase, including detailed explanations of architecture, components, and implementation details, please see the [Code Overview](https://github.com/Nayxooo/better_saving/blob/develop/CODE_OVERVIEW.md) document.
-
-## Acknowledgments
-
-- [Terminal.Gui](https://github.com/migueldeicaza/gui.cs) - GUI toolkit used for the terminal interface
+- XOR encryption is not suitable for highly sensitive data
+- The security depends on keeping the encryption key confidential
+- This tool is designed for basic encryption needs, not for military-grade security

@@ -6,11 +6,9 @@ namespace better_saving.ViewModels
 {
     public class SettingsViewModel : ViewModelBase
     {
-        private readonly MainViewModel _mainVM;
-        private string _blockedSoftwareText;
+        private readonly MainViewModel _mainVM;        private string _blockedSoftwareText;
         private string _fileExtensionsText;
 
-        #region Propriétés liées à l’interface
 
         public string BlockedSoftwareText
         {
@@ -23,30 +21,28 @@ namespace better_saving.ViewModels
             get => _fileExtensionsText;
             set => SetProperty(ref _fileExtensionsText, value);
         }
+        
+        public bool IsCurrentLanguageFR => _mainVM.SelectedLanguage == "fr-FR";
+        
+        public bool IsCurrentLanguageEN => _mainVM.SelectedLanguage == "en-US";
 
-        #endregion
-
-        #region Commandes
 
         public ICommand SaveCommand { get; }
         public ICommand CancelCommand { get; }
         public ICommand SetLanguageCommand { get; }
-
-        #endregion
 
         public SettingsViewModel(MainViewModel mainVM)
         {
             _mainVM = mainVM;
 
             _blockedSoftwareText = string.Join(",", _mainVM.GetBlockedSoftware());
-            _fileExtensionsText = ""; // valeur initiale vide ou à récupérer depuis une source de config
+            _fileExtensionsText = string.Join(",", _mainVM.GetFileExtensions());
 
             SaveCommand = new RelayCommand(_ => Save());
             CancelCommand = new RelayCommand(_ => Cancel());
 
             SetLanguageCommand = _mainVM.ChangeLanguageCommand;
         }
-
         private void Save()
         {
             var softwareList = BlockedSoftwareText
@@ -63,7 +59,8 @@ namespace better_saving.ViewModels
                              .Where(e => e.StartsWith("."))
                              .ToList();
 
-            _mainVM.EncryptFilesInLogs(extensions);
+            // Save settings to file and encrypt files with the specified extensions
+            _mainVM.SetFileExtensions(extensions);
 
             _mainVM.CurrentView = null;
         }

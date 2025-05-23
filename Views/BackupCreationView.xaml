@@ -302,7 +302,9 @@
                        Margin="0,0,0,5"/>
             <TextBox Text="{Binding Name, UpdateSourceTrigger=PropertyChanged}"
                      Margin="0,0,47,10"
-                     Style="{StaticResource RoundedTextBoxStyle}" Background="#FF161618" BorderBrush="#FF868688"/>
+                     Style="{StaticResource RoundedTextBoxStyle}"
+                    Background="#FF161618"
+                    BorderBrush="#FF868688"/>
 
             <!-- Source Directory -->
             <TextBlock Text="{DynamicResource SourceDir}"
@@ -315,7 +317,9 @@
                 <TextBox Text="{Binding SourceDirectory, UpdateSourceTrigger=PropertyChanged}"
                          Grid.Column="0"
                          IsReadOnly="True"
-                         Style="{StaticResource RoundedTextBoxStyle}" Background="#FF161618" BorderBrush="#FF868688"/>
+                         Style="{StaticResource RoundedTextBoxStyle}"
+                        Background="#FF161618"
+                        BorderBrush="#FF868688"/>
                 <Button Command="{Binding SelectSourceDirectoryCommand}"
                         Grid.Column="1"
                         Margin="5,0,0,0"
@@ -378,7 +382,9 @@
                 <TextBox Text="{Binding TargetDirectory, UpdateSourceTrigger=PropertyChanged}"
                          Grid.Column="0"
                          IsReadOnly="True"
-                         Style="{StaticResource RoundedTextBoxStyle}" Background="#FF161618" BorderBrush="#FF868688"/>
+                         Style="{StaticResource RoundedTextBoxStyle}"
+                        Background="#FF161618"
+                        BorderBrush="#FF868688"/>
                 <Button Command="{Binding SelectTargetDirectoryCommand}"
                         Grid.Column="1"
                         Margin="5,0,0,0"

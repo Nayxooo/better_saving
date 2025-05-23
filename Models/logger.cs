@@ -83,9 +83,7 @@ public class Logger
                 return;
             }
         }
-    }
-
-    /// <summary>
+    }    /// <summary>
     /// Updates the state.json file with the current state of all backup jobs.
     /// This provides persistence of job information between application runs.
     /// </summary>
@@ -99,124 +97,67 @@ public class Logger
         }
 
         var jobs = _jobProvider.Invoke();
-        if (jobs == null)
+        if (jobs == null || !jobs.Any())
         {
             Console.WriteLine("Job provider returned null or empty list. Cannot update all jobs state.");
-            // Optionally, write an empty array to state.json or just return
-            // For now, just returning.
+            // Don't update the file if there are no jobs to avoid clearing state.json
             return;
         }
 
         lock (logLock)
         {
-            // Start JSON array with proper indentation
-            var stateEntries = new List<object>();
-            foreach (var job in jobs) // Use the jobs from the provider
-            {
-                stateEntries.Add(new
-                {
-                    Name = job.Name,
-                    SourceDirectory = job.SourceDirectory,
-                    TargetDirectory = job.TargetDirectory,
-                    Type = job.Type.ToString(), // Enum to string
-                    State = job.State.ToString(),   // Enum to string
-                    TotalFilesToCopy = job.TotalFilesToCopy,
-                    TotalFilesSize = job.TotalSizeToCopy, // Assuming this getter exists
-                    NumberFilesLeftToDo = job.NumberFilesLeftToDo,
-                    Progress = job.Progress,
-                    ErrorMessage = job.ErrorMessage
-                });
-            }
-
             try
             {
+                // Create a temporary file path for safe writing
+                string tempFilePath = StateLogFilePath + ".tmp";
+                
+                // Start JSON array with proper indentation
+                var stateEntries = new List<object>();
+                foreach (var job in jobs) // Use the jobs from the provider
+                {
+                    stateEntries.Add(new
+                    {
+                        Name = job.Name,
+                        SourceDirectory = job.SourceDirectory,
+                        TargetDirectory = job.TargetDirectory,
+                        Type = job.Type.ToString(), // Enum to string
+                        State = job.State.ToString(),   // Enum to string
+                        TotalFilesToCopy = job.TotalFilesToCopy,
+                        TotalFilesSize = job.TotalSizeToCopy, 
+                        NumberFilesLeftToDo = job.NumberFilesLeftToDo,
+                        Progress = job.Progress,
+                        ErrorMessage = job.ErrorMessage
+                    });
+                }
+
                 if (!Directory.Exists(LogDirectory))
                 {
                     Directory.CreateDirectory(LogDirectory);
                 }
-                // Serialize the list of job states to JSON
+                
+                // First write to a temporary file
                 string jsonState = JsonSerializer.Serialize(stateEntries, new JsonSerializerOptions { WriteIndented = true });
-                File.WriteAllText(StateLogFilePath, jsonState);
+                File.WriteAllText(tempFilePath, jsonState);
+                
+                // If successful, replace the original file
+                if (File.Exists(tempFilePath))
+                {
+                    // If original file exists, delete it
+                    if (File.Exists(StateLogFilePath))
+                    {
+                        File.Delete(StateLogFilePath);
+                    }
+                    // Rename temp file to proper name
+                    File.Move(tempFilePath, StateLogFilePath);
+                }
             }
             catch (Exception ex)
             {
                 Console.Error.WriteLine($"Error writing state log: {ex.Message}");
-                // Optionally, rethrow or handle more gracefully
+                // Log error but don't rethrow to avoid disrupting app flow
             }
         }
-    }
-
-    /// <summary>
-    /// Loads backup job configurations from the state.json file.
-    /// </summary>
-    /// <returns>A list of backupJob objects.</returns>
-    public List<backupJob> LoadJobsFromStateFile()
-    {
-        var jobs = new List<backupJob>();
-        if (!File.Exists(StateLogFilePath))
-        {
-            Console.WriteLine("State file not found. No jobs loaded.");
-            return jobs; // Return empty list if state file doesn't exist
-        }
-
-        try
-        {
-            string jsonContent = File.ReadAllText(StateLogFilePath);
-            if (string.IsNullOrWhiteSpace(jsonContent))
-            {
-                return jobs; // Return empty list if state file is empty
-            }
-
-            var jobStates = JsonSerializer.Deserialize<List<JsonElement>>(jsonContent);
-
-            if (jobStates == null) return jobs;
-
-            foreach (var jobStateElement in jobStates)
-            {
-                try
-                {
-                    string name = jobStateElement.GetProperty("Name").GetString() ?? "";
-                    string sourceDir = jobStateElement.GetProperty("SourceDirectory").GetString() ?? "";
-                    string targetDir = jobStateElement.GetProperty("TargetDirectory").GetString() ?? "";
-                    string typeStr = jobStateElement.GetProperty("Type").GetString() ?? JobType.Full.ToString();
-                    JobType type = Enum.Parse<JobType>(typeStr, true);
-                    
-                    // Create the job instance. The constructor of backupJob might need adjustment
-                    // if it requires a Logger instance directly, or if state/progress needs to be set.
-                    // For now, assuming a constructor that matches:
-                    // public backupJob(string name, string sourceDir, string targetDir, JobType type, int idleTime, Logger logger)
-                    // We pass \'this\' as the logger.
-                    var job = new backupJob(name, sourceDir, targetDir, type, this);
-
-                    // Restore additional properties if needed and if backupJob setters allow
-                    // For example, if State and Progress should be restored:
-                    // string jobStatusStr = jobStateElement.GetProperty("State").GetString() ?? JobState.Idle.ToString();
-                    // job.State = Enum.Parse<JobState>(jobStatusStr, true); // Assuming State has a public setter or internal logic
-                    // job.Progress = (byte)(jobStateElement.GetProperty("Progress").GetInt32()); // Assuming Progress has a public setter
-
-                    jobs.Add(job);
-                }
-                catch (Exception ex)
-                {
-                    Console.Error.WriteLine($"Error parsing a job from state file: {ex.Message}");
-                    // Continue loading other jobs
-                }
-            }
-        }
-        catch (JsonException jsonEx)
-        {
-            Console.Error.WriteLine($"Error deserializing state file: {jsonEx.Message}");
-            // Decide if to return empty list or throw
-        }
-        catch (Exception ex)
-        {
-            Console.Error.WriteLine($"An unexpected error occurred while loading jobs from state file: {ex.Message}");
-            // Decide if to return empty list or throw
-        }
-        // _jobs = jobs; // This line was part of a previous logic, ensure it's removed if present from that.
-                       // LoadJobsFromStateFile should just return the loaded jobs.
-        return jobs;
-    }
+    }// Removed LoadJobsFromStateFile since it's unused
 
     /// <summary>
     /// Loads backup job configurations from the state.json file.
@@ -255,16 +196,25 @@ public class Logger
                     
                     // Create the job instance.
                     // Pass \'this\' as the logger.
-                    var job = new backupJob(name, sourceDir, targetDir, type, this);
-
-                    // Restore additional properties like State and Progress if they are stored and settable
+                    var job = new backupJob(name, sourceDir, targetDir, type, this);                    // Restore additional properties like State and Progress if they are stored and settable
                     // Example:
                     if (jobStateElement.TryGetProperty("State", out JsonElement stateElement))
                     {
                          string jobStatusStr = stateElement.GetString() ?? JobStates.Idle.ToString();
-                         job.State = Enum.Parse<JobStates>(jobStatusStr, true); // Assuming State has a public setter
+                         JobStates jobState = Enum.Parse<JobStates>(jobStatusStr, true);
+                         job.State = jobState; // Assuming State has a public setter
+                         
+                         // If state is Failed, ensure Progress is 0 regardless of what's in the file
+                         if (jobState == JobStates.Failed)
+                         {
+                             job.Progress = 0;
+                         }
+                         else if (jobStateElement.TryGetProperty("Progress", out JsonElement progressElement))
+                         {
+                             job.Progress = (byte)progressElement.GetInt32(); // Assuming Progress has a public setter
+                         }
                     }
-                    if (jobStateElement.TryGetProperty("Progress", out JsonElement progressElement))
+                    else if (jobStateElement.TryGetProperty("Progress", out JsonElement progressElement))
                     {
                          job.Progress = (byte)progressElement.GetInt32(); // Assuming Progress has a public setter
                     }

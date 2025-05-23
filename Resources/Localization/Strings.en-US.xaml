@@ -25,7 +25,7 @@
     <sys:String x:Key="ErrorLabel">Error:</sys:String>    <sys:String x:Key="DeleteJobToolTip">Delete Job</sys:String>
     <sys:String x:Key="PauseResumeJobToolTip">Pause/Resume Job</sys:String>
     <sys:String x:Key="StartAllJobsToolTip">Start All Jobs</sys:String>
-    <sys:String x:Key="FilterJobsToolTip">Filter Jobs</sys:String>
+    <sys:String x:Key="SortJobsToolTip">Sort Jobs</sys:String>
     <sys:String x:Key="SettingsToolTip">Open Settings</sys:String>
     <sys:String x:Key="CreateJobToolTip">Create New Job</sys:String>
     <sys:String x:Key="BackButtonToolTip">Go Back</sys:String>

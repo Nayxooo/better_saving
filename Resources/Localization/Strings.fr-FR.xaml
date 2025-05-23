@@ -25,7 +25,7 @@
     <sys:String x:Key="ErrorLabel">Erreur:</sys:String>    <sys:String x:Key="DeleteJobToolTip">Supprimer la tâche</sys:String>
     <sys:String x:Key="PauseResumeJobToolTip">Mettre en pause/Reprendre la tâche</sys:String>
     <sys:String x:Key="StartAllJobsToolTip">Démarrer toutes les tâches</sys:String>
-    <sys:String x:Key="FilterJobsToolTip">Filtrer les tâches</sys:String>
+    <sys:String x:Key="SortJobsToolTip">Trier les tâches</sys:String>
     <sys:String x:Key="SettingsToolTip">Ouvrir les paramètres</sys:String>
     <sys:String x:Key="CreateJobToolTip">Créer une nouvelle tâche</sys:String>
     <sys:String x:Key="BackButtonToolTip">Retour</sys:String>

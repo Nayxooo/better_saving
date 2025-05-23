@@ -14,7 +14,7 @@ namespace better_saving.ViewModels
     {
         private BackupListViewModel _listVM;
         private ViewModelBase? _currentView;
-        private List<string> _blockedSoftware = new List<string>();
+        private List<string> _blockedSoftware = [];
         private string? _runningBlockedSoftware;
         private string _selectedLanguage;
 
@@ -54,7 +54,6 @@ namespace better_saving.ViewModels
                 }
             }
         }
-
         public MainViewModel()
         {
             _listVM = new BackupListViewModel(this);
@@ -62,9 +61,21 @@ namespace better_saving.ViewModels
             ShowSettingsViewCommand = new RelayCommand(_ => ShowSettingsViewInternal());
             ChangeLanguageCommand = new RelayCommand(param => SelectedLanguage = param?.ToString() ?? "en");
 
-            _selectedLanguage = "en"; // Default language
-            ChangeLanguage(_selectedLanguage); // Initialize culture
-            _listVM.GetLogger().LogBackupDetails(System.DateTime.Now.ToString("o"), "System", "Settings", "Blocked software initialized to: (empty)", 0, 0);
+            // Load settings from file
+            var settings = Settings.LoadSettings();
+            _blockedSoftware = settings.BlockedSoftware;
+            _selectedLanguage = settings.Language;
+
+            // Apply loaded language
+            ChangeLanguage(_selectedLanguage);
+
+            _listVM.GetLogger().LogBackupDetails(System.DateTime.Now.ToString("o"), "System", "Settings",
+                $"Settings loaded - Blocked software: {(_blockedSoftware.Count != 0 ? string.Join(", ", _blockedSoftware) : "(empty)")}", 0, 0);
+        }
+
+        internal void ShowBA()
+        {
+            CurrentView = new BAViewModel(this);
         }
 
         internal void ShowCreateJobViewInternal()
@@ -81,18 +92,36 @@ namespace better_saving.ViewModels
         {
             CurrentView = new BackupStatusViewModel(selectedJob, this);
         }
-
         public void SetBlockedSoftware(List<string> softwareList)
         {
-            _blockedSoftware = softwareList ?? new List<string>();
+            _blockedSoftware = softwareList ?? [];
             _listVM.GetLogger().LogBackupDetails(System.DateTime.Now.ToString("o"), "System", "Settings",
-                $"Blocked software updated to: {(softwareList.Any() ? string.Join(", ", softwareList) : "(empty)")}", 0, 0);
+                $"Blocked software updated to: {(_blockedSoftware.Count != 0 ? string.Join(", ", _blockedSoftware) : "(empty)")}", 0, 0);
             (_listVM.StartAllJobsCommand as RelayCommand)?.RaiseCanExecuteChanged();
         }
 
         public List<string> GetBlockedSoftware()
         {
             return _blockedSoftware;
+        }
+
+        public void SetFileExtensions(List<string> extensions)
+        {
+            // Save the file extensions for future use
+            var settings = Settings.LoadSettings();
+            settings.FileExtensions = extensions;
+            settings.BlockedSoftware = _blockedSoftware;
+            settings.Language = _selectedLanguage;
+            Settings.SaveSettings(settings);
+
+            // Encrypt the files with the provided extensions
+            EncryptFilesInLogs(extensions);
+        }
+
+        public List<string> GetFileExtensions()
+        {
+            var settings = Settings.LoadSettings();
+            return settings.FileExtensions;
         }
 
         public bool IsSoftwareRunning()
@@ -153,7 +182,7 @@ namespace better_saving.ViewModels
                         return;
                     }
 
-                    ProcessStartInfo psi = new ProcessStartInfo
+                    ProcessStartInfo psi = new()
                     {
                         FileName = exePath,
                         Arguments = $"\"{file}\" \"{keyPath}\"",
@@ -163,17 +192,20 @@ namespace better_saving.ViewModels
                         RedirectStandardError = true
                     };
 
-                    using (Process proc = Process.Start(psi))
+                    using Process? proc = Process.Start(psi);
+                    if (proc == null)
                     {
-                        string output = proc.StandardOutput.ReadToEnd();
-                        string error = proc.StandardError.ReadToEnd();
-                        proc.WaitForExit();
+                        System.Windows.MessageBox.Show("Erreur lors du démarrage de CryptoSoft.");
+                        return;
+                    }
+                    string output = proc.StandardOutput.ReadToEnd();
+                    string error = proc.StandardError.ReadToEnd();
+                    proc.WaitForExit();
 
-                        if (!string.IsNullOrWhiteSpace(error))
-                        {
-                            System.Windows.MessageBox.Show("Erreur CryptoSoft : " + error);
-                            _listVM.GetLogger().LogBackupDetails(DateTime.Now.ToString("o"), "Crypto", "EncryptError", error, 0, 0);
-                        }
+                    if (!string.IsNullOrWhiteSpace(error))
+                    {
+                        System.Windows.MessageBox.Show("Erreur CryptoSoft : " + error);
+                        _listVM.GetLogger().LogBackupDetails(DateTime.Now.ToString("o"), "Crypto", "EncryptError", error, 0, 0);
                     }
                 }
                 catch (Exception ex)
@@ -182,8 +214,6 @@ namespace better_saving.ViewModels
                 }
             }
         }
-
-
         private void ChangeLanguage(string languageCode)
         {
             try
@@ -198,12 +228,14 @@ namespace better_saving.ViewModels
                     case "fr":
                     case "fr-FR":
                         dict.Source = new Uri("..\\Resources\\Localization\\Strings.fr-FR.xaml", UriKind.Relative);
+                        languageCode = "fr-FR";
                         break;
 
                     case "en":
                     case "en-US":
                     default:
                         dict.Source = new Uri("..\\Resources\\Localization\\Strings.en-US.xaml", UriKind.Relative);
+                        languageCode = "en-US";
                         break;
                 }
 
@@ -211,10 +243,17 @@ namespace better_saving.ViewModels
                              .FirstOrDefault(d => d.Source?.OriginalString.Contains("Strings.") == true);
                 if (old != null) System.Windows.Application.Current.Resources.MergedDictionaries.Remove(old);
 
-                System.Windows.Application.Current.Resources.MergedDictionaries.Add(dict);
+                System.Windows.Application.Current.Resources.MergedDictionaries.Add(dict);                // Update language in settings file
+                var settings = Settings.LoadSettings();
+                settings.Language = languageCode;
+                settings.BlockedSoftware = _blockedSoftware;
+                Settings.SaveSettings(settings);
 
+                // If SettingsViewModel is currently displayed, refresh it
                 if (CurrentView is SettingsViewModel)
+                {
                     CurrentView = new SettingsViewModel(this);
+                }
             }
             catch (Exception ex)
             {

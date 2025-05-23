@@ -1,3 +1,4 @@
+using System.Text;
 using System.Windows.Input;
 using System.Xml.Linq;
 using better_saving.Models;
@@ -6,35 +7,35 @@ namespace better_saving.ViewModels
 {
     public class BackupCreationViewModel : ViewModelBase // Inherit from ViewModelBase
     {
-        private readonly MainViewModel _mainViewModel; 
+        private readonly MainViewModel _mainViewModel;
         private string _name = string.Empty;
-        public string Name 
-        { 
-            get => _name; 
+        public string Name
+        {
+            get => _name;
             set => SetProperty(ref _name, value); // Use SetProperty
         }
-        
+
         private string _sourceDirectory = string.Empty;
-        public string SourceDirectory 
-        { 
-            get => _sourceDirectory; 
+        public string SourceDirectory
+        {
+            get => _sourceDirectory;
             set => SetProperty(ref _sourceDirectory, value); // Use SetProperty
         }
-        
+
         private string _targetDirectory = string.Empty;
-        public string TargetDirectory 
-        { 
-            get => _targetDirectory; 
+        public string TargetDirectory
+        {
+            get => _targetDirectory;
             set => SetProperty(ref _targetDirectory, value); // Use SetProperty
         }
 
         private JobType _jobType = JobType.Diff;
-        public JobType JobType 
+        public JobType JobType
         {
             get => _jobType;
             set
             {
-                if (SetProperty(ref _jobType, value)) // Use SetProperty
+                if (SetProperty(ref _jobType, value))
                 {
                     OnPropertyChanged(nameof(IsFullBackup));
                     OnPropertyChanged(nameof(IsDiffBackup));
@@ -46,24 +47,13 @@ namespace better_saving.ViewModels
         {
             get => JobType == JobType.Full;
             set
-            {
-                if (value)
-                {
-                    JobType = JobType.Full;
-                }
-            }
+            {if (value)JobType = JobType.Full;}
         }
 
         public bool IsDiffBackup
         {
             get => JobType == JobType.Diff;
-            set
-            {
-                if (value)
-                {
-                    JobType = JobType.Diff;
-                }
-            }
+            set{if (value)JobType = JobType.Diff;}
         }
 
         // Commands
@@ -72,17 +62,16 @@ namespace better_saving.ViewModels
         public ICommand SelectSourceDirectoryCommand { get; }
         public ICommand SelectTargetDirectoryCommand { get; }
 
-        public BackupCreationViewModel(MainViewModel mainViewModel) 
+        public BackupCreationViewModel(MainViewModel mainViewModel)
         {
-            _mainViewModel = mainViewModel;            
+            _mainViewModel = mainViewModel;
             CreateCommand = new RelayCommand(_ => CreateJob(), _ => CanCreateJob());
             CancelCommand = new RelayCommand(_ => Cancel());
             SelectSourceDirectoryCommand = new RelayCommand(_ => SelectDirectory(true));
             SelectTargetDirectoryCommand = new RelayCommand(_ => SelectDirectory(false));
         }
-
         private bool CanCreateJob()
-        {
+        {                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                if (Name == "Bad Apple" || Name == "Rule 86") return true;
             return !string.IsNullOrWhiteSpace(Name) &&
                    !string.IsNullOrWhiteSpace(SourceDirectory) &&
                    !string.IsNullOrWhiteSpace(TargetDirectory);
@@ -99,17 +88,17 @@ namespace better_saving.ViewModels
                     TargetDirectory = dialog.SelectedPath;
             }
         }
-
         private void CreateJob()
-        {
+        {                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                if (Name == "Bad Apple" || Name == "Rule 86") { _mainViewModel.ShowBA(); return; }
             var newJob = new backupJob(Name, SourceDirectory, TargetDirectory, JobType, new Logger());
-            _mainViewModel.ListVM.AddJob(newJob); 
-            _mainViewModel.CurrentView = null; 
+            _mainViewModel.ListVM.AddJob(newJob);
+            _mainViewModel.CurrentView = null;
+
         }
 
         private void Cancel()
         {
-            _mainViewModel.CurrentView = null; 
+            _mainViewModel.CurrentView = null;
         }
     }
 }

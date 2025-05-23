@@ -44,34 +44,23 @@ namespace better_saving.ViewModels
 
             CreateJobCommand = new RelayCommand(_ => CreateNewJob());
             StartAllJobsCommand = new RelayCommand(_ => StartAllJobs(), _ => CanStartAllJobs());
-            FilterJobsCommand = new RelayCommand(_ => FilterJobs());
+            FilterJobsCommand = new RelayCommand(_ => SortJobs());
             ShowJobDetailsCommand = new RelayCommand(param => ShowJobDetails(param as backupJob));
         }
 
         public Logger GetLogger() // Added to allow access to the logger instance
         {
             return _logger;
-        }
-
-        private void LoadJobsFromStateLog() // Renamed method
+        }        private void LoadJobsFromStateLog() // Renamed method
         {
             var loadedJobs = _logger.LoadJobsState();
-            if (loadedJobs != null)
+            if (loadedJobs != null && loadedJobs.Count > 0)
             {
                 Jobs = new ObservableCollection<backupJob>(loadedJobs);
-                foreach (var job in Jobs)
-                {
-                    // Ensure each job has a logger instance if it wasn't set during deserialization
-                    // or if the deserialized logger is not the current instance.
-                    // This depends on how backupJob handles its logger dependency.
-                    // If backupJob's constructor requires a logger, it should be provided during LoadJobsState.
-                    // If it can be set post-construction, do it here.
-                    // For now, assuming backupJob handles its logger or it's set in LoadJobsState.
-                }
+                // No additional logger setup needed as the logger is already passed during job creation in LoadJobsState()
             }
-        }
-
-        public void AddJob(backupJob job)
+            // If no jobs are loaded, we keep the empty Jobs collection as is without updating state.json
+        }        public void AddJob(backupJob job)
         {
             Jobs.Add(job);
             _logger.UpdateAllJobsState(); // Logger now gets jobs via provider
@@ -83,7 +72,11 @@ namespace better_saving.ViewModels
             if (Jobs.Contains(jobToRemove))
             {
                 Jobs.Remove(jobToRemove);
-                _logger.UpdateAllJobsState();
+                // Only update state.json if there are still jobs left
+                if (Jobs.Count > 0)
+                {
+                    _logger.UpdateAllJobsState();
+                }
                 OnPropertyChanged(nameof(Jobs));
             }
         }
@@ -147,7 +140,7 @@ namespace better_saving.ViewModels
                  /// Filters backup jobs based on certain criteria
                  /// </summary>
 
-        private void FilterJobs()
+        private void SortJobs()
         {
             _isAlphabeticalSort = !_isAlphabeticalSort; // Toggle sort mode
 
@@ -156,19 +149,20 @@ namespace better_saving.ViewModels
             if (_isAlphabeticalSort)
             {
                 // Sort alphabetically by name
-                tempList = tempList.OrderBy(j => j.Name).ToList();
+                tempList = [.. tempList.OrderBy(j => j.Name)];
             }
             else
             {
                 // Sort by state: Finished > Working > Idle > Failed
-                tempList = tempList.OrderBy(j => j.State switch
+                tempList = [.. tempList.OrderBy(j => j.State switch
                 {
                     JobStates.Finished => 0,
                     JobStates.Working => 1,
-                    JobStates.Idle => 2,
-                    JobStates.Failed => 3,
-                    _ => 4 // Default case for any other states
-                }).ThenBy(j => j.Name).ToList();
+                    JobStates.Failed => 2,
+                    JobStates.Stopped => 3,
+                    JobStates.Idle => 4,
+                    _ => 5 // Default case for any other states
+                }).ThenBy(j => j.Name)];
             }
 
             // Clear the original collection and add sorted items

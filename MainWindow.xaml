@@ -5,14 +5,16 @@
         xmlns:views="clr-namespace:better_saving.Views"
         xmlns:local="clr-namespace:better_saving"
         xmlns:converter="clr-namespace:better_saving.Converters"
-        Title="EasySave"
-        Height="800"
-        Width="1200"
-        MinHeight="600"
-        MinWidth="1200"
-        Background="#FF1E1E1E">
-    <Window.Resources>
+        Title="EasySave33"
+        Icon="pack://application:,,,/Assets/AppIcon/icon.ico"
+        Height="700"
+        Width="1300"
+        MinHeight="700"
+        MinWidth="1300"
+        Background="#FF1E1E1E">    <Window.Resources>
         <converter:NullOrEmptyToVisibilityConverter x:Key="NullToVisibilityConverter"/>
+        <converter:BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter"/>
+        <converter:BooleanToColorConverter x:Key="BooleanToColorConverter"/>
         <!-- Global UI Scaling -->
         <ScaleTransform x:Key="GlobalScale"
                         ScaleX="1.5"
@@ -97,6 +99,9 @@
         <DataTemplate DataType="{x:Type vm:BackupStatusViewModel}">
             <views:BackupStatusView/>
         </DataTemplate>
+        <DataTemplate DataType="{x:Type vm:BAViewModel}">
+            <views:BAView/>
+        </DataTemplate>
         <DataTemplate DataType="{x:Type vm:SettingsViewModel}">
             <StackPanel Margin="10">
                 <TextBlock Text="{DynamicResource SettingsTitle}"
@@ -117,15 +122,14 @@
                          Style="{StaticResource RoundedTextBoxStyle}"/>
                 <StackPanel Orientation="Horizontal"
                             HorizontalAlignment="Left"
-                            Margin="0,10 0,0">
-                    <Button Content="FR"
+                            Margin="0,10 0,0">                    <Button Content="FR"
                             Width="60"
                             Height="30"
                             Margin="0,0,5,0"
                             Command="{Binding SetLanguageCommand}"
                             CommandParameter="fr-FR"
                             Cursor="Hand"
-                            Background="#22272A"
+                            Background="{Binding IsCurrentLanguageFR, Converter={StaticResource BooleanToColorConverter}, ConverterParameter='#3b7a57;#22272A'}"
                             BorderThickness="0"
                             Foreground="White"
                             ToolTip="Changer la langue en Français">
@@ -169,14 +173,13 @@
                                         Value="{x:Null}"/>
                             </Style>
                         </Button.Style>
-                    </Button>
-                    <Button Content="EN"
+                    </Button>                    <Button Content="EN"
                             Width="60"
                             Height="30"
                             Command="{Binding SetLanguageCommand}"
                             CommandParameter="en-US"
                             Cursor="Hand"
-                            Background="#22272A"
+                            Background="{Binding IsCurrentLanguageEN, Converter={StaticResource BooleanToColorConverter}, ConverterParameter='#3b7a57;#22272A'}"
                             BorderThickness="0"
                             Foreground="White"
                             ToolTip="Change language to English">
@@ -235,14 +238,13 @@
                         BorderThickness="0"
                         Foreground="White"
                         ToolTip="{DynamicResource CancelButtonToolTip}"
-                        Style="{StaticResource SettingsButtonStyle}"/>
-                    <Button Content="{DynamicResource Save}"
+                        Style="{StaticResource SettingsButtonStyle}"/>                    <Button Content="{DynamicResource Save}"
                         Command="{Binding SaveCommand}"
                         Width="80"
                         Height="30"
                         Margin="5"
                         Cursor="Hand"
-                        Background="#22272A"
+                        Background="#3b7a57"
                         BorderThickness="0"
                         Foreground="White"
                         ToolTip="{DynamicResource SaveButtonToolTip}"

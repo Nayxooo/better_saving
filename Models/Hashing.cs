@@ -36,7 +36,6 @@ namespace better_saving.Models
             // Get the hash and convert to string
             byte[] hashBytes = new byte[8]; // XxHash64 produces an 8-byte hash
             xxHash.GetHashAndReset(hashBytes);
-
             return Convert.ToHexString(hashBytes);
         }
         catch (Exception ex)

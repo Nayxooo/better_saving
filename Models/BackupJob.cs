@@ -65,8 +65,8 @@ public class backupJob : INotifyPropertyChanged
                 OnPropertyChanged();
             }
         }
-    }
-    private JobStates _state;
+    }    private JobStates _state;
+    private bool _initializing = true; // Flag to prevent state.json updates during initialization
     public JobStates State
     {
         get => _state;
@@ -76,6 +76,26 @@ public class backupJob : INotifyPropertyChanged
             {
                 _state = value;
                 OnPropertyChanged();
+                
+                // Set Progress to 0 when state is Failed
+                if (value == JobStates.Failed)
+                {
+                    Progress = 0;
+                }
+                
+                // Only update state.json if not initializing and logger is available
+                if (!_initializing && BackupJobLogger != null)
+                {
+                    try
+                    {
+                        BackupJobLogger.UpdateAllJobsState();
+                    }
+                    catch (Exception ex)
+                    {
+                        // Log or handle the exception, but don't let it disrupt the app
+                        Console.Error.WriteLine($"Error updating job state: {ex.Message}");
+                    }
+                }
             }
         }
     }
@@ -202,21 +222,23 @@ public class backupJob : INotifyPropertyChanged
     protected virtual void OnPropertyChanged([CallerMemberName] string? propertyName = null)
     {
         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-    }
-
-    public backupJob(string name, string sourceDir, string targetDir, JobType type, Logger? loggerInstance)
+    }    public backupJob(string name, string sourceDir, string targetDir, JobType type, Logger? loggerInstance)
     {
-        // Initialize properties first
+        // Set _initializing to true at the very beginning to prevent UpdateAllJobsState calls
+        _initializing = true;
+        
+        // Initialize properties
         Name = name;
         SourceDirectory = sourceDir;
         TargetDirectory = targetDir;
         Type = type;
-        State = JobStates.Idle;
         BackupJobLogger = loggerInstance;
-
+        
+        // Initialize default values
+        State = JobStates.Idle;
         Progress = 0;
-        TotalFilesCopied = 0; // Represents files skipped during scan + files copied during execution
-        TotalSizeCopied = 0;  // Represents size of files skipped + size of files copied
+        TotalFilesCopied = 0;
+        TotalSizeCopied = 0;
 
         if (!Directory.Exists(sourceDir))
         {
@@ -235,6 +257,9 @@ public class backupJob : INotifyPropertyChanged
             // Initial scan to set up counts asynchronously
             _ = UpdateFilesCountInternalAsync();
         }
+        
+        // After initialization is complete, allow state.json updates
+        _initializing = false;
     }
 
     private async Task UpdateFilesCountInternalAsync()
@@ -311,7 +336,6 @@ public class backupJob : INotifyPropertyChanged
                     {
                         // File is already backed up or skipped for this scan
                         TotalFilesCopied++;         // Directly increment member counter for skipped files
-                        TotalSizeCopied += (long)currentFileSize; // Directly increment member counter for size of skipped files
                     }
                 }
                 catch (Exception ex)
@@ -341,10 +365,15 @@ public class backupJob : INotifyPropertyChanged
     public async Task UpdateFilesCountAsync() // Public method to allow external refresh if needed, now async
     {
         await UpdateFilesCountInternalAsync();
-    }
-
-    private void UpdateProgress()
+    }    private void UpdateProgress()
     {
+        // If the job has failed, the progress should be 0
+        if (State == JobStates.Failed)
+        {
+            Progress = 0;
+            return;
+        }
+        
         if (TotalFilesToCopy == 0)
         {
             Progress = 100;
@@ -365,6 +394,12 @@ public class backupJob : INotifyPropertyChanged
         else if (TotalFilesToCopy == 0 && State == JobStates.Idle) // Empty job considered finished
         {
             State = JobStates.Finished;
+        }
+        
+        // Only update state.json if not initializing to prevent unnecessary writes
+        if (!_initializing && BackupJobLogger != null)
+        {
+            BackupJobLogger.UpdateAllJobsState();
         }
     }
 
@@ -449,6 +484,7 @@ public class backupJob : INotifyPropertyChanged
                         var fileInfo = new FileInfo(file);
                         fileSize = (ulong)fileInfo.Length;
                         timeElapsed = await Task.Run(() => Backup.backupFile(file, targetFilePath), cancellationToken);
+                        BackupJobLogger?.UpdateAllJobsState();
                     }
                     catch (Exception ex) // Catch errors during backupFile or FileInfo
                     {

@@ -1,3 +1,8 @@
+## EasySave [v3.0.0-beta.4] - 2025-05-23
+
+## Added
+- Added file extensions priority functionality.
+
 ## EasySave [v3.0.0-beta.3] - 2025-05-23
 
 ## Added

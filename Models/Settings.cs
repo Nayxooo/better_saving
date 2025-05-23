@@ -7,10 +7,9 @@ namespace better_saving.Models
     public class Settings
     {
         private static readonly string SettingsFilePath = Path.Combine(System.AppContext.BaseDirectory, "EasySave33.settings");
-        private static readonly object fileLock = new();
-
-        public List<string> BlockedSoftware { get; set; } = [];
+        private static readonly object fileLock = new(); public List<string> BlockedSoftware { get; set; } = [];
         public List<string> FileExtensions { get; set; } = [];
+        public List<string> PriorityFileExtensions { get; set; } = [];
         public string Language { get; set; } = "en-US";
 
         /// <summary>

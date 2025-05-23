@@ -6,8 +6,10 @@ namespace better_saving.ViewModels
 {
     public class SettingsViewModel : ViewModelBase
     {
-        private readonly MainViewModel _mainVM;        private string _blockedSoftwareText;
+        private readonly MainViewModel _mainVM;
+        private string _blockedSoftwareText;
         private string _fileExtensionsText;
+        private string _priorityFileExtensionsText;
 
 
         public string BlockedSoftwareText
@@ -21,22 +23,28 @@ namespace better_saving.ViewModels
             get => _fileExtensionsText;
             set => SetProperty(ref _fileExtensionsText, value);
         }
-        
+
+        public string PriorityFileExtensionsText
+        {
+            get => _priorityFileExtensionsText;
+            set => SetProperty(ref _priorityFileExtensionsText, value);
+        }
+
         public bool IsCurrentLanguageFR => _mainVM.SelectedLanguage == "fr-FR";
-        
+
         public bool IsCurrentLanguageEN => _mainVM.SelectedLanguage == "en-US";
 
 
         public ICommand SaveCommand { get; }
         public ICommand CancelCommand { get; }
         public ICommand SetLanguageCommand { get; }
-
         public SettingsViewModel(MainViewModel mainVM)
         {
             _mainVM = mainVM;
 
             _blockedSoftwareText = string.Join(",", _mainVM.GetBlockedSoftware());
             _fileExtensionsText = string.Join(",", _mainVM.GetFileExtensions());
+            _priorityFileExtensionsText = string.Join(",", _mainVM.GetPriorityFileExtensions());
 
             SaveCommand = new RelayCommand(_ => Save());
             CancelCommand = new RelayCommand(_ => Cancel());
@@ -61,6 +69,15 @@ namespace better_saving.ViewModels
 
             // Save settings to file and encrypt files with the specified extensions
             _mainVM.SetFileExtensions(extensions);
+
+            var priorityExtensions = PriorityFileExtensionsText
+                                    .Split(',', System.StringSplitOptions.RemoveEmptyEntries)
+                                    .Select(e => e.Trim().ToLower())
+                                    .Where(e => e.StartsWith("."))
+                                    .ToList();
+
+            // Save priority file extensions
+            _mainVM.SetPriorityFileExtensions(priorityExtensions);
 
             _mainVM.CurrentView = null;
         }

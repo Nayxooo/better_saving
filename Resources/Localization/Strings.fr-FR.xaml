@@ -4,11 +4,13 @@
     <sys:String x:Key="SettingsTitle">Paramètres</sys:String>
     <sys:String x:Key="BlockedSoftwareLabel">Logiciels bloquants (séparés par des virgules, ex. : 'calc.exe, notepad.exe'):</sys:String>
     <sys:String x:Key="FileExtensionsLabel">Extensions de fichiers à chiffrer (séparés par des virgules, ex. : '.txt, .docx'):</sys:String>
+    <sys:String x:Key="PriorityFileExtensionsLabel">Extensions de fichiers prioritaires (séparés par des virgules, ex. : '.doc', '.xlsx'):</sys:String>
     <sys:String x:Key="Save">Enregistrer</sys:String>
     <sys:String x:Key="Cancel">Annuler</sys:String>
 
     <!-- BackupCreationView -->
-    <sys:String x:Key="BackupCreationTitle">Creation d'une sauvegarde²</sys:String> <!-- don't ask about the '²' -->
+    <sys:String x:Key="BackupCreationTitle">Creation d'une sauvegarde²</sys:String>
+    <!-- don't ask about the '²' -->
     <sys:String x:Key="Name">Nom:</sys:String>
     <sys:String x:Key="SourceDir">Dossier source:</sys:String>
     <sys:String x:Key="TargetDir">Dossier cible:</sys:String>
@@ -22,7 +24,8 @@
 
     <!-- BackupStatusView -->
     <sys:String x:Key="JobStatusDetailsTitle">Détails de la tâche</sys:String>
-    <sys:String x:Key="ErrorLabel">Erreur:</sys:String>    <sys:String x:Key="DeleteJobToolTip">Supprimer la tâche</sys:String>
+    <sys:String x:Key="ErrorLabel">Erreur:</sys:String>
+    <sys:String x:Key="DeleteJobToolTip">Supprimer la tâche</sys:String>
     <sys:String x:Key="PauseResumeJobToolTip">Mettre en pause/Reprendre la tâche</sys:String>
     <sys:String x:Key="StartAllJobsToolTip">Démarrer toutes les tâches</sys:String>
     <sys:String x:Key="SortJobsToolTip">Trier les tâches</sys:String>
@@ -32,10 +35,13 @@
     <sys:String x:Key="SourceFolderToolTip">Sélectionner le dossier source</sys:String>
     <sys:String x:Key="TargetFolderToolTip">Sélectionner le dossier cible</sys:String>
     <sys:String x:Key="CreateButtonToolTip">Créer cette tâche de sauvegarde</sys:String>
-    <sys:String x:Key="SaveButtonToolTip">Enregistrer les paramètres</sys:String>    <sys:String x:Key="CancelButtonToolTip">Annuler les modifications</sys:String>    <sys:String x:Key="FileExtensionsToolTip">Exemple : .json, .mp4</sys:String>
+    <sys:String x:Key="SaveButtonToolTip">Enregistrer les paramètres</sys:String>
+    <sys:String x:Key="CancelButtonToolTip">Annuler les modifications</sys:String>
+    <sys:String x:Key="FileExtensionsToolTip">Exemple : .json, .mp4</sys:String>
+    <sys:String x:Key="PriorityFileExtensionsToolTip">Les fichiers avec ces extensions seront sauvegardés en premier</sys:String>
     <sys:String x:Key="BlockedSoftwareToolTip">Exemple : calc.exe, notepad.exe</sys:String>
     <sys:String x:Key="CopyablePathToolTip">Cliquez et glissez pour sélectionner, Ctrl+C pour copier</sys:String>
-    
+
     <!-- Common -->
     <sys:String x:Key="BackArrow">←</sys:String>
 </ResourceDictionary>

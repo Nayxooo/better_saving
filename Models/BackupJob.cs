@@ -6,7 +6,7 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
-using better_saving.Models; // For JobType, JobStates, Hashing, Backup
+using better_saving.Models; // For JobType, JobStates, Hashing, Backup, Settings
 
 // Job class to store job information
 public class backupJob : INotifyPropertyChanged
@@ -65,8 +65,9 @@ public class backupJob : INotifyPropertyChanged
                 OnPropertyChanged();
             }
         }
-    }    private JobStates _state;
-    private bool _initializing = true; // Flag to prevent state.json updates during initialization
+    }
+    private JobStates _state;
+    private readonly bool _initializing = true; // Flag to prevent state.json updates during initialization
     public JobStates State
     {
         get => _state;
@@ -76,13 +77,13 @@ public class backupJob : INotifyPropertyChanged
             {
                 _state = value;
                 OnPropertyChanged();
-                
+
                 // Set Progress to 0 when state is Failed
                 if (value == JobStates.Failed)
                 {
                     Progress = 0;
                 }
-                
+
                 // Only update state.json if not initializing and logger is available
                 if (!_initializing && BackupJobLogger != null)
                 {
@@ -222,18 +223,19 @@ public class backupJob : INotifyPropertyChanged
     protected virtual void OnPropertyChanged([CallerMemberName] string? propertyName = null)
     {
         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-    }    public backupJob(string name, string sourceDir, string targetDir, JobType type, Logger? loggerInstance)
+    }
+    public backupJob(string name, string sourceDir, string targetDir, JobType type, Logger? loggerInstance)
     {
         // Set _initializing to true at the very beginning to prevent UpdateAllJobsState calls
         _initializing = true;
-        
+
         // Initialize properties
         Name = name;
         SourceDirectory = sourceDir;
         TargetDirectory = targetDir;
         Type = type;
         BackupJobLogger = loggerInstance;
-        
+
         // Initialize default values
         State = JobStates.Idle;
         Progress = 0;
@@ -257,7 +259,7 @@ public class backupJob : INotifyPropertyChanged
             // Initial scan to set up counts asynchronously
             _ = UpdateFilesCountInternalAsync();
         }
-        
+
         // After initialization is complete, allow state.json updates
         _initializing = false;
     }
@@ -366,7 +368,8 @@ public class backupJob : INotifyPropertyChanged
     public async Task UpdateFilesCountAsync() // Public method to allow external refresh if needed, now async
     {
         await UpdateFilesCountInternalAsync();
-    }    private void UpdateProgress()
+    }
+    private void UpdateProgress()
     {
         // If the job has failed, the progress should be 0
         if (State == JobStates.Failed)
@@ -374,7 +377,8 @@ public class backupJob : INotifyPropertyChanged
             Progress = 0;
             return;
         }
-          if (TotalFilesToCopy == 0)        {
+        if (TotalFilesToCopy == 0)
+        {
             Progress = 100;
         }
         else
@@ -396,7 +400,7 @@ public class backupJob : INotifyPropertyChanged
         {
             State = JobStates.Finished;
         }
-        
+
         // Only update state.json if not initializing to prevent unnecessary writes
         if (!_initializing && BackupJobLogger != null)
         {
@@ -452,10 +456,24 @@ public class backupJob : INotifyPropertyChanged
                     State = JobStates.Idle; // For continuous backup, go to idle then rescan after delay
                     continue;
                 }
-
-
                 State = JobStates.Working; // Ensure state is working if there are files
-                foreach (var file in FilesToBackup.ToArray()) // ToArray for safe iteration if list could change (though it shouldn't here)
+
+                // Get priority file extensions from settings
+                var settings = Settings.LoadSettings();
+                var priorityExtensions = settings.PriorityFileExtensions;
+
+                // Sort files to prioritize specified extensions
+                var sortedFilesToBackup = FilesToBackup.ToArray();
+                if (priorityExtensions.Count > 0)
+                {
+                    // Put files with priority extensions first
+                    sortedFilesToBackup = sortedFilesToBackup
+                        .OrderByDescending(file =>
+                            priorityExtensions.Contains(Path.GetExtension(file).ToLower()))
+                        .ToArray();
+                }
+
+                foreach (var file in sortedFilesToBackup)
                 {
                     if (cancellationToken.IsCancellationRequested)
                     {
@@ -505,7 +523,8 @@ public class backupJob : INotifyPropertyChanged
                         BackupJobLogger?.LogBackupDetails(DateTime.Now.ToString("yyyy-MM-ddTHH:mm:sszzz"), Name, file, targetFilePath, fileSize, timeElapsed /*, ErrorMessage*/);
                         State = JobStates.Failed;
                         return;
-                    }                    BackupJobLogger?.LogBackupDetails(DateTime.Now.ToString("yyyy-MM-ddTHH:mm:sszzz"), Name, file, targetFilePath, fileSize, timeElapsed);
+                    }
+                    BackupJobLogger?.LogBackupDetails(DateTime.Now.ToString("yyyy-MM-ddTHH:mm:sszzz"), Name, file, targetFilePath, fileSize, timeElapsed);
 
                     // Successfully copied
                     // Ensure NumberFilesLeftToDo doesn't go below zero
@@ -513,13 +532,13 @@ public class backupJob : INotifyPropertyChanged
                     {
                         NumberFilesLeftToDo--;
                     }
-                    
+
                     // Ensure TotalFilesCopied doesn't exceed TotalFilesToCopy
                     if (TotalFilesCopied < TotalFilesToCopy)
                     {
                         TotalFilesCopied++;
                     }
-                    
+
                     TotalSizeCopied += (long)fileSize;
                     UpdateProgress(); // Update overall progress and potentially state to Finished
 

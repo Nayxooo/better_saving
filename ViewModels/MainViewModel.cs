@@ -124,6 +124,26 @@ namespace better_saving.ViewModels
             return settings.FileExtensions;
         }
 
+        public void SetPriorityFileExtensions(List<string> extensions)
+        {
+            // Save the priority file extensions for future use
+            var settings = Settings.LoadSettings();
+            settings.PriorityFileExtensions = extensions;
+            settings.BlockedSoftware = _blockedSoftware;
+            settings.FileExtensions = GetFileExtensions();
+            settings.Language = _selectedLanguage;
+            Settings.SaveSettings(settings);
+
+            _listVM.GetLogger().LogBackupDetails(System.DateTime.Now.ToString("o"), "System", "Settings",
+                $"Priority file extensions updated to: {(extensions.Count != 0 ? string.Join(", ", extensions) : "(empty)")}", 0, 0);
+        }
+
+        public List<string> GetPriorityFileExtensions()
+        {
+            var settings = Settings.LoadSettings();
+            return settings.PriorityFileExtensions;
+        }
+
         public bool IsSoftwareRunning()
         {
             try

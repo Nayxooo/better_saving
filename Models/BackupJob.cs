@@ -411,24 +411,15 @@ public class backupJob : INotifyPropertyChanged
                     TotalSizeToCopy += currentFileSize;
 
                     var targetFilePath = Path.Combine(TargetDirectory, Path.GetRelativePath(SourceDirectory, file));
-
-                    if (!File.Exists(targetFilePath) || Type == JobType.Full) // seperate if statement to avoid unnecessary hash checks
-                    {
-                        FilesToBackup.Add(file);
-                    }
-                    else if (Type == JobType.Diff)
-                    {
-                        bool fileDiff = !Hashing.CompareFiles(file, targetFilePath);
-
-                        // if the file is a
-                        
-                        FilesToBackup.Add(file);
-                    }
-                    else
-                    {
-                        // File is already backed up or skipped for this scan
-                        TotalFilesCopied++; // Directly increment member counter for skipped files
-                    }
+                    
+                    // seperate if statement to avoid unnecessary hash checks
+                    if (!File.Exists(targetFilePath) || Type == JobType.Full)
+                        {FilesToBackup.Add(file);}
+                    else if (Type == JobType.Diff && !Hashing.CompareFiles(file, targetFilePath))
+                        {FilesToBackup.Add(file);}
+                    else // File is already backed up or skipped for this scan
+                        {TotalFilesCopied++;} // Directly increment member counter for skipped files
+                    
                 }
                 catch (Exception ex)
                 {

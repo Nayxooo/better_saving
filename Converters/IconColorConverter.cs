@@ -18,6 +18,7 @@ namespace better_saving.Converters
                     JobStates.Stopped => (System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString("#22272A"), // Stopped/idle dark
                     JobStates.Failed => (System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString("#7A201F"), // Failed red
                     JobStates.Idle => (System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString("#22272A"), // Idle dark
+                    JobStates.Paused => (System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString("#FFA500"), // Paused orange
                     _ => (System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString("#22272A"), // Default dark
                 };
             }

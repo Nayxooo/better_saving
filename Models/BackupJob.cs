@@ -5,6 +5,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
+using System.Text.Json.Nodes;
 using System.Threading;
 using System.Threading.Tasks;
 using better_saving.Models; // For JobType, JobStates, Hashing, Backup, Settings
@@ -221,6 +222,9 @@ public class backupJob : INotifyPropertyChanged
         }
     }
 
+    private readonly string CryptoSoftExePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "CryptoSoft.exe");
+    private readonly string CryptoSoftSettingsPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "CryptoSoft.settings");
+
     private readonly Logger? BackupJobLogger;
     public event PropertyChangedEventHandler? PropertyChanged;
     protected virtual void OnPropertyChanged([CallerMemberName] string? propertyName = null)
@@ -248,18 +252,43 @@ public class backupJob : INotifyPropertyChanged
         }
 
         try
-        {
-            string exePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "CryptoSoft.exe");
-            string keyPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "CryptoSoft.settings");
+        {            // refer to CryptoSoft exit codes to know why the first on is -6 and not -1            
+            if (!File.Exists(CryptoSoftExePath))
+            {
+                // display the popup and try to download CryptoSoft.exe
+                System.Windows.MessageBox.Show(
+                    "CryptoSoft.exe not found, press OK to download it from the official repository.",
+                    "Encryption Error",
+                    System.Windows.MessageBoxButton.OK,
+                    System.Windows.MessageBoxImage.Warning);
 
-            // refer to CryptoSoft exit codes to know why the first on is -6 and not -1
-            if (!File.Exists(exePath)) return -6; // CryptoSoft.exe not found 
-            if (!File.Exists(keyPath)) return -7; // CryptoSoft.settings not found
+                // try to download CryptoSoft.exe (because users can'tbe trused to download it themselves or read the f**king documentation)
+                bool downloadSuccess = CryptoSoftDownloader.DownloadCryptoSoft();
+                if (!downloadSuccess)
+                {
+                    return -6; // CryptoSoft.exe download failed
+                }
+
+                // Verify the file exists after download
+                if (!File.Exists(CryptoSoftExePath))
+                {
+                    return -7; // CryptoSoft.exe still not found after download attempt
+                }
+            }
+            if (!File.Exists(CryptoSoftSettingsPath))
+            {
+                // if it doesn't exit, create a default settings file
+                // create a random encryption key
+                string key = Convert.ToBase64String(System.Security.Cryptography.RandomNumberGenerator.GetBytes(32)); // 32 bytes = 256 bits
+                var defaultSettings = new { EncryptionKey = key };
+                string jsonContent = System.Text.Json.JsonSerializer.Serialize(defaultSettings, new System.Text.Json.JsonSerializerOptions { WriteIndented = true });
+                File.WriteAllText(CryptoSoftSettingsPath, jsonContent);
+            }
 
             ProcessStartInfo psi = new()
             {
-                FileName = exePath,
-                Arguments = $"\"{filePath}\" \"{keyPath}\"",
+                FileName = CryptoSoftExePath,
+                Arguments = $"\"{filePath}\" \"{CryptoSoftSettingsPath}\"",
                 CreateNoWindow = true,
                 UseShellExecute = false,
                 RedirectStandardOutput = true,
@@ -383,15 +412,22 @@ public class backupJob : INotifyPropertyChanged
 
                     var targetFilePath = Path.Combine(TargetDirectory, Path.GetRelativePath(SourceDirectory, file));
 
-                    if (!File.Exists(targetFilePath) || Type == JobType.Full || (Type == JobType.Diff && !Hashing.CompareFiles(file, targetFilePath)))
+                    if (!File.Exists(targetFilePath) || Type == JobType.Full) // seperate if statement to avoid unnecessary hash checks
                     {
-                        // File needs to be backed up
-                        FilesToBackup.Add(file); // Directly add to the member list
+                        FilesToBackup.Add(file);
+                    }
+                    else if (Type == JobType.Diff)
+                    {
+                        bool fileDiff = !Hashing.CompareFiles(file, targetFilePath);
+
+                        // if the file is a
+                        
+                        FilesToBackup.Add(file);
                     }
                     else
                     {
                         // File is already backed up or skipped for this scan
-                        TotalFilesCopied++;         // Directly increment member counter for skipped files
+                        TotalFilesCopied++; // Directly increment member counter for skipped files
                     }
                 }
                 catch (Exception ex)
@@ -583,7 +619,7 @@ public class backupJob : INotifyPropertyChanged
                     // Successfully copied
                     // Ensure NumberFilesLeftToDo doesn't go below zero
                     if (NumberFilesLeftToDo > 0) NumberFilesLeftToDo--;
-                    
+
 
                     // Ensure TotalFilesCopied doesn't exceed TotalFilesToCopy
                     if (TotalFilesCopied < TotalFilesToCopy) TotalFilesCopied++;

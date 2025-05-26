@@ -7,6 +7,10 @@ using System.Globalization;
 using System.Threading;
 using System.Windows;
 using System.Linq;
+using System.Collections.ObjectModel;
+using System;
+using System.Threading.Tasks;
+using System.Windows.Threading;
 
 namespace better_saving.ViewModels
 {
@@ -17,6 +21,7 @@ namespace better_saving.ViewModels
         private List<string> _blockedSoftware = [];
         private string? _runningBlockedSoftware;
         private string _selectedLanguage;
+        private ObservableCollection<backupJob> _blockedJobs = new ObservableCollection<backupJob>();
 
         public BackupListViewModel ListVM
         {
@@ -33,6 +38,9 @@ namespace better_saving.ViewModels
         public ICommand ShowCreateJobViewCommand { get; }
         public ICommand ShowSettingsViewCommand { get; }
         public ICommand ChangeLanguageCommand { get; }
+        public ICommand ExecuteCommand { get; }
+        public ICommand PauseCommand { get; }
+        public ICommand StopCommand { get; }
 
         public string SelectedLanguage
         {
@@ -47,12 +55,18 @@ namespace better_saving.ViewModels
                 }
             }
         }
+
+        public ObservableCollection<backupJob> BlockedJobs => _blockedJobs;
+
         public MainViewModel()
         {
             _listVM = new BackupListViewModel(this);
             ShowCreateJobViewCommand = new RelayCommand(_ => ShowCreateJobViewInternal());
             ShowSettingsViewCommand = new RelayCommand(_ => ShowSettingsViewInternal());
             ChangeLanguageCommand = new RelayCommand(param => SelectedLanguage = param?.ToString() ?? "en");
+            ExecuteCommand = new RelayCommand(param => Execute(param as backupJob));
+            PauseCommand = new RelayCommand(param => Pause(param as backupJob), param => CanPause(param as backupJob));
+            StopCommand = new RelayCommand(param => Stop(param as backupJob), param => CanStop(param as backupJob));
 
             // Load settings from file
             var settings = Settings.LoadSettings();
@@ -61,9 +75,12 @@ namespace better_saving.ViewModels
 
             // Apply loaded language
             ChangeLanguage(_selectedLanguage);
+            
+            // Initialiser le monitoring des tâches bloquées
+            InitializeBlockedJobsMonitoring();
 
             _listVM.GetLogger().LogBackupDetails(System.DateTime.Now.ToString("o"), "System", "Settings",
-                $"Settings loaded - Blocked software: {(_blockedSoftware.Count != 0 ? string.Join(", ", _blockedSoftware) : "(empty)")}", 0, 0);
+                $"Settings loaded - Blocked software: {(_blockedSoftware.Count != 0 ? string.Join(", ", _blockedSoftware) : "(empty)")}", 0, 0, 0);
         }
 
         internal void ShowBA()
@@ -85,18 +102,21 @@ namespace better_saving.ViewModels
         {
             CurrentView = new BackupStatusViewModel(selectedJob, this);
         }
+
         public void SetBlockedSoftware(List<string> softwareList)
         {
             _blockedSoftware = softwareList ?? [];
             _listVM.GetLogger().LogBackupDetails(System.DateTime.Now.ToString("o"), "System", "Settings",
-                $"Blocked software updated to: {(_blockedSoftware.Count != 0 ? string.Join(", ", _blockedSoftware) : "(empty)")}", 0, 0);
+                $"Blocked software updated to: {(_blockedSoftware.Count != 0 ? string.Join(", ", _blockedSoftware) : "(empty)")}", 0, 0, 0);
             (_listVM.StartAllJobsCommand as RelayCommand)?.RaiseCanExecuteChanged();
         }
 
         public List<string> GetBlockedSoftware()
         {
             return _blockedSoftware;
-        }        public void SetFileExtensions(List<string> extensions)
+        }
+
+        public void SetFileExtensions(List<string> extensions)
         {
             // Save the file extensions for future use
             var settings = Settings.LoadSettings();
@@ -106,7 +126,7 @@ namespace better_saving.ViewModels
             Settings.SaveSettings(settings);
 
             _listVM.GetLogger().LogBackupDetails(System.DateTime.Now.ToString("o"), "System", "Settings",
-                $"File extensions updated to: {(extensions.Count != 0 ? string.Join(", ", extensions) : "(empty)")}", 0, 0);
+                $"File extensions updated to: {(extensions.Count != 0 ? string.Join(", ", extensions) : "(empty)")}", 0, 0, 0);
         }
 
         public List<string> GetFileExtensions()
@@ -126,7 +146,7 @@ namespace better_saving.ViewModels
             Settings.SaveSettings(settings);
 
             _listVM.GetLogger().LogBackupDetails(System.DateTime.Now.ToString("o"), "System", "Settings",
-                $"Priority file extensions updated to: {(extensions.Count != 0 ? string.Join(", ", extensions) : "(empty)")}", 0, 0);
+                $"Priority file extensions updated to: {(extensions.Count != 0 ? string.Join(", ", extensions) : "(empty)")}", 0, 0, 0);
         }
 
         public List<string> GetPriorityFileExtensions()
@@ -153,10 +173,12 @@ namespace better_saving.ViewModels
             catch (System.Exception ex)
             {
                 _listVM.GetLogger().LogBackupDetails(System.DateTime.Now.ToString("o"), "System", "SoftwareCheck",
-                    $"Error checking software: {ex.Message}", 0, 0);
+                    $"Error checking software: {ex.Message}", 0, 0, 0);
                 return false;
             }
-        }        public string? GetRunningBlockedSoftware()
+        }
+
+        public string? GetRunningBlockedSoftware()
         {
             return _runningBlockedSoftware;
         }
@@ -190,23 +212,218 @@ namespace better_saving.ViewModels
                              .FirstOrDefault(d => d.Source?.OriginalString.Contains("Strings.") == true);
                 if (old != null) System.Windows.Application.Current.Resources.MergedDictionaries.Remove(old);
 
-                System.Windows.Application.Current.Resources.MergedDictionaries.Add(dict);                // Update language in settings file
-                var settings = Settings.LoadSettings();
-                settings.Language = languageCode;
-                settings.BlockedSoftware = _blockedSoftware;
-                Settings.SaveSettings(settings);
+                System.Windows.Application.Current.Resources.MergedDictionaries.Add(dict);
 
                 // If SettingsViewModel is currently displayed, refresh it
                 if (CurrentView is SettingsViewModel)
                 {
                     CurrentView = new SettingsViewModel(this);
                 }
+
+                var settings = Settings.LoadSettings();
+                settings.Language = languageCode;
+                settings.BlockedSoftware = _blockedSoftware;
+                Settings.SaveSettings(settings);
             }
             catch (Exception ex)
             {
                 _listVM.GetLogger().LogBackupDetails(DateTime.Now.ToString("o"),
-                    "System", "Language", $"Error changing language: {ex.Message}", 0, 0);
+                    "System", "Language", $"Error changing language: {ex.Message}", 0, 0, 0);
             }
+        }
+
+        private void AddToBlockedJobs(backupJob job)
+        {
+            // Run on UI thread using a more explicit approach
+            if (System.Windows.Application.Current != null)
+            {
+                System.Windows.Application.Current.Dispatcher.Invoke(DispatcherPriority.Normal, new Action(() =>
+                {
+                    if (!_blockedJobs.Contains(job))
+                    {
+                        _blockedJobs.Add(job);
+                    }
+                }));
+            }
+            else
+            {
+                // Fallback if Application.Current is null
+                Dispatcher.CurrentDispatcher.Invoke(() =>
+                {
+                    if (!_blockedJobs.Contains(job))
+                    {
+                        _blockedJobs.Add(job);
+                    }
+                });
+            }
+        }
+
+        public void CheckBlockedJobs()
+        {
+            // Check if all blocking software is closed
+            if (!IsSoftwareRunning())
+            {
+                // Make a copy to avoid collection modification during enumeration
+                var jobsToResume = _blockedJobs.ToList();
+                foreach (var job in jobsToResume)
+                {
+                    // Only auto-resume jobs that were paused due to blocking software
+                    if (job.State == JobStates.Paused)
+                    {
+                        // Démarrer une tâche pour le resume asynchrone
+                        Task.Run(async () => 
+                        {
+                            await job.Resume();
+                        });
+                        _blockedJobs.Remove(job);
+                    }
+                }
+            }
+        }
+
+        private void InitializeBlockedJobsMonitoring()
+        {
+            StartBlockedSoftwareMonitoring();
+        }
+
+        private void StartBlockedSoftwareMonitoring()
+        {
+            // Vérifier périodiquement si les logiciels bloquants sont fermés
+            System.Windows.Threading.DispatcherTimer timer = new System.Windows.Threading.DispatcherTimer();
+            timer.Interval = TimeSpan.FromSeconds(5);
+            timer.Tick += (sender, e) => CheckBlockedJobs();
+            timer.Start();
+        }
+
+        public backupJob CreateNewJob(string name, string sourceDir, string targetDir, JobType type)
+        {
+            return new backupJob(
+                name, 
+                sourceDir, 
+                targetDir, 
+                type, 
+                _listVM.GetLogger(), 
+                IsSoftwareRunning, // Pass the method to check if blocking software is running
+                AddToBlockedJobs   // Pass the callback to add to blocked jobs
+            );
+        }
+
+        private void Execute(backupJob? selectedJob)
+        {
+            try
+            {
+                if (selectedJob != null)
+                {
+                    if (selectedJob.State == JobStates.Paused)
+                    {
+                        _listVM.GetLogger().LogBackupDetails(DateTime.Now.ToString("yyyy-MM-ddTHH:mm:sszzz"), selectedJob.Name, "System", "Resuming job", 0, 0, 0);
+                        Task.Run(async () => await selectedJob.Resume());
+                    }
+                    else if (selectedJob.State == JobStates.Idle || selectedJob.State == JobStates.Stopped || selectedJob.State == JobStates.Failed)
+                    {
+                        _listVM.GetLogger().LogBackupDetails(DateTime.Now.ToString("yyyy-MM-ddTHH:mm:sszzz"), selectedJob.Name, "System", "Starting job", 0, 0, 0);
+                        Task.Run(async () => await selectedJob.Start());
+                    }
+                }
+                else
+                {
+                    foreach (var job in _listVM.Jobs)
+                    {
+                        if (job.State == JobStates.Paused)
+                        {
+                            _listVM.GetLogger().LogBackupDetails(DateTime.Now.ToString("yyyy-MM-ddTHH:mm:sszzz"), job.Name, "System", "Resuming job", 0, 0, 0);
+                            Task.Run(async () => await job.Resume());
+                        }
+                        else if (job.State == JobStates.Idle || job.State == JobStates.Stopped || job.State == JobStates.Failed)
+                        {
+                            _listVM.GetLogger().LogBackupDetails(DateTime.Now.ToString("yyyy-MM-ddTHH:mm:sszzz"), job.Name, "System", "Starting job", 0, 0, 0);
+                            Task.Run(async () => await job.Start());
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                _listVM.GetLogger().LogBackupDetails(DateTime.Now.ToString("yyyy-MM-ddTHH:mm:sszzz"), "System", "Execute", $"Error executing job: {ex.Message}", 0, 0, 0);
+            }
+        }
+
+        private void Pause(backupJob? selectedJob)
+        {
+            try
+            {
+                if (selectedJob != null)
+                {
+                    if (selectedJob.State == JobStates.Working || selectedJob.State == JobStates.Idle)
+                    {
+                        selectedJob.Pause();
+                        _listVM.GetLogger().LogBackupDetails(DateTime.Now.ToString("yyyy-MM-ddTHH:mm:sszzz"), selectedJob.Name, "System", "Pausing job", 0, 0, 0);
+                    }
+                }
+                else
+                {
+                    foreach (var job in _listVM.Jobs)
+                    {
+                        if (job.State == JobStates.Working || job.State == JobStates.Idle)
+                        {
+                            job.Pause();
+                            _listVM.GetLogger().LogBackupDetails(DateTime.Now.ToString("yyyy-MM-ddTHH:mm:sszzz"), job.Name, "System", "Pausing job", 0, 0, 0);
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                _listVM.GetLogger().LogBackupDetails(DateTime.Now.ToString("yyyy-MM-ddTHH:mm:sszzz"), "System", "Pause", $"Error pausing job: {ex.Message}", 0, 0, 0);
+            }
+        }
+
+        private bool CanPause(backupJob? selectedJob)
+        {
+            if (selectedJob != null)
+            {
+                return selectedJob.State == JobStates.Working || selectedJob.State == JobStates.Idle;
+            }
+            return _listVM.Jobs.Any(job => job.State == JobStates.Working || job.State == JobStates.Idle);
+        }
+
+        private void Stop(backupJob? selectedJob)
+        {
+            try
+            {
+                if (selectedJob != null)
+                {
+                    if (selectedJob.State == JobStates.Working || selectedJob.State == JobStates.Paused || selectedJob.State == JobStates.Idle)
+                    {
+                        selectedJob.Stop();
+                        _listVM.GetLogger().LogBackupDetails(DateTime.Now.ToString("yyyy-MM-ddTHH:mm:sszzz"), selectedJob.Name, "System", "Stopping job", 0, 0, 0);
+                    }
+                }
+                else
+                {
+                    foreach (var job in _listVM.Jobs)
+                    {
+                        if (job.State == JobStates.Working || job.State == JobStates.Paused || job.State == JobStates.Idle)
+                        {
+                            job.Stop();
+                            _listVM.GetLogger().LogBackupDetails(DateTime.Now.ToString("yyyy-MM-ddTHH:mm:sszzz"), job.Name, "System", "Stopping job", 0, 0, 0);
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                _listVM.GetLogger().LogBackupDetails(DateTime.Now.ToString("yyyy-MM-ddTHH:mm:sszzz"), "System", "Stop", $"Error stopping job: {ex.Message}", 0, 0, 0);
+            }
+        }
+
+        private bool CanStop(backupJob? selectedJob)
+        {
+            if (selectedJob != null)
+            {
+                return selectedJob.State == JobStates.Working || selectedJob.State == JobStates.Paused || selectedJob.State == JobStates.Idle;
+            }
+            return _listVM.Jobs.Any(job => job.State == JobStates.Working || job.State == JobStates.Paused || job.State == JobStates.Idle);
         }
     }
 }

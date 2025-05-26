@@ -232,7 +232,9 @@ public class backupJob : INotifyPropertyChanged
         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
     }
 
-
+    // Ajout des champs manquants
+    private readonly Func<bool> _isSoftwareRunning;
+    private readonly Action<backupJob> _addToBlockedJobs;
 
     /// <summary>
     /// Encrypts a file if its extension is in the list of extensions to encrypt.
@@ -306,7 +308,8 @@ public class backupJob : INotifyPropertyChanged
             return -9; // Exception occurred during encryption
         }
     }
-    public backupJob(string name, string sourceDir, string targetDir, JobType type, Logger? loggerInstance)
+    // Ajout des paramètres manquants au constructeur
+    public backupJob(string name, string sourceDir, string targetDir, JobType type, Logger? loggerInstance, Func<bool>? isSoftwareRunning = null, Action<backupJob>? addToBlockedJobs = null)
     {
         // Set _initializing to true at the very beginning to prevent UpdateAllJobsState calls
         _initializing = true;
@@ -317,9 +320,12 @@ public class backupJob : INotifyPropertyChanged
         TargetDirectory = targetDir;
         Type = type;
         BackupJobLogger = loggerInstance;
+        _isSoftwareRunning = isSoftwareRunning ?? (() => false); // Default to no software running if not provided
+        _addToBlockedJobs = addToBlockedJobs ?? (_ => { }); // Default to no-op if not provided
 
         // Initialize default values
         State = JobStates.Idle;
+        IsPausing = false;
         Progress = 0;
         TotalFilesCopied = 0;
         TotalSizeCopied = 0;
@@ -411,15 +417,15 @@ public class backupJob : INotifyPropertyChanged
                     TotalSizeToCopy += currentFileSize;
 
                     var targetFilePath = Path.Combine(TargetDirectory, Path.GetRelativePath(SourceDirectory, file));
-                    
+
                     // seperate if statement to avoid unnecessary hash checks
                     if (!File.Exists(targetFilePath) || Type == JobType.Full)
-                        {FilesToBackup.Add(file);}
+                    { FilesToBackup.Add(file); }
                     else if (Type == JobType.Diff && !Hashing.CompareFiles(file, targetFilePath))
-                        {FilesToBackup.Add(file);}
+                    { FilesToBackup.Add(file); }
                     else // File is already backed up or skipped for this scan
-                        {TotalFilesCopied++;} // Directly increment member counter for skipped files
-                    
+                    { TotalFilesCopied++; } // Directly increment member counter for skipped files
+
                 }
                 catch (Exception ex)
                 {
@@ -488,9 +494,11 @@ public class backupJob : INotifyPropertyChanged
         }
     }
 
+    // Mise à jour de ExecuteAsync pour gérer la pause et les logiciels bloquants
     public async Task ExecuteAsync(CancellationToken cancellationToken)
     {
         State = JobStates.Working;
+        IsPausing = false;
         await UpdateFilesCountInternalAsync(); // Initial scan or rescan, now async
 
         try
@@ -555,10 +563,60 @@ public class backupJob : INotifyPropertyChanged
 
                 foreach (var file in sortedFilesToBackup)
                 {
+                    // Check for cancellation request (complete stop)
                     if (cancellationToken.IsCancellationRequested)
                     {
                         State = JobStates.Stopped;
+                        IsPausing = false;
                         return;
+                    }
+
+                    // Check for blocking software
+                    if (_isSoftwareRunning())
+                    {
+                        IsPausing = true;
+                        State = JobStates.Paused;
+                        _addToBlockedJobs(this); // Add to BlockedJobs
+                        BackupJobLogger?.LogBackupDetails(DateTime.Now.ToString("yyyy-MM-ddTHH:mm:ssZ"), Name, "System", "Pause due to blocked software", 0, 0, 0);
+
+                        // Wait until blocking software is not running
+                        while (_isSoftwareRunning() && !cancellationToken.IsCancellationRequested)
+                        {
+                            await Task.Delay(1000, cancellationToken);
+                        }
+
+                        if (cancellationToken.IsCancellationRequested)
+                        {
+                            State = JobStates.Stopped;
+                            IsPausing = false;
+                            return;
+                        }
+
+                        // Resume working after blocking software is closed
+                        State = JobStates.Working;
+                        IsPausing = false;
+                        continue;
+                    }
+
+                    // Check for manual pause request
+                    if (IsPausing)
+                    {
+                        State = JobStates.Paused;
+                        IsPausing = false;
+
+                        // Wait until we're no longer paused or we've been cancelled
+                        while (State == JobStates.Paused && !cancellationToken.IsCancellationRequested)
+                        {
+                            await Task.Delay(1000, cancellationToken);
+                        }
+
+                        if (cancellationToken.IsCancellationRequested)
+                        {
+                            State = JobStates.Stopped;
+                            IsPausing = false;
+                            return;
+                        }
+                        continue;
                     }
 
                     var relativePath = Path.GetRelativePath(SourceDirectory, file);
@@ -622,6 +680,13 @@ public class backupJob : INotifyPropertyChanged
                     {
                         break; // Exit the foreach loop, outer loop will handle idle/rescan
                     }
+
+                    // Check if we need to pause after finishing this file
+                    if (IsPausing || _isSoftwareRunning())
+                    {
+                        // The next iteration of the loop will handle the pause
+                        continue;
+                    }
                 }
 
                 // After processing a batch, if not stopped/failed/finished, re-scan for continuous backup.
@@ -657,42 +722,80 @@ public class backupJob : INotifyPropertyChanged
         }
     }
 
-    public void Execute()
+    // Ajout des méthodes manquantes
+    public async Task Start()
     {
-        // For synchronous execution, create a CancellationTokenSource if not managed externally for this call
-        var cts = new CancellationTokenSource();
+        if (State != JobStates.Idle && State != JobStates.Stopped && State != JobStates.Failed && State != JobStates.Paused)
+        {
+            ErrorMessage = $"Cannot start job in state {State}";
+            return;
+        }
+
         try
         {
-            ExecuteAsync(cts.Token).ConfigureAwait(false).GetAwaiter().GetResult();
+            _executionCts?.Dispose();
+            _executionCts = new CancellationTokenSource();
+            State = JobStates.Working;
+            IsPausing = false;
+            await ExecuteAsync(_executionCts.Token);
         }
         catch (Exception ex)
         {
-            ErrorMessage = $"Synchronous execution wrapper error: {ex.Message}";
+            ErrorMessage = $"Error starting job: {ex.Message}";
             State = JobStates.Failed;
-            // Log or handle as needed
+            IsPausing = false;
         }
     }
 
-    public override string ToString()
+    public void Stop()
     {
-        string escapedSourceDir = SourceDirectory.Replace("\\\\", "\\\\\\\\").Replace("\\", "\\\\");
-        string escapedTargetDir = TargetDirectory.Replace("\\\\", "\\\\\\\\").Replace("\\", "\\\\");
-        string escapedErrorMessage = ErrorMessage?.Replace("\\\\", "\\\\\\\\").Replace("\\", "\\\\") ?? "";
+        if (State != JobStates.Working && State != JobStates.Paused)
+        {
+            ErrorMessage = $"Cannot stop job in state {State}";
+            return;
+        }
 
-        return string.Format(@"    {{
-        ""Name"": ""{0}"",
-        ""SourceDirectory"": ""{1}"",
-        ""TargetDirectory"": ""{2}"",
-        ""Type"": ""{3}"",
-        ""State"": ""{4}"",
-        ""ErrorMessage"": ""{5}"",
-        ""TotalFilesToCopy"": {6},
-        ""TotalFilesCopied"": {7},
-        ""TotalSizeToCopy"": {8},
-        ""TotalSizeCopied"": {9},
-        ""NumberFilesLeftToDo"": {10},
-        ""Progress"": {11},
-        ""IdleTime"": {12}
-    }}", Name, escapedSourceDir, escapedTargetDir, Type, State, escapedErrorMessage, TotalFilesToCopy, TotalFilesCopied, TotalSizeToCopy, TotalSizeCopied, NumberFilesLeftToDo, Progress, IdleTime);
+        _executionCts?.Cancel();
+        State = JobStates.Stopped;
+        IsPausing = false;
+    }
+
+    public void Pause()
+    {
+        if (State != JobStates.Working)
+        {
+            ErrorMessage = $"Cannot pause job in state {State}";
+            return;
+        }
+
+        // Set IsPausing flag to true - this will signal the job to pause after the current file completes
+        IsPausing = true;
+    }
+
+    public async Task Resume()
+    {
+        if (State != JobStates.Paused)
+        {
+            ErrorMessage = $"Cannot resume job in state {State}";
+            return;
+        }
+
+        try
+        {
+            if (_executionCts == null || _executionCts.IsCancellationRequested)
+            {
+                _executionCts?.Dispose();
+                _executionCts = new CancellationTokenSource();
+            }
+            State = JobStates.Working;
+            IsPausing = false;
+            await ExecuteAsync(_executionCts.Token);
+        }
+        catch (Exception ex)
+        {
+            ErrorMessage = $"Error resuming job: {ex.Message}";
+            State = JobStates.Failed;
+            IsPausing = false;
+        }
     }
 }

@@ -10,6 +10,7 @@ namespace better_saving.Models
         private static readonly object fileLock = new(); public List<string> BlockedSoftware { get; set; } = [];
         public List<string> FileExtensions { get; set; } = [];
         public List<string> PriorityFileExtensions { get; set; } = [];
+        public int MaxFileTransferSize { get; set; } = 0; // Default size in KB
         public string Language { get; set; } = "en-US";
 
         /// <summary>

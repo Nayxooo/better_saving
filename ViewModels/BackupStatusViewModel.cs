@@ -3,6 +3,8 @@ using System.ComponentModel;
 using System.Windows.Input; // Added for ICommand
 using System.Threading; // Added for CancellationTokenSource
 using System.Threading.Tasks; // Added for Task
+using System;
+
 namespace better_saving.ViewModels
 {    public class BackupStatusViewModel : ViewModelBase
     {
@@ -25,6 +27,7 @@ namespace better_saving.ViewModels
 
             PauseResumeJobCommand = new RelayCommand(ExecutePauseResumeJob, CanExecutePauseResumeJob);
             DeleteJobCommand = new RelayCommand(ExecuteDeleteJob, CanExecuteDeleteJob);
+            StopJobCommand = new RelayCommand(ExecuteStopJob, CanExecuteStopJob); // Added initialization
         }
 
         private void SelectedJob_PropertyChanged(object? sender, PropertyChangedEventArgs e)
@@ -88,6 +91,7 @@ namespace better_saving.ViewModels
 
         public ICommand PauseResumeJobCommand { get; }
         public ICommand DeleteJobCommand { get; }
+        public ICommand StopJobCommand { get; } // Added
 
         //removed CanExecutePauseResumeJob method
 
@@ -108,8 +112,6 @@ namespace better_saving.ViewModels
 
             var logger = _mainViewModel?.ListVM.GetLogger();
 
-            // Logger is essential for starting or resuming a job.
-            // If the job is already working, we are pausing it, so logger isn't strictly needed for the pause action itself.
             if (logger == null && SelectedJob.State != JobStates.Working)
             {
                 SelectedJob.ErrorMessage = "Logger not available. Cannot start/resume job.";
@@ -120,13 +122,15 @@ namespace better_saving.ViewModels
             if (_mainViewModel?.IsSoftwareRunning() == true)
             {
                 SelectedJob.ErrorMessage = $"Cannot start/resume job: {_mainViewModel.GetRunningBlockedSoftware()} is running.";
-                _mainViewModel.ListVM.GetLogger().LogBackupDetails(SelectedJob.Name, "SystemOperation", SelectedJob.ErrorMessage, 0, 0);
+                // Corrected LogBackupDetails call: added encryptionExitCode (NumberFilesLeftToDo as placeholder)
+                _mainViewModel?.ListVM.GetLogger()?.LogBackupDetails(SelectedJob.Name, "SystemOperation", SelectedJob.ErrorMessage ?? "Blocked software", 0, 0, SelectedJob.NumberFilesLeftToDo);
                 OnPropertyChanged(nameof(ErrorMessage));
                 return;
             }
 
             try
-            {                if (SelectedJob.State == JobStates.Working)
+            {                
+                if (SelectedJob.State == JobStates.Working)
                 {
                     // PAUSE action
                     if (SelectedJob._executionCts != null && !SelectedJob._executionCts.IsCancellationRequested)
@@ -142,11 +146,10 @@ namespace better_saving.ViewModels
                 else if (SelectedJob.State == JobStates.Stopped ||
                          SelectedJob.State == JobStates.Paused ||
                          SelectedJob.State == JobStates.Failed ||
-                         SelectedJob.State == JobStates.Finished) // Allow re-running/resuming from these states
+                         SelectedJob.State == JobStates.Finished) 
                 {
-                    // START or RESUME action
                     SelectedJob._executionCts?.Dispose(); // Dispose any existing CTS
-                    SelectedJob._executionCts = new CancellationTokenSource();
+                    SelectedJob._executionCts = new CancellationTokenSource(); // Create a new CTS for the job
 
                     // Execute the job on a background thread    
                     await Task.Run(async () =>
@@ -163,12 +166,12 @@ namespace better_saving.ViewModels
                         }
                         catch (OperationCanceledException)
                         {
-                            // This is expected if the job is paused/stopped.
+                            // This is expected if the job is stopped.
                             // The state should be set to Stopped within ExecuteAsync.
                             // If not already Stopped, explicitly set it.
-                            if (SelectedJob.State != JobStates.Paused)
+                            if (SelectedJob.State != JobStates.Stopped)
                             {
-                                SelectedJob.State = JobStates.Paused;
+                                SelectedJob.State = JobStates.Stopped;
                             }
                         }
                         catch (Exception ex)
@@ -190,6 +193,22 @@ namespace better_saving.ViewModels
                     SelectedJob.State = JobStates.Failed;
                 }
             }
+        }
+
+        private bool CanExecuteStopJob(object? parameter)
+        {
+            return SelectedJob != null &&
+                   (SelectedJob.State == JobStates.Working || SelectedJob.State == JobStates.Paused) &&
+                   !SelectedJob.IsPausing && // Ensure not in the middle of pausing
+                   (_mainViewModel == null || !_mainViewModel.IsSoftwareRunning()); // Consistent with other commands
+        }
+
+        private void ExecuteStopJob(object? parameter)
+        {
+            if (SelectedJob == null || !CanExecuteStopJob(parameter)) return;
+
+            SelectedJob.Stop();
+            // PropertyChanged events from backupJob (triggered by state changes in Stop()) will update UI.
         }
 
         private bool CanExecuteDeleteJob(object? parameter)

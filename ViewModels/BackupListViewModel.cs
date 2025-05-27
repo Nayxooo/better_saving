@@ -177,20 +177,5 @@ namespace better_saving.ViewModels
                 _mainViewModel.ShowJobStatus(job);
             }
         }
-         // Method to be called by BackupCreationViewModel
-        // public void AddJobToList(backupJob newJob)
-        // {
-        //     Jobs.Add(newJob);
-        //     _logger.UpdateAllJobsState(Jobs.ToList()); // Persist the new job
-        //     OnPropertyChanged(nameof(Jobs)); // Notify the UI that the collection has changed
-        // }
-
-        // Consider adding a method to remove jobs as well, if needed
-        // public void RemoveJob(backupJob jobToRemove)
-        // {
-        //     Jobs.Remove(jobToRemove);
-        //     _logger.UpdateAllJobsState(Jobs.ToList()); // Persist the change
-        //     OnPropertyChanged(nameof(Jobs));
-        // }
     }
 }

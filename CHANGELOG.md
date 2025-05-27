@@ -1,3 +1,50 @@
+## EasySave [v3.0.0-beta.5] - 2025-05-27
+
+### Info
+This version is still in beta due to the lack of Server<->Client remote viewing and control functionality (in development).
+
+### Added
+- **Global Transfer Throttling:**
+    - Implemented a system to limit the total concurrent file transfer size across all backup jobs. This helps manage bandwidth and system resources.
+    - Added a new setting in the "Settings" view ("Maximum Transfer Size (KB)") to configure this global limit. A value of 0 means no limit.
+    - Backup jobs will now intelligently pause if initiating a new file transfer would exceed this configured global limit. They will automatically resume when sufficient capacity becomes available.
+- **Stop Job Functionality:**
+    - Introduced a dedicated "Stop" button in the `BackupStatusView` to explicitly stop an ongoing ('Working') or 'Paused' job. This button is conditionally visible based on the job's state.
+    - Implemented the underlying `StopJobCommand` in `BackupStatusViewModel`, which calls the `backupJob.Stop()` method.
+- **Enhanced Exception Handling & Stability:**
+    - Integrated robust global unhandled exception handlers (`AppDomain.CurrentDomain.UnhandledException` and `DispatcherUnhandledException`).
+    - Critical errors are now logged to `logs\EasySave33.bugReport` and via the main application logger, aiding in diagnostics.
+    - A user-friendly message box now informs the user about unexpected critical errors, and the application attempts to prevent abrupt crashes.
+
+### Changed
+- **UI Styling & Consistency:**
+    - All application views (`BackupCreationView`, `BackupListView`, `BackupStatusView`, `SettingsView`) have been updated to consistently use the centralized color scheme defined in `Resources/Colors.xaml`.
+    - `Resources/Colors.xaml` was itself updated with new color definitions (e.g., `PrimarySelectedColor`, `DeleteButton` colors, `JobState` colors for various states like Finished, Failed, Stopped, Paused) and modifications to existing ones. Comments were added to clarify OKLCH values for hover/selected states.
+    - The `BooleanToColorConverter` was enhanced to dynamically fetch color brushes from application resources, making it more flexible.
+- **Backup Job Execution Core Logic:**
+    - The `BackupJob.ExecuteAsync` method underwent significant refactoring to improve clarity, reliability, and to seamlessly integrate the new global transfer throttling mechanism.
+    - Backup jobs now automatically create the target directory if it does not exist before starting the backup process.
+    - Improved internal error message handling and state transitions within individual `BackupJob` instances.
+- **ViewModel Architecture & Responsibilities:**
+    - The pause/resume/start logic in `BackupStatusViewModel` has been streamlined:
+        - The `ExecutePauseResumeJob` method now correctly manages `CancellationTokenSource` for job execution and sets the job state to `Stopped` (previously `Paused`) upon task cancellation (`OperationCanceledException`).
+        - Corrected parameters in a `LogBackupDetails` call for scenarios where blocked software prevents job operations.
+    - `BackupListViewModel` now provides clearer error feedback to the user if starting all jobs is prevented (e.g., by blocked software).
+- **View-Specific UI Enhancements:**
+    - **BackupStatusView:**
+        - Enhanced the dynamic icon display for the Play/Pause button to more accurately reflect job states ('Working', 'Paused', 'Pausing').
+- **Settings Management & Navigation:**
+    - `MainViewModel` and `SettingsViewModel` were updated to support the new "Maximum Transfer Size" setting, including loading and saving its value.
+    - Navigation within `MainViewModel` (specifically when closing views like Settings) has been improved to correctly return to the previously active view by utilizing a `PreviousView` tracker.
+    - The command to open/close the settings view was renamed from `ShowSettingsViewCommand` to `ToggleSettingsViewCommand` in `MainViewModel`, and its usage was updated in `BackupListView.xaml` for improved toggle behavior.
+- **Logging Refinements:**
+    - Minor improvements to log entry formatting for daily logs.
+    - Enhanced robustness in the `Logger` class, including a fallback mechanism to `logger_fallback_error.debug` if writing to the primary log file fails.
+    - Job pausing due to exceeding transfer limits is now logged for better traceability.
+
+### Fixed
+- Ensured that backup jobs saved in a `Paused` state in `state.json` are correctly loaded back into the `Paused` state upon application startup.
+
 ## EasySave [v3.0.0-beta.4] - 2025-05-27
 
 ### Added

@@ -13,15 +13,15 @@
         <Style x:Key="RoundedTextBoxStyle"
                TargetType="TextBox">
             <Setter Property="Padding"
-                    Value="5"/>
+                    Value="5" />
             <Setter Property="BorderThickness"
-                    Value="1"/>
+                    Value="1" />
             <Setter Property="BorderBrush"
-                    Value="#3b7a57"/>
+                    Value="{StaticResource SecondaryBrush}" />
             <Setter Property="Background"
-                    Value="#22272A"/>
+                    Value="{StaticResource ButtonDefaultBackgroundBrush}" />
             <Setter Property="Foreground"
-                    Value="White"/>
+                    Value="{StaticResource WhiteBrush}" />
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="TextBox">
@@ -30,7 +30,7 @@
                                 BorderThickness="{TemplateBinding BorderThickness}"
                                 Background="{TemplateBinding Background}">
                             <ScrollViewer x:Name="PART_ContentHost"
-                                          Margin="{TemplateBinding Padding}"/>
+                                          Margin="{TemplateBinding Padding}" />
                         </Border>
                     </ControlTemplate>
                 </Setter.Value>
@@ -39,24 +39,26 @@
         <Style x:Key="SettingsButtonStyle"
                TargetType="Button">
             <Setter Property="Padding"
-                    Value="10,5"/>
+                    Value="10,5" />
             <Setter Property="BorderThickness"
-                    Value="0"/>
+                    Value="0" />
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="Button">
-                        <Border CornerRadius="10"
+                        <Border x:Name="PART_BackgroundBorder"
+                                CornerRadius="10"
                                 Background="{TemplateBinding Background}"
                                 BorderThickness="0">
                             <ContentPresenter HorizontalAlignment="Center"
                                               VerticalAlignment="Center"
-                                              TextElement.Foreground="{TemplateBinding Foreground}"/>
+                                              TextElement.Foreground="{TemplateBinding Foreground}" />
                         </Border>
                         <ControlTemplate.Triggers>
                             <Trigger Property="IsMouseOver"
                                      Value="True">
-                                <Setter Property="Background"
-                                        Value="#32373A"/>
+                                <Setter TargetName="PART_BackgroundBorder"
+                                        Property="Background"
+                                        Value="{StaticResource SecondaryHoverBrush}" />
                             </Trigger>
                         </ControlTemplate.Triggers>
                     </ControlTemplate>
@@ -64,36 +66,57 @@
             </Setter>
         </Style>
         <!-- Convertisseur -->
-        <converters:BooleanToColorConverter x:Key="BooleanToColorConverter"/>
+        <converters:BooleanToColorConverter x:Key="BooleanToColorConverter"
+                                            TrueColor="{StaticResource SecondaryBrush}"
+                                            FalseColor="{StaticResource ButtonDefaultBackgroundBrush}" />
     </UserControl.Resources>
     <StackPanel Margin="10">
+        <!-- SettingsTitle -->
         <TextBlock Text="{DynamicResource SettingsTitle}"
-                   Foreground="White"
-                   FontSize="16"/>
+                   Foreground="{StaticResource WhiteBrush}"
+                   FontSize="16" />
+
+        <!-- BlockedSoftware -->
         <TextBlock Text="{DynamicResource BlockedSoftwareLabel}"
-                   Foreground="White"/>
+                   Foreground="{StaticResource WhiteBrush}"
+                   Margin="0,10,0,0" />
         <TextBox Text="{Binding BlockedSoftwareText}"
                  Margin="0,5"
                  ToolTip="{DynamicResource BlockedSoftwareToolTip}"
-                 Style="{StaticResource RoundedTextBoxStyle}"/>
+                 Style="{StaticResource RoundedTextBoxStyle}" />
+                 
+        <!-- FileExtensions -->
         <TextBlock Text="{DynamicResource FileExtensionsLabel}"
-                   Foreground="White"
-                   Margin="0,10,0,0"/>
+                   Foreground="{StaticResource WhiteBrush}"
+                   Margin="0,10,0,0" />
         <TextBox Text="{Binding FileExtensionsText}"
                  Margin="0,5"
                  ToolTip="{DynamicResource FileExtensionsToolTip}"
-                 Style="{StaticResource RoundedTextBoxStyle}"/>
+                 Style="{StaticResource RoundedTextBoxStyle}" />
 
+        <!-- PriorityFileExtensions -->
         <TextBlock Text="{DynamicResource PriorityFileExtensionsLabel}"
-                   Foreground="White"
-                   Margin="0,10,0,0"/>
+                   Foreground="{StaticResource WhiteBrush}"
+                   Margin="0,10,0,0" />
         <TextBox Text="{Binding PriorityFileExtensionsText}"
                  Margin="0,5"
                  ToolTip="{DynamicResource PriorityFileExtensionsToolTip}"
-                 Style="{StaticResource RoundedTextBoxStyle}"/>
+                 Style="{StaticResource RoundedTextBoxStyle}" />
+
+        <!-- MaxFileTranferSize -->
+        <TextBlock Text="{DynamicResource MaxFileTranferSizeLabel}"
+                   Foreground="{StaticResource WhiteBrush}"
+                   Margin="0,10,0,0" />
+        <TextBox Text="{Binding MaxFileTranferSizeText}"
+                 Margin="0,5"
+                 ToolTip="{DynamicResource MaxFileTranferSizeToolTip}"
+                 Style="{StaticResource RoundedTextBoxStyle}"
+                 PreviewTextInput="MaxFileTransferSize_PreviewTextInput" />
+                 
+        <!-- Languages -->
         <StackPanel Orientation="Horizontal"
                     HorizontalAlignment="Left"
-                    Margin="0,10 0,0">
+                    Margin="0,10,0,10">
             <Button Content="FR"
                     Width="60"
                     Height="30"
@@ -101,14 +124,14 @@
                     Command="{Binding SetLanguageCommand}"
                     CommandParameter="fr-FR"
                     Cursor="Hand"
-                    Background="{Binding IsCurrentLanguageFR, Converter={StaticResource BooleanToColorConverter}, ConverterParameter='#3b7a57;#22272A'}"
+                    Background="{Binding IsCurrentLanguageFR, Converter={StaticResource BooleanToColorConverter}, ConverterParameter='SecondaryBrush;ButtonDefaultBackgroundBrush'}"
                     BorderThickness="0"
-                    Foreground="White"
+                    Foreground="{StaticResource WhiteBrush}"
                     ToolTip="Changer la langue en Français">
                 <Button.Resources>
                     <Style TargetType="Border">
                         <Setter Property="CornerRadius"
-                                Value="10"/>
+                                Value="10" />
                     </Style>
                 </Button.Resources>
                 <Button.Style>
@@ -128,21 +151,21 @@
                                                           RecognizesAccessKey="True"
                                                           SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}"
                                                           VerticalAlignment="{TemplateBinding VerticalContentAlignment}"
-                                                          TextElement.Foreground="{TemplateBinding Foreground}"/>
+                                                          TextElement.Foreground="{TemplateBinding Foreground}" />
                                     </Border>
                                     <ControlTemplate.Triggers>
                                         <Trigger Property="IsMouseOver"
                                                  Value="True">
                                             <Setter Property="Background"
                                                     TargetName="border"
-                                                    Value="#32373A"/>
+                                                    Value="{StaticResource SecondaryHoverBrush}" />
                                         </Trigger>
                                     </ControlTemplate.Triggers>
                                 </ControlTemplate>
                             </Setter.Value>
                         </Setter>
                         <Setter Property="FocusVisualStyle"
-                                Value="{x:Null}"/>
+                                Value="{x:Null}" />
                     </Style>
                 </Button.Style>
             </Button>
@@ -152,14 +175,14 @@
                     Command="{Binding SetLanguageCommand}"
                     CommandParameter="en-US"
                     Cursor="Hand"
-                    Background="{Binding IsCurrentLanguageEN, Converter={StaticResource BooleanToColorConverter}, ConverterParameter='#3b7a57;#22272A'}"
+                    Background="{Binding IsCurrentLanguageEN, Converter={StaticResource BooleanToColorConverter}, ConverterParameter='SecondaryBrush;ButtonDefaultBackgroundBrush'}"
                     BorderThickness="0"
-                    Foreground="White"
+                    Foreground="{StaticResource WhiteBrush}"
                     ToolTip="Change language to English">
                 <Button.Resources>
                     <Style TargetType="Border">
                         <Setter Property="CornerRadius"
-                                Value="10"/>
+                                Value="10" />
                     </Style>
                 </Button.Resources>
                 <Button.Style>
@@ -179,25 +202,27 @@
                                                           RecognizesAccessKey="True"
                                                           SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}"
                                                           VerticalAlignment="{TemplateBinding VerticalContentAlignment}"
-                                                          TextElement.Foreground="{TemplateBinding Foreground}"/>
+                                                          TextElement.Foreground="{TemplateBinding Foreground}" />
                                     </Border>
                                     <ControlTemplate.Triggers>
                                         <Trigger Property="IsMouseOver"
                                                  Value="True">
                                             <Setter Property="Background"
                                                     TargetName="border"
-                                                    Value="#32373A"/>
+                                                    Value="{StaticResource SecondaryHoverBrush}" />
                                         </Trigger>
                                     </ControlTemplate.Triggers>
                                 </ControlTemplate>
                             </Setter.Value>
                         </Setter>
                         <Setter Property="FocusVisualStyle"
-                                Value="{x:Null}"/>
+                                Value="{x:Null}" />
                     </Style>
                 </Button.Style>
             </Button>
         </StackPanel>
+
+        <!-- Cancel/Save -->
         <StackPanel Orientation="Horizontal"
                     Margin="0,10"
                     HorizontalAlignment="Left">
@@ -207,22 +232,22 @@
                     Height="30"
                     Margin="0"
                     Cursor="Hand"
-                    Background="#22272A"
+                    Background="{StaticResource ButtonDefaultBackgroundBrush}"
                     BorderThickness="0"
-                    Foreground="White"
+                    Foreground="{StaticResource WhiteBrush}"
                     ToolTip="{DynamicResource CancelButtonToolTip}"
-                    Style="{StaticResource SettingsButtonStyle}"/>
+                    Style="{StaticResource SettingsButtonStyle}" />
             <Button Content="{DynamicResource Save}"
                     Command="{Binding SaveCommand}"
                     Width="80"
                     Height="30"
                     Margin="5"
                     Cursor="Hand"
-                    Background="#3b7a57"
+                    Background="{StaticResource SecondaryBrush}"
                     BorderThickness="0"
-                    Foreground="White"
+                    Foreground="{StaticResource WhiteBrush}"
                     ToolTip="{DynamicResource SaveButtonToolTip}"
-                    Style="{StaticResource SettingsButtonStyle}"/>
+                    Style="{StaticResource SettingsButtonStyle}" />
         </StackPanel>
     </StackPanel>
 </UserControl>

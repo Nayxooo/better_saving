@@ -80,7 +80,7 @@ public class Logger
             String timestamp = DateTime.Now.ToString("yyyy-MM-ddTHH:mm:sszzz");
             DailyLogFilePath = Path.Combine(LogDirectory, $"{DateTime.Now:yyyy-MM-dd}.json");
 
-            string logEntry = $"{timestamp} | '{jobName}' - '{sourceFile}' - '{targetFile}' - '{fileSize}' - '{transferTime}' - '{encryptionExitCode}'";
+            string logEntry = $"\"{timestamp} | '{jobName}' - '{sourceFile}' - '{targetFile}' - '{fileSize}' - '{transferTime}' - '{encryptionExitCode}'\"";
             
             try
             {
@@ -98,7 +98,9 @@ public class Logger
                 return;
             }
         }
-    }/// <summary>
+    }
+
+    /// <summary>
     /// Updates the state.json file with the current state of all backup jobs.
     /// This provides persistence of job information between application runs.
     /// </summary>
@@ -125,7 +127,7 @@ public class Logger
             {
                 // Create a temporary file path for safe writing
                 string tempFilePath = StateLogFilePath + ".tmp";
-                
+
                 // Start JSON array with proper indentation
                 var stateEntries = new List<object>();
                 foreach (var job in jobs) // Use the jobs from the provider
@@ -138,7 +140,7 @@ public class Logger
                         Type = job.Type.ToString(), // Enum to string
                         State = job.State.ToString(),   // Enum to string
                         TotalFilesToCopy = job.TotalFilesToCopy,
-                        TotalFilesSize = job.TotalSizeToCopy, 
+                        TotalFilesSize = job.TotalSizeToCopy,
                         NumberFilesLeftToDo = job.NumberFilesLeftToDo,
                         Progress = job.Progress,
                         ErrorMessage = job.ErrorMessage
@@ -149,11 +151,11 @@ public class Logger
                 {
                     Directory.CreateDirectory(LogDirectory);
                 }
-                
+
                 // First write to a temporary file
                 string jsonState = JsonSerializer.Serialize(stateEntries, new JsonSerializerOptions { WriteIndented = true });
                 File.WriteAllText(tempFilePath, jsonState);
-                
+
                 // If successful, replace the original file
                 if (File.Exists(tempFilePath))
                 {
@@ -215,18 +217,20 @@ public class Logger
                     // Example:
                     if (jobStateElement.TryGetProperty("State", out JsonElement stateElement))
                     {
-                         string jobStatusStr = stateElement.GetString() ?? JobStates.Stopped.ToString();
-                         JobStates jobState = Enum.Parse<JobStates>(jobStatusStr, true);
+                        string jobStatusStr = stateElement.GetString() ?? JobStates.Stopped.ToString();
+                        JobStates jobState = Enum.Parse<JobStates>(jobStatusStr, true);
 
-                           // If state is Failed, ensure Progress is 0 regardless of what's in the file
-                         if (jobState == JobStates.Failed)
-                         {
-                             job.Progress = 0;
-                         }
-                         else if (jobStateElement.TryGetProperty("Progress", out JsonElement progressElement))
-                         {
-                             job.Progress = progressElement.GetSingle(); // Progress is now a float
-                         }
+                        if (jobState == JobStates.Paused) job.State = JobStates.Paused;
+
+                        // If state is Failed, ensure Progress is 0 regardless of what's in the file
+                        if (jobState == JobStates.Failed)
+                        {
+                            job.Progress = 0;
+                        }
+                        else if (jobStateElement.TryGetProperty("Progress", out JsonElement progressElement))
+                        {
+                            job.Progress = progressElement.GetSingle(); // Progress is now a float
+                        }
                     }
                     else if (jobStateElement.TryGetProperty("Progress", out JsonElement progressElement))
                     {
@@ -243,6 +247,42 @@ public class Logger
             }
             // _jobs = loadedJobs; // Removed: This method should not set an internal field for UpdateAllJobsState's use.
             return loadedJobs;
+        }
+    }
+
+    internal void LogBackupDetails(string name, string sourceFile, string targetFile, int fileSize, int transferTime, int numberFilesLeftToDo)
+    {
+        lock (logLock)
+        {
+            String timestamp = DateTime.Now.ToString("yyyy-MM-ddTHH:mm:sszzz");
+            DailyLogFilePath = Path.Combine(LogDirectory, $"{DateTime.Now:yyyy-MM-dd}.json");
+
+            // Adapt the log entry to include numberFilesLeftToDo and clearly mark it if it's an error log
+            // For now, we'll assume 'name' might indicate the nature of the log (e.g., "CRITICAL_ERROR")
+            string logEntry = $"\"{timestamp} | \'{name}\' - Source: \'{sourceFile}\' - Target: \'{targetFile}\' - Size: \'{fileSize}\' bytes - Time: \'{transferTime}\' ms - Files Left: \'{numberFilesLeftToDo}\'\"";
+            
+            try
+            {
+                // Ensure the log directory exists
+                if (!Directory.Exists(LogDirectory))
+                {
+                    Directory.CreateDirectory(LogDirectory);
+                }
+                
+                // Append to existing file or create new one
+                File.AppendAllText(DailyLogFilePath, logEntry + Environment.NewLine);
+            }
+            catch (Exception ex)
+            {
+                // If logging itself fails, write to a fallback error file to avoid infinite loops
+                try
+                {
+                    string fallbackErrorFile = Path.Combine(AppContext.BaseDirectory, "logger_fallback_error.debug");
+                    File.AppendAllText(fallbackErrorFile, $"{DateTime.Now:yyyy-MM-ddTHH:mm:sszzz} | LOGGER_FAILURE in LogBackupDetails(6 args): {ex.Message} | Original Log: {logEntry}{Environment.NewLine}");
+                }
+                catch { /* Final fallback, do nothing */ }
+                return;
+            }
         }
     }
 }

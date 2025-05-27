@@ -3,7 +3,7 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:local="clr-namespace:better_saving.Views"
              xmlns:viewModels="clr-namespace:better_saving.ViewModels"
-             Background="#FF1E1E1E">
+             Background="{StaticResource ViewBackgroundGlobalBrush}">
     <UserControl.Resources>
         <ScaleTransform x:Key="ViewScale"
                         ScaleX="1.5"
@@ -12,9 +12,9 @@
         <Style x:Key="SegmentLeftButtonStyle"
                TargetType="RadioButton">
             <Setter Property="Foreground"
-                    Value="Gray"/>
+                    Value="{StaticResource TextGrayBrush}"/>
             <Setter Property="Background"
-                    Value="#FF161618"/>
+                    Value="{StaticResource ListBoxBackgroundBrush}"/>
             <Setter Property="MinWidth"
                     Value="100"/>
             <!-- Added MinWidth -->
@@ -22,7 +22,7 @@
                 <Setter.Value>
                     <ControlTemplate TargetType="RadioButton">
                         <Border CornerRadius="10,0,0,10"
-                                BorderBrush="#FF868688"
+                                BorderBrush="{StaticResource BorderGrayBrush}"
                                 BorderThickness="1"
                                 Background="{TemplateBinding Background}">
                             <ContentPresenter HorizontalAlignment="Center"
@@ -33,11 +33,11 @@
                             <Trigger Property="IsChecked"
                                      Value="True">
                                 <Setter Property="Background"
-                                        Value="#FF1776BA"/>
+                                        Value="{StaticResource PrimaryBrush}"/>
                                 <Setter Property="Foreground"
-                                        Value="White"/>
+                                        Value="{StaticResource WhiteBrush}"/>
                                 <Setter Property="BorderBrush"
-                                        Value="White"/>
+                                        Value="{StaticResource WhiteBrush}"/>
                             </Trigger>
                         </ControlTemplate.Triggers>
                     </ControlTemplate>
@@ -56,7 +56,7 @@
                 <Setter.Value>
                     <ControlTemplate TargetType="RadioButton">
                         <Border CornerRadius="0,10,10,0"
-                                BorderBrush="#FF868688"
+                                BorderBrush="{StaticResource BorderGrayBrush}"
                                 BorderThickness="1"
                                 Background="{TemplateBinding Background}">
                             <ContentPresenter HorizontalAlignment="Center"
@@ -67,11 +67,11 @@
                             <Trigger Property="IsChecked"
                                      Value="True">
                                 <Setter Property="Background"
-                                        Value="#FF1776BA"/>
+                                        Value="{StaticResource PrimaryBrush}"/>
                                 <Setter Property="Foreground"
-                                        Value="White"/>
+                                        Value="{StaticResource WhiteBrush}"/>
                                 <Setter Property="BorderBrush"
-                                        Value="White"/>
+                                        Value="{StaticResource WhiteBrush}"/>
                             </Trigger>
                         </ControlTemplate.Triggers>
                     </ControlTemplate>
@@ -109,15 +109,16 @@
                          Color="#FFADB2B5"/>
         <SolidColorBrush x:Key="Button.Disabled.Foreground"
                          Color="#FF838383"/>
+        <!-- General Button Style (Dark Theme Adaptation) -->
         <Style TargetType="{x:Type Button}">
             <Setter Property="FocusVisualStyle"
                     Value="{StaticResource FocusVisual}"/>
             <Setter Property="Background"
-                    Value="{StaticResource Button.Static.Background}"/>
+                    Value="{StaticResource ButtonDefaultBackgroundBrush}"/>
             <Setter Property="BorderBrush"
-                    Value="{StaticResource Button.Static.Border}"/>
+                    Value="{StaticResource BorderGrayBrush}"/>
             <Setter Property="Foreground"
-                    Value="{DynamicResource {x:Static SystemColors.ControlTextBrushKey}}"/>
+                    Value="{StaticResource WhiteBrush}"/>
             <Setter Property="BorderThickness"
                     Value="1"/>
             <Setter Property="HorizontalContentAlignment"
@@ -156,31 +157,31 @@
                                      Value="true">
                                 <Setter Property="Background"
                                         TargetName="border"
-                                        Value="{StaticResource Button.MouseOver.Background}"/>
+                                        Value="{StaticResource ButtonDefaultHoverBrush}"/>
                                 <Setter Property="BorderBrush"
                                         TargetName="border"
-                                        Value="{StaticResource Button.MouseOver.Border}"/>
+                                        Value="{StaticResource PrimaryHoverBrush}"/>
                             </Trigger>
                             <Trigger Property="IsPressed"
                                      Value="true">
                                 <Setter Property="Background"
                                         TargetName="border"
-                                        Value="{StaticResource Button.Pressed.Background}"/>
+                                        Value="{StaticResource PrimarySelectedBrush}"/>
                                 <Setter Property="BorderBrush"
                                         TargetName="border"
-                                        Value="{StaticResource Button.Pressed.Border}"/>
+                                        Value="{StaticResource PrimarySelectedBrush}"/>
                             </Trigger>
                             <Trigger Property="IsEnabled"
                                      Value="false">
                                 <Setter Property="Background"
                                         TargetName="border"
-                                        Value="{StaticResource Button.Disabled.Background}"/>
+                                        Value="{StaticResource ButtonDisabledBackgroundDarkBrush}"/>
                                 <Setter Property="BorderBrush"
                                         TargetName="border"
-                                        Value="{StaticResource Button.Disabled.Border}"/>
+                                        Value="{StaticResource ButtonDisabledBorderDarkBrush}"/>
                                 <Setter Property="TextElement.Foreground"
                                         TargetName="contentPresenter"
-                                        Value="{StaticResource Button.Disabled.Foreground}"/>
+                                        Value="{StaticResource TextDisabledDarkBrush}"/>
                             </Trigger>
                         </ControlTemplate.Triggers>
                     </ControlTemplate>
@@ -192,11 +193,11 @@
         <Style x:Key="RoundedTextBoxStyle"
                TargetType="TextBox">
             <Setter Property="Background"
-                    Value="#FF22272A"/>
+                    Value="{StaticResource ButtonDefaultBackgroundBrush}"/>
             <Setter Property="Foreground"
-                    Value="White"/>
+                    Value="{StaticResource WhiteBrush}"/>
             <Setter Property="BorderBrush"
-                    Value="Gray"/>
+                    Value="{StaticResource BorderGrayBrush}"/>
             <Setter Property="BorderThickness"
                     Value="1"/>
             <Setter Property="Padding"
@@ -242,11 +243,11 @@
                 Width="30"
                 Height="30"
                 Cursor="Hand"
-                Background="#22272A"
+                Background="{StaticResource ButtonDefaultBackgroundBrush}"
                 BorderThickness="0"
                 ToolTip="{DynamicResource BackButtonToolTip}">
             <Path Data="M16.2426 6.34317L14.8284 4.92896L7.75739 12L14.8285 19.0711L16.2427 17.6569L10.5858 12L16.2426 6.34317Z"
-                  Fill="White"
+                  Fill="{StaticResource WhiteBrush}"
                   Stretch="Uniform"
                   Width="16"
                   Height="16"/>
@@ -287,7 +288,7 @@
         </Button>
 
         <TextBlock Text="{DynamicResource BackupCreationTitle}"
-                   Foreground="White"
+                   Foreground="{StaticResource WhiteBrush}"
                    FontSize="22"
                    FontWeight="Bold"
                    Grid.Row="1"
@@ -298,17 +299,17 @@
         <StackPanel Grid.Row="2">
             <!-- Job Name -->
             <TextBlock Text="{DynamicResource Name}"
-                       Foreground="White"
+                       Foreground="{StaticResource WhiteBrush}"
                        Margin="0,0,0,5"/>
             <TextBox Text="{Binding Name, UpdateSourceTrigger=PropertyChanged}"
                      Margin="0,0,47,10"
                      Style="{StaticResource RoundedTextBoxStyle}"
-                    Background="#FF161618"
-                    BorderBrush="#FF868688"/>
+                    Background="{StaticResource ListBoxBackgroundBrush}"
+                    BorderBrush="{StaticResource BorderGrayBrush}"/>
 
             <!-- Source Directory -->
             <TextBlock Text="{DynamicResource SourceDir}"
-                       Foreground="White"/>
+                       Foreground="{StaticResource WhiteBrush}"/>
             <Grid Margin="0,0,0,10">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*"/>
@@ -318,19 +319,19 @@
                          Grid.Column="0"
                          IsReadOnly="True"
                          Style="{StaticResource RoundedTextBoxStyle}"
-                        Background="#FF161618"
-                        BorderBrush="#FF868688"/>
+                        Background="{StaticResource ListBoxBackgroundBrush}"
+                        BorderBrush="{StaticResource BorderGrayBrush}"/>
                 <Button Command="{Binding SelectSourceDirectoryCommand}"
                         Grid.Column="1"
                         Margin="5,0,0,0"
                         Cursor="Hand"
-                        Background="#FF161618"
+                        Background="{StaticResource ListBoxBackgroundBrush}"
                         BorderThickness="0"
                         Width="42"
                         Height="35"
                         ToolTip="{DynamicResource SourceFolderToolTip}">
                     <Path Data="M41.68,13.02H24.77c-2-0.1-5.93-4.23-8.19-4.23H6.68c-1.2,0-2.18,0.98-2.18,2.18c0,0.02,0,0.03,0,0.05v7.29h39v-3.42c0.02-1.01-0.78-1.85-1.79-1.87c-0.01,0-0.02,0-0.03,0Z M4.5,18.3v18.72c-0.01,1.2,0.96,2.19,2.16,2.2c0,0,0.01,0,0.01,0h34.65c1.2,0,2.18-0.98,2.18-2.18c0-0.01,0-0.01,0-0.02v-18.72 M34.42,23.24v-13 M41.5,28.09L34.42,20.74L27.34,28.09"
-                          Fill="White"
+                          Fill="{StaticResource WhiteBrush}"
                           Stretch="Uniform"
                           Width="30"
                           Height="30"/>
@@ -358,7 +359,7 @@
                                                      Value="True">
                                                 <Setter Property="Background"
                                                         TargetName="border"
-                                                        Value="#272D31"/>
+                                                        Value="{StaticResource PrimaryHoverBrush}"/>
                                             </Trigger>
                                         </ControlTemplate.Triggers>
                                     </ControlTemplate>
@@ -373,7 +374,7 @@
 
             <!-- Target Directory -->
             <TextBlock Text="{DynamicResource TargetDir}"
-                       Foreground="White"/>
+                       Foreground="{StaticResource WhiteBrush}"/>
             <Grid Margin="0,0,0,10">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*"/>
@@ -383,19 +384,19 @@
                          Grid.Column="0"
                          IsReadOnly="True"
                          Style="{StaticResource RoundedTextBoxStyle}"
-                        Background="#FF161618"
-                        BorderBrush="#FF868688"/>
+                        Background="{StaticResource ListBoxBackgroundBrush}"
+                        BorderBrush="{StaticResource BorderGrayBrush}"/>
                 <Button Command="{Binding SelectTargetDirectoryCommand}"
                         Grid.Column="1"
                         Margin="5,0,0,0"
                         Cursor="Hand"
-                        Background="#FF161618"
+                        Background="{StaticResource ListBoxBackgroundBrush}"
                         BorderThickness="0"
                         Width="42"
                         Height="35"
                         ToolTip="{DynamicResource TargetFolderToolTip}">
                     <Path Data="M41.68,13.02H24.77c-2-0.1-5.93-4.23-8.19-4.23H6.68c-1.2,0-2.18,0.98-2.18,2.18c0,0.02,0,0.03,0,0.05v7.29h39v-3.42c0.02-1.01-0.78-1.85-1.79-1.87c-0.01,0-0.02,0-0.03,0Z M4.5,18.3v18.72c-0.01,1.2,0.96,2.19,2.16,2.2c0,0,0.01,0,0.01,0h34.65c1.2,0,2.18-0.98,2.18-2.18c0-0.01,0-0.01,0-0.02v-18.72 M34.42,21.24v13 M27.34,27.39L34.42,34.74L41.5,27.39"
-                          Fill="White"
+                          Fill="{StaticResource WhiteBrush}"
                           Stretch="Uniform"
                           Width="30"
                           Height="30"/>
@@ -423,7 +424,7 @@
                                                      Value="True">
                                                 <Setter Property="Background"
                                                         TargetName="border"
-                                                        Value="#272D31"/>
+                                                        Value="{StaticResource PrimaryHoverBrush}"/>
                                             </Trigger>
                                         </ControlTemplate.Triggers>
                                     </ControlTemplate>
@@ -438,7 +439,7 @@
 
             <!-- Job Type -->
             <TextBlock Text="{DynamicResource Type}"
-                       Foreground="White"
+                       Foreground="{StaticResource WhiteBrush}"
                        Margin="0,0,0,5"/>
             <StackPanel Orientation="Horizontal"
                         Margin="0,0,0,20"
@@ -463,9 +464,9 @@
                 Margin="0,10,0,0"
                 Padding="20,10"
                 Cursor="Hand"
-                Background="#1F547A"
+                Background="{StaticResource PrimaryBrush}"
                 BorderThickness="0"
-                Foreground="White"
+                Foreground="{StaticResource WhiteBrush}"
                 ToolTip="{DynamicResource CreateButtonToolTip}">
             <Button.Style>
                 <Style TargetType="Button"
@@ -492,7 +493,7 @@
                                              Value="True">
                                         <Setter Property="Background"
                                                 TargetName="border"
-                                                Value="#225C87"/>
+                                                Value="{StaticResource PrimaryHoverBrush}"/>
                                     </Trigger>
                                 </ControlTemplate.Triggers>
                             </ControlTemplate>

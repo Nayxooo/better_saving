@@ -1,12 +1,6 @@
 <ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
                     xmlns:sys="clr-namespace:System;assembly=System.Runtime">
-    <sys:String x:Key="SettingsTitle">Paramètres</sys:String>
-    <sys:String x:Key="BlockedSoftwareLabel">Logiciels bloquants (séparés par des virgules, ex. : 'calc.exe, notepad.exe'):</sys:String>
-    <sys:String x:Key="FileExtensionsLabel">Extensions de fichiers à chiffrer (séparés par des virgules, ex. : '.txt, .docx'):</sys:String>
-    <sys:String x:Key="PriorityFileExtensionsLabel">Extensions de fichiers prioritaires (séparés par des virgules, ex. : '.doc', '.xlsx'):</sys:String>
-    <sys:String x:Key="Save">Enregistrer</sys:String>
-    <sys:String x:Key="Cancel">Annuler</sys:String>
 
     <!-- BackupCreationView -->
     <sys:String x:Key="BackupCreationTitle">Creation d'une sauvegarde²</sys:String>
@@ -35,13 +29,33 @@
     <sys:String x:Key="SourceFolderToolTip">Sélectionner le dossier source</sys:String>
     <sys:String x:Key="TargetFolderToolTip">Sélectionner le dossier cible</sys:String>
     <sys:String x:Key="CreateButtonToolTip">Créer cette tâche de sauvegarde</sys:String>
-    <sys:String x:Key="SaveButtonToolTip">Enregistrer les paramètres</sys:String>
-    <sys:String x:Key="CancelButtonToolTip">Annuler les modifications</sys:String>
-    <sys:String x:Key="FileExtensionsToolTip">Exemple : .json, .mp4</sys:String>
-    <sys:String x:Key="PriorityFileExtensionsToolTip">Les fichiers avec ces extensions seront sauvegardés en premier</sys:String>
-    <sys:String x:Key="BlockedSoftwareToolTip">Exemple : calc.exe, notepad.exe</sys:String>
+
+    <!-- SettingsView -->
+    <sys:String x:Key="SettingsTitle">Paramètres</sys:String>
+
     <sys:String x:Key="CopyablePathToolTip">Cliquez et glissez pour sélectionner, Ctrl+C pour copier</sys:String>
 
-    <!-- Common -->
-    <sys:String x:Key="BackArrow">←</sys:String>
+
+    <sys:String x:Key="BlockedSoftwareLabel">Logiciels bloquants (séparés par des virgules, ex. : 'calc.exe, notepad.exe'):</sys:String>
+    <sys:String x:Key="BlockedSoftwareToolTip">Exemple : calc.exe, notepad.exe</sys:String>
+
+    <sys:String x:Key="FileExtensionsLabel">Extensions de fichiers à chiffrer (séparés par des virgules, ex. : '.txt, .docx'):</sys:String>
+    <sys:String x:Key="FileExtensionsToolTip">Exemple : .json, .mp4</sys:String>
+
+    <sys:String x:Key="PriorityFileExtensionsLabel">Extensions de fichiers prioritaires (séparés par des virgules, ex. : '.doc', '.xlsx'):</sys:String>
+    <sys:String x:Key="PriorityFileExtensionsToolTip">Les fichiers avec ces extensions seront sauvegardés en premier</sys:String>
+
+    <!-- la taille totale des fichiers transférés simultanément pour toutes les tâches ne doit pas dépasser cette limite -->
+    <sys:String x:Key="MaxFileTranferSizeLabel">
+        Taille Maximale de Transfert (en Ko):
+    </sys:String>
+    <sys:String x:Key="MaxFileTranferSizeToolTip">
+        Définissez la taille maximale des fichiers pouvant être transférés simultanément pour l'ensemble des tâches.
+         | (par exemple : si défini à 100 (Ko), la taille combinée de tous les fichiers en cours de transfert à un instant T ne dépassera pas 100 Ko). Par défaut, aucune limite.
+    </sys:String>
+
+    <sys:String x:Key="Save">Enregistrer</sys:String>
+    <sys:String x:Key="SaveButtonToolTip">Enregistrer les paramètres</sys:String>
+    <sys:String x:Key="Cancel">Annuler</sys:String>
+    <sys:String x:Key="CancelButtonToolTip">Annuler les modifications</sys:String>
 </ResourceDictionary>

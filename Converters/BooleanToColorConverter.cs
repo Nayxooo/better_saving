@@ -1,36 +1,39 @@
 using System;
 using System.Globalization;
+using System.Windows;
 using System.Windows.Data;
-using System.Windows.Media;
+// Explicitly use System.Windows.Media for Brush and Brushes
+using SWMedia = System.Windows.Media;
 
 namespace better_saving.Converters
 {
     public class BooleanToColorConverter : IValueConverter
     {
+        public SWMedia.Brush? TrueColor { get; set; }
+        public SWMedia.Brush? FalseColor { get; set; }
+
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
         {
-            if (value is bool boolValue && parameter is string colorParams)
+            if (value is bool boolValue)
             {
-                string[] colors = colorParams.Split(';');
-                if (colors.Length == 2)
+                if (parameter is string resourceKeys)
                 {
-                    string trueColor = colors[0];
-                    string falseColor = colors[1];
-                    
-                    if (boolValue)
+                    string[] keys = resourceKeys.Split(';');
+                    if (keys.Length == 2)
                     {
-                        var brush = new BrushConverter().ConvertFrom(trueColor);
-                        return brush ?? new SolidColorBrush(Colors.Black);
-                    }
-                    else
-                    {
-                        var brush = new BrushConverter().ConvertFrom(falseColor);
-                        return brush ?? new SolidColorBrush(Colors.Black);
+                        // Use System.Windows.Application explicitly
+                        var trueBrush = System.Windows.Application.Current.TryFindResource(keys[0]) as SWMedia.Brush;
+                        var falseBrush = System.Windows.Application.Current.TryFindResource(keys[1]) as SWMedia.Brush;
+                        // Use System.Windows.Media.Brushes explicitly
+                        return boolValue ? (trueBrush ?? TrueColor ?? SWMedia.Brushes.Black) : (falseBrush ?? FalseColor ?? SWMedia.Brushes.Black);
                     }
                 }
+                // Fallback to properties if parameter is not correctly formatted or not provided
+                // Use System.Windows.Media.Brushes explicitly
+                return boolValue ? (TrueColor ?? SWMedia.Brushes.Black) : (FalseColor ?? SWMedia.Brushes.Black);
             }
-            var defaultBrush = new BrushConverter().ConvertFrom("#22272A");
-            return defaultBrush ?? new SolidColorBrush(Colors.Black);
+            // Use System.Windows.Media.Brushes explicitly
+            return SWMedia.Brushes.Black; // Default or error case
         }
 
         public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)

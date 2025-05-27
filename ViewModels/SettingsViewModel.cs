@@ -11,6 +11,8 @@ namespace better_saving.ViewModels
         private string _fileExtensionsText;
         private string _priorityFileExtensionsText;
 
+        private string _maxFileTranferSizeText;
+
 
         public string BlockedSoftwareText
         {
@@ -30,6 +32,12 @@ namespace better_saving.ViewModels
             set => SetProperty(ref _priorityFileExtensionsText, value);
         }
 
+        public string MaxFileTranferSizeText
+        {
+            get => _maxFileTranferSizeText;
+            set => SetProperty(ref _maxFileTranferSizeText, value);
+        }
+
         public bool IsCurrentLanguageFR => _mainVM.SelectedLanguage == "fr-FR";
 
         public bool IsCurrentLanguageEN => _mainVM.SelectedLanguage == "en-US";
@@ -45,6 +53,7 @@ namespace better_saving.ViewModels
             _blockedSoftwareText = string.Join(",", _mainVM.GetBlockedSoftware());
             _fileExtensionsText = string.Join(",", _mainVM.GetFileExtensions());
             _priorityFileExtensionsText = string.Join(",", _mainVM.GetPriorityFileExtensions());
+            _maxFileTranferSizeText = _mainVM.GetMaxFileTransferSize().ToString();
 
             SaveCommand = new RelayCommand(_ => Save());
             CancelCommand = new RelayCommand(_ => Cancel());
@@ -79,12 +88,14 @@ namespace better_saving.ViewModels
             // Save priority file extensions
             _mainVM.SetPriorityFileExtensions(priorityExtensions);
 
+            // Save max file transfer size
+            // if the text is empty, set it to 0
+            if (string.IsNullOrWhiteSpace(MaxFileTranferSizeText)) _mainVM.SetMaxFileTransferSize(0);
+            else if (int.TryParse(MaxFileTranferSizeText, out int maxSize)) _mainVM.SetMaxFileTransferSize(maxSize);
+            
             _mainVM.CurrentView = null;
         }
 
-        private void Cancel()
-        {
-            _mainVM.CurrentView = null;
-        }
+        private void Cancel() { _mainVM.CurrentView = null; }
     }
 }

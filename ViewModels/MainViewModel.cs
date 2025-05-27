@@ -18,10 +18,15 @@ namespace better_saving.ViewModels
     {
         private BackupListViewModel _listVM;
         private ViewModelBase? _currentView;
+        private ViewModelBase? PreviousView;
+
         private List<string> _blockedSoftware = [];
         private string? _runningBlockedSoftware;
         private string _selectedLanguage;
         private ObservableCollection<backupJob> _blockedJobs = new ObservableCollection<backupJob>();
+
+        private long _currentGlobalTransferringSizeInBytes = 0; // Tracks current total size of files being transferred, in bytes
+        public long CurrentGlobalTransferringSizeInBytes => _currentGlobalTransferringSizeInBytes; // Public getter
 
         public BackupListViewModel ListVM
         {
@@ -29,14 +34,26 @@ namespace better_saving.ViewModels
             set => SetProperty(ref _listVM, value);
         }
 
+
         public ViewModelBase? CurrentView
         {
             get => _currentView;
-            set { SetProperty(ref _currentView, value); }
+            set
+            {
+                if (value == null && PreviousView != null)
+                {
+                    value = PreviousView; // Restore previous view if current is null
+                }
+                if (value != _currentView)
+                {
+                    PreviousView = _currentView; // Save current view as previous before changing
+                }
+                SetProperty(ref _currentView, value);
+            }
         }
 
         public ICommand ShowCreateJobViewCommand { get; }
-        public ICommand ShowSettingsViewCommand { get; }
+        public ICommand ToggleSettingsViewCommand { get; }
         public ICommand ChangeLanguageCommand { get; }
         public ICommand ExecuteCommand { get; }
         public ICommand PauseCommand { get; }
@@ -62,7 +79,7 @@ namespace better_saving.ViewModels
         {
             _listVM = new BackupListViewModel(this);
             ShowCreateJobViewCommand = new RelayCommand(_ => ShowCreateJobViewInternal());
-            ShowSettingsViewCommand = new RelayCommand(_ => ShowSettingsViewInternal());
+            ToggleSettingsViewCommand = new RelayCommand(_ => ToggleSettingsViewInternal());
             ChangeLanguageCommand = new RelayCommand(param => SelectedLanguage = param?.ToString() ?? "en");
             ExecuteCommand = new RelayCommand(param => Execute(param as backupJob));
             PauseCommand = new RelayCommand(param => Pause(param as backupJob), param => CanPause(param as backupJob));
@@ -75,7 +92,7 @@ namespace better_saving.ViewModels
 
             // Apply loaded language
             ChangeLanguage(_selectedLanguage);
-            
+
             // Initialiser le monitoring des tâches bloquées
             InitializeBlockedJobsMonitoring();
 
@@ -93,15 +110,25 @@ namespace better_saving.ViewModels
             CurrentView = new BackupCreationViewModel(this);
         }
 
-        internal void ShowSettingsViewInternal()
+        internal void ToggleSettingsViewInternal()
         {
-            CurrentView = new SettingsViewModel(this);
+            if (CurrentView is SettingsViewModel)
+            {
+                // If already in settings view, go back to previous view
+                CurrentView = PreviousView;
+            }
+            else
+            {
+                CurrentView = new SettingsViewModel(this);
+            }
+
         }
 
         public void ShowJobStatus(backupJob selectedJob)
         {
             CurrentView = new BackupStatusViewModel(selectedJob, this);
         }
+
 
         public void SetBlockedSoftware(List<string> softwareList)
         {
@@ -110,7 +137,6 @@ namespace better_saving.ViewModels
                 $"Blocked software updated to: {(_blockedSoftware.Count != 0 ? string.Join(", ", _blockedSoftware) : "(empty)")}", 0, 0, 0);
             (_listVM.StartAllJobsCommand as RelayCommand)?.RaiseCanExecuteChanged();
         }
-
         public List<string> GetBlockedSoftware()
         {
             return _blockedSoftware;
@@ -128,7 +154,6 @@ namespace better_saving.ViewModels
             _listVM.GetLogger().LogBackupDetails("System", "Settings",
                 $"File extensions updated to: {(extensions.Count != 0 ? string.Join(", ", extensions) : "(empty)")}", 0, 0, 0);
         }
-
         public List<string> GetFileExtensions()
         {
             var settings = Settings.LoadSettings();
@@ -148,12 +173,32 @@ namespace better_saving.ViewModels
             _listVM.GetLogger().LogBackupDetails("System", "Settings",
                 $"Priority file extensions updated to: {(extensions.Count != 0 ? string.Join(", ", extensions) : "(empty)")}", 0, 0, 0);
         }
-
         public List<string> GetPriorityFileExtensions()
         {
             var settings = Settings.LoadSettings();
             return settings.PriorityFileExtensions;
         }
+
+        public void SetMaxFileTransferSize(int size)
+        {
+            // Save the max file transfer size for future use
+            var settings = Settings.LoadSettings();
+            settings.MaxFileTransferSize = size;
+            settings.BlockedSoftware = _blockedSoftware;
+            settings.FileExtensions = GetFileExtensions();
+            settings.PriorityFileExtensions = GetPriorityFileExtensions();
+            settings.Language = _selectedLanguage;
+            Settings.SaveSettings(settings);
+
+            _listVM.GetLogger().LogBackupDetails("System", "Settings",
+                $"Max file transfer size updated to: {size} KiloBytes", 0, 0, 0);
+        }
+        public int GetMaxFileTransferSize()
+        {
+            var settings = Settings.LoadSettings();
+            return settings.MaxFileTransferSize;
+        }
+
 
         public bool IsSoftwareRunning()
         {
@@ -270,7 +315,7 @@ namespace better_saving.ViewModels
                     if (job.State == JobStates.Paused)
                     {
                         // Démarrer une tâche pour le resume asynchrone
-                        Task.Run(async () => 
+                        Task.Run(async () =>
                         {
                             await job.Resume();
                         });
@@ -297,14 +342,54 @@ namespace better_saving.ViewModels
         public backupJob CreateNewJob(string name, string sourceDir, string targetDir, JobType type)
         {
             return new backupJob(
-                name, 
-                sourceDir, 
-                targetDir, 
-                type, 
-                _listVM.GetLogger(), 
+                name,
+                sourceDir,
+                targetDir,
+                type,
+                _listVM.GetLogger(),
                 IsSoftwareRunning, // Pass the method to check if blocking software is running
                 AddToBlockedJobs   // Pass the callback to add to blocked jobs
             );
+        }
+
+        /// <summary>
+        /// Increments the global counter for data currently being transferred.
+        /// </summary>
+        /// <param name="fileSizeInBytes">Size of the file starting to transfer, in bytes.</param>
+        public void IncrementGlobalTransferringSize(long fileSizeInBytes)
+        {
+            Interlocked.Add(ref _currentGlobalTransferringSizeInBytes, fileSizeInBytes);
+        }
+
+        /// <summary>
+        /// Decrements the global counter for data currently being transferred.
+        /// </summary>
+        /// <param name="fileSizeInBytes">Size of the file that finished transferring, in bytes.</param>
+        public void DecrementGlobalTransferringSize(long fileSizeInBytes)
+        {
+            Interlocked.Add(ref _currentGlobalTransferringSizeInBytes, -fileSizeInBytes);
+        }
+
+        /// <summary>
+        /// Checks if a file of a given size can be transferred based on the global limit.
+        /// </summary>
+        /// <param name="fileSizeInBytes">Size of the file to be transferred, in bytes.</param>
+        /// <returns>True if the file can be transferred, false otherwise.</returns>
+        public bool CanTransferFile(long fileSizeInBytes)
+        {
+            // Assuming GetMaxFileTransferSize() returns the limit in Kilobytes (long)
+            // And a value of 0 means unlimited.
+            long maxAllowedKB = GetMaxFileTransferSize(); // This method must exist and return the limit in KB.
+
+            if (maxAllowedKB == 0) // 0 KB means unlimited transfer
+            {
+                return true;
+            }
+
+            // if (maxAllowedKB == 0) return true; // Unlimited transfer if max size is 0
+
+            long maxAllowedBytes = maxAllowedKB * 1024;
+            return (_currentGlobalTransferringSizeInBytes + fileSizeInBytes) <= maxAllowedBytes;
         }
 
         private void Execute(backupJob? selectedJob)
@@ -313,15 +398,17 @@ namespace better_saving.ViewModels
             {
                 if (selectedJob != null)
                 {
+                    // The Start() and Resume() methods in backupJob will need to be aware of MainViewModel
+                    // to use the new transfer limit logic, ideally by having a reference to MainViewModel.
                     if (selectedJob.State == JobStates.Paused)
                     {
                         _listVM.GetLogger().LogBackupDetails(selectedJob.Name, "System", "Resuming job", 0, 0, 0);
-                        Task.Run(async () => await selectedJob.Resume());
+                        Task.Run(async () => await selectedJob.Resume()); // If backupJob has MainViewModel ref
                     }
                     else if (selectedJob.State == JobStates.Stopped || selectedJob.State == JobStates.Paused || selectedJob.State == JobStates.Failed)
                     {
                         _listVM.GetLogger().LogBackupDetails(selectedJob.Name, "System", "Starting job", 0, 0, 0);
-                        Task.Run(async () => await selectedJob.Start());
+                        Task.Run(async () => await selectedJob.Start()); // If backupJob has MainViewModel ref
                     }
                 }
                 else
@@ -331,12 +418,12 @@ namespace better_saving.ViewModels
                         if (job.State == JobStates.Paused)
                         {
                             _listVM.GetLogger().LogBackupDetails(job.Name, "System", "Resuming job", 0, 0, 0);
-                            Task.Run(async () => await job.Resume());
+                            Task.Run(async () => await job.Resume()); // If backupJob has MainViewModel ref
                         }
                         else if (job.State == JobStates.Stopped || job.State == JobStates.Paused || job.State == JobStates.Failed)
                         {
                             _listVM.GetLogger().LogBackupDetails(job.Name, "System", "Starting job", 0, 0, 0);
-                            Task.Run(async () => await job.Start());
+                            Task.Run(async () => await job.Start()); // If backupJob has MainViewModel ref
                         }
                     }
                 }

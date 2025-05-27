@@ -11,9 +11,8 @@ namespace better_saving.Models
     {
         Working, // Job is currently running
         Finished, // Job has finished successfully
-        Stopped, // Job has been stopped
         Failed, // Job has failed
-        Idle, // Job has been created but not started
+        Stopped, // Job has been created but not started
         Paused // Job is temporarily paused
     }
 }

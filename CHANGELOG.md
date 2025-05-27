@@ -1,3 +1,27 @@
+## EasySave [v3.0.0-beta.4] - 2025-05-27
+
+### Added
+- Introduced a central file (`Resources/Colors.xaml`) for managing UI colors, ensuring consistent styling.
+
+### Changed
+- **Job State Overhaul**:
+    - The `Idle` state for jobs has been removed; its functions are now part of the `Stopped` state.
+    - The `Paused` state is now used more broadly, especially when jobs are paused manually or blocked by other software.
+- **UI Enhancements**:
+    - Job list and status views now use the new central color system for item backgrounds and icons, which change based on job state.
+    - Icon display logic was updated to match the new job states.
+- **Logging Improvement**:
+    - Logging backup details is now simpler as timestamps are handled automatically.
+- **Backup Job Behavior**:
+    - Stopping a backup job now sets its state to `Paused` instead of `Stopped`.
+    - Better management of job states during pause, stop, or when software blocks execution.
+    - New backup jobs will now start in the `Stopped` state.
+
+### Removed
+- The `JobStateToIconConverter.cs` file was removed as it served no purpose (not even passing the Butter).
+
+
+
 ## EasySave [v3.0.0-beta.3] - 2025-05-23
 
 ### Added

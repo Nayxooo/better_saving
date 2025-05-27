@@ -57,9 +57,9 @@ public class Logger
     /// <param name="targetFile">The target file path.</param>
     /// <param name="fileSize">The size of the file in bytes.</param>
     /// <param name="transferTime">The time taken to transfer the file in milliseconds.</param>
-    public void LogBackupDetails(string timestamp, string jobName, string sourceFile, string targetFile, ulong fileSize, int transferTime)
+    public void LogBackupDetails(string jobName, string sourceFile, string targetFile, ulong fileSize, int transferTime)
     {
-        LogBackupDetails(timestamp, jobName, sourceFile, targetFile, fileSize, transferTime, 0);
+        LogBackupDetails(jobName, sourceFile, targetFile, fileSize, transferTime, 0);
     }
 
     /// <summary>
@@ -73,10 +73,11 @@ public class Logger
     /// <param name="fileSize">The size of the file in bytes.</param>
     /// <param name="transferTime">The time taken to transfer the file in milliseconds.</param>
     /// <param name="encryptionExitCode">The exit code from the encryption process (0 if no encryption was needed).</param>
-    public void LogBackupDetails(string timestamp, string jobName, string sourceFile, string targetFile, ulong fileSize, int transferTime, int encryptionExitCode)
+    public void LogBackupDetails(string jobName, string sourceFile, string targetFile, ulong fileSize, int transferTime, int encryptionExitCode)
     {
         lock (logLock)
         {
+            String timestamp = DateTime.Now.ToString("yyyy-MM-ddTHH:mm:sszzz");
             DailyLogFilePath = Path.Combine(LogDirectory, $"{DateTime.Now:yyyy-MM-dd}.json");
 
             string logEntry = $"{timestamp} | '{jobName}' - '{sourceFile}' - '{targetFile}' - '{fileSize}' - '{transferTime}' - '{encryptionExitCode}'";
@@ -214,7 +215,7 @@ public class Logger
                     // Example:
                     if (jobStateElement.TryGetProperty("State", out JsonElement stateElement))
                     {
-                         string jobStatusStr = stateElement.GetString() ?? JobStates.Idle.ToString();
+                         string jobStatusStr = stateElement.GetString() ?? JobStates.Stopped.ToString();
                          JobStates jobState = Enum.Parse<JobStates>(jobStatusStr, true);
 
                            // If state is Failed, ensure Progress is 0 regardless of what's in the file

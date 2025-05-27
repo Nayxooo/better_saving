@@ -10,6 +10,7 @@
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
                 <ResourceDictionary Source="Resources/Localization/Strings.en-US.xaml"/>
+                <ResourceDictionary Source="Resources/Colors.xaml"/>
             </ResourceDictionary.MergedDictionaries>
 
             <converters:NullOrEmptyToVisibilityConverter x:Key="NullOrEmptyToVisibilityConverter"/>

@@ -94,8 +94,8 @@ namespace better_saving.ViewModels
         private bool CanExecutePauseResumeJob(object? parameter)
         {
             return (SelectedJob.State == JobStates.Working ||
-                    SelectedJob.State == JobStates.Idle ||
                     SelectedJob.State == JobStates.Stopped ||
+                    SelectedJob.State == JobStates.Paused ||
                     SelectedJob.State == JobStates.Failed ||
                     SelectedJob.State == JobStates.Finished) &&
                     (_mainViewModel == null || !_mainViewModel.IsSoftwareRunning());
@@ -120,7 +120,7 @@ namespace better_saving.ViewModels
             if (_mainViewModel?.IsSoftwareRunning() == true)
             {
                 SelectedJob.ErrorMessage = $"Cannot start/resume job: {_mainViewModel.GetRunningBlockedSoftware()} is running.";
-                _mainViewModel.ListVM.GetLogger().LogBackupDetails(DateTime.Now.ToString("o"), SelectedJob.Name, "SystemOperation", SelectedJob.ErrorMessage, 0, 0);
+                _mainViewModel.ListVM.GetLogger().LogBackupDetails(SelectedJob.Name, "SystemOperation", SelectedJob.ErrorMessage, 0, 0);
                 OnPropertyChanged(nameof(ErrorMessage));
                 return;
             }
@@ -139,8 +139,8 @@ namespace better_saving.ViewModels
                         // and set the job's state to Stopped.
                     }
                 }
-                else if (SelectedJob.State == JobStates.Idle ||
-                         SelectedJob.State == JobStates.Stopped ||
+                else if (SelectedJob.State == JobStates.Stopped ||
+                         SelectedJob.State == JobStates.Paused ||
                          SelectedJob.State == JobStates.Failed ||
                          SelectedJob.State == JobStates.Finished) // Allow re-running/resuming from these states
                 {
@@ -166,14 +166,14 @@ namespace better_saving.ViewModels
                             // This is expected if the job is paused/stopped.
                             // The state should be set to Stopped within ExecuteAsync.
                             // If not already Stopped, explicitly set it.
-                            if (SelectedJob.State != JobStates.Stopped)
+                            if (SelectedJob.State != JobStates.Paused)
                             {
-                                SelectedJob.State = JobStates.Stopped;
+                                SelectedJob.State = JobStates.Paused;
                             }
                         }
                         catch (Exception ex)
                         {
-                            if (SelectedJob.State != JobStates.Failed && SelectedJob.State != JobStates.Stopped)
+                            if (SelectedJob.State != JobStates.Failed && SelectedJob.State != JobStates.Paused)
                             {
                                 SelectedJob.State = JobStates.Failed;
                             }

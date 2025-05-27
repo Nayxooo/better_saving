@@ -79,7 +79,7 @@ namespace better_saving.ViewModels
             // Initialiser le monitoring des tâches bloquées
             InitializeBlockedJobsMonitoring();
 
-            _listVM.GetLogger().LogBackupDetails(System.DateTime.Now.ToString("o"), "System", "Settings",
+            _listVM.GetLogger().LogBackupDetails("System", "Settings",
                 $"Settings loaded - Blocked software: {(_blockedSoftware.Count != 0 ? string.Join(", ", _blockedSoftware) : "(empty)")}", 0, 0, 0);
         }
 
@@ -106,7 +106,7 @@ namespace better_saving.ViewModels
         public void SetBlockedSoftware(List<string> softwareList)
         {
             _blockedSoftware = softwareList ?? [];
-            _listVM.GetLogger().LogBackupDetails(System.DateTime.Now.ToString("o"), "System", "Settings",
+            _listVM.GetLogger().LogBackupDetails("System", "Settings",
                 $"Blocked software updated to: {(_blockedSoftware.Count != 0 ? string.Join(", ", _blockedSoftware) : "(empty)")}", 0, 0, 0);
             (_listVM.StartAllJobsCommand as RelayCommand)?.RaiseCanExecuteChanged();
         }
@@ -125,7 +125,7 @@ namespace better_saving.ViewModels
             settings.Language = _selectedLanguage;
             Settings.SaveSettings(settings);
 
-            _listVM.GetLogger().LogBackupDetails(System.DateTime.Now.ToString("o"), "System", "Settings",
+            _listVM.GetLogger().LogBackupDetails("System", "Settings",
                 $"File extensions updated to: {(extensions.Count != 0 ? string.Join(", ", extensions) : "(empty)")}", 0, 0, 0);
         }
 
@@ -145,7 +145,7 @@ namespace better_saving.ViewModels
             settings.Language = _selectedLanguage;
             Settings.SaveSettings(settings);
 
-            _listVM.GetLogger().LogBackupDetails(System.DateTime.Now.ToString("o"), "System", "Settings",
+            _listVM.GetLogger().LogBackupDetails("System", "Settings",
                 $"Priority file extensions updated to: {(extensions.Count != 0 ? string.Join(", ", extensions) : "(empty)")}", 0, 0, 0);
         }
 
@@ -172,7 +172,7 @@ namespace better_saving.ViewModels
             }
             catch (System.Exception ex)
             {
-                _listVM.GetLogger().LogBackupDetails(System.DateTime.Now.ToString("o"), "System", "SoftwareCheck",
+                _listVM.GetLogger().LogBackupDetails("System", "SoftwareCheck",
                     $"Error checking software: {ex.Message}", 0, 0, 0);
                 return false;
             }
@@ -227,8 +227,7 @@ namespace better_saving.ViewModels
             }
             catch (Exception ex)
             {
-                _listVM.GetLogger().LogBackupDetails(DateTime.Now.ToString("o"),
-                    "System", "Language", $"Error changing language: {ex.Message}", 0, 0, 0);
+                _listVM.GetLogger().LogBackupDetails("System", "Language", $"Error changing language: {ex.Message}", 0, 0, 0);
             }
         }
 
@@ -316,12 +315,12 @@ namespace better_saving.ViewModels
                 {
                     if (selectedJob.State == JobStates.Paused)
                     {
-                        _listVM.GetLogger().LogBackupDetails(DateTime.Now.ToString("yyyy-MM-ddTHH:mm:sszzz"), selectedJob.Name, "System", "Resuming job", 0, 0, 0);
+                        _listVM.GetLogger().LogBackupDetails(selectedJob.Name, "System", "Resuming job", 0, 0, 0);
                         Task.Run(async () => await selectedJob.Resume());
                     }
-                    else if (selectedJob.State == JobStates.Idle || selectedJob.State == JobStates.Stopped || selectedJob.State == JobStates.Failed)
+                    else if (selectedJob.State == JobStates.Stopped || selectedJob.State == JobStates.Paused || selectedJob.State == JobStates.Failed)
                     {
-                        _listVM.GetLogger().LogBackupDetails(DateTime.Now.ToString("yyyy-MM-ddTHH:mm:sszzz"), selectedJob.Name, "System", "Starting job", 0, 0, 0);
+                        _listVM.GetLogger().LogBackupDetails(selectedJob.Name, "System", "Starting job", 0, 0, 0);
                         Task.Run(async () => await selectedJob.Start());
                     }
                 }
@@ -331,12 +330,12 @@ namespace better_saving.ViewModels
                     {
                         if (job.State == JobStates.Paused)
                         {
-                            _listVM.GetLogger().LogBackupDetails(DateTime.Now.ToString("yyyy-MM-ddTHH:mm:sszzz"), job.Name, "System", "Resuming job", 0, 0, 0);
+                            _listVM.GetLogger().LogBackupDetails(job.Name, "System", "Resuming job", 0, 0, 0);
                             Task.Run(async () => await job.Resume());
                         }
-                        else if (job.State == JobStates.Idle || job.State == JobStates.Stopped || job.State == JobStates.Failed)
+                        else if (job.State == JobStates.Stopped || job.State == JobStates.Paused || job.State == JobStates.Failed)
                         {
-                            _listVM.GetLogger().LogBackupDetails(DateTime.Now.ToString("yyyy-MM-ddTHH:mm:sszzz"), job.Name, "System", "Starting job", 0, 0, 0);
+                            _listVM.GetLogger().LogBackupDetails(job.Name, "System", "Starting job", 0, 0, 0);
                             Task.Run(async () => await job.Start());
                         }
                     }
@@ -344,7 +343,7 @@ namespace better_saving.ViewModels
             }
             catch (Exception ex)
             {
-                _listVM.GetLogger().LogBackupDetails(DateTime.Now.ToString("yyyy-MM-ddTHH:mm:sszzz"), "System", "Execute", $"Error executing job: {ex.Message}", 0, 0, 0);
+                _listVM.GetLogger().LogBackupDetails("System", "Execute", $"Error executing job: {ex.Message}", 0, 0, 0);
             }
         }
 
@@ -354,27 +353,27 @@ namespace better_saving.ViewModels
             {
                 if (selectedJob != null)
                 {
-                    if (selectedJob.State == JobStates.Working || selectedJob.State == JobStates.Idle)
+                    if (selectedJob.State == JobStates.Working || selectedJob.State == JobStates.Stopped)
                     {
                         selectedJob.Pause();
-                        _listVM.GetLogger().LogBackupDetails(DateTime.Now.ToString("yyyy-MM-ddTHH:mm:sszzz"), selectedJob.Name, "System", "Pausing job", 0, 0, 0);
+                        _listVM.GetLogger().LogBackupDetails(selectedJob.Name, "System", "Pausing job", 0, 0, 0);
                     }
                 }
                 else
                 {
                     foreach (var job in _listVM.Jobs)
                     {
-                        if (job.State == JobStates.Working || job.State == JobStates.Idle)
+                        if (job.State == JobStates.Working || job.State == JobStates.Stopped)
                         {
                             job.Pause();
-                            _listVM.GetLogger().LogBackupDetails(DateTime.Now.ToString("yyyy-MM-ddTHH:mm:sszzz"), job.Name, "System", "Pausing job", 0, 0, 0);
+                            _listVM.GetLogger().LogBackupDetails(job.Name, "System", "Pausing job", 0, 0, 0);
                         }
                     }
                 }
             }
             catch (Exception ex)
             {
-                _listVM.GetLogger().LogBackupDetails(DateTime.Now.ToString("yyyy-MM-ddTHH:mm:sszzz"), "System", "Pause", $"Error pausing job: {ex.Message}", 0, 0, 0);
+                _listVM.GetLogger().LogBackupDetails("System", "Pause", $"Error pausing job: {ex.Message}", 0, 0, 0);
             }
         }
 
@@ -382,9 +381,9 @@ namespace better_saving.ViewModels
         {
             if (selectedJob != null)
             {
-                return selectedJob.State == JobStates.Working || selectedJob.State == JobStates.Idle;
+                return selectedJob.State == JobStates.Working || selectedJob.State == JobStates.Stopped;
             }
-            return _listVM.Jobs.Any(job => job.State == JobStates.Working || job.State == JobStates.Idle);
+            return _listVM.Jobs.Any(job => job.State == JobStates.Working || job.State == JobStates.Stopped);
         }
 
         private void Stop(backupJob? selectedJob)
@@ -393,27 +392,27 @@ namespace better_saving.ViewModels
             {
                 if (selectedJob != null)
                 {
-                    if (selectedJob.State == JobStates.Working || selectedJob.State == JobStates.Paused || selectedJob.State == JobStates.Idle)
+                    if (selectedJob.State == JobStates.Working || selectedJob.State == JobStates.Paused || selectedJob.State == JobStates.Stopped)
                     {
                         selectedJob.Stop();
-                        _listVM.GetLogger().LogBackupDetails(DateTime.Now.ToString("yyyy-MM-ddTHH:mm:sszzz"), selectedJob.Name, "System", "Stopping job", 0, 0, 0);
+                        _listVM.GetLogger().LogBackupDetails(selectedJob.Name, "System", "Stopping job", 0, 0, 0);
                     }
                 }
                 else
                 {
                     foreach (var job in _listVM.Jobs)
                     {
-                        if (job.State == JobStates.Working || job.State == JobStates.Paused || job.State == JobStates.Idle)
+                        if (job.State == JobStates.Working || job.State == JobStates.Paused || job.State == JobStates.Stopped)
                         {
                             job.Stop();
-                            _listVM.GetLogger().LogBackupDetails(DateTime.Now.ToString("yyyy-MM-ddTHH:mm:sszzz"), job.Name, "System", "Stopping job", 0, 0, 0);
+                            _listVM.GetLogger().LogBackupDetails(job.Name, "System", "Stopping job", 0, 0, 0);
                         }
                     }
                 }
             }
             catch (Exception ex)
             {
-                _listVM.GetLogger().LogBackupDetails(DateTime.Now.ToString("yyyy-MM-ddTHH:mm:sszzz"), "System", "Stop", $"Error stopping job: {ex.Message}", 0, 0, 0);
+                _listVM.GetLogger().LogBackupDetails("System", "Stop", $"Error stopping job: {ex.Message}", 0, 0, 0);
             }
         }
 
@@ -421,9 +420,9 @@ namespace better_saving.ViewModels
         {
             if (selectedJob != null)
             {
-                return selectedJob.State == JobStates.Working || selectedJob.State == JobStates.Paused || selectedJob.State == JobStates.Idle;
+                return selectedJob.State == JobStates.Working || selectedJob.State == JobStates.Paused || selectedJob.State == JobStates.Stopped;
             }
-            return _listVM.Jobs.Any(job => job.State == JobStates.Working || job.State == JobStates.Paused || job.State == JobStates.Idle);
+            return _listVM.Jobs.Any(job => job.State == JobStates.Working || job.State == JobStates.Paused || job.State == JobStates.Stopped);
         }
     }
 }

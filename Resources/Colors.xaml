@@ -1,0 +1,56 @@
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <!-- Used OKLCH for color choice -->
+    <!-- Hover is +10% Lightness -->
+    <!-- Selected is +10% Lightness and +10% more chroma -->
+
+    <!-- General Colors -->
+    <Color x:Key="WhiteColor">#FFFFFF</Color>
+    <SolidColorBrush x:Key="WhiteBrush" Color="{StaticResource WhiteColor}"/>
+
+    <!-- Button Background Colors -->
+    <Color x:Key="ButtonDefaultBackgroundColor">#22272A</Color>
+    <SolidColorBrush x:Key="ButtonDefaultBackgroundBrush" Color="{StaticResource ButtonDefaultBackgroundColor}"/>
+
+    <!-- Job State Colors -->
+    <Color x:Key="JobStateWorkingColor">#1F547A</Color>
+    <SolidColorBrush x:Key="JobStateWorkingBrush" Color="{StaticResource JobStateWorkingColor}"/>
+    <Color x:Key="JobStateWorkingHoverColor">#2c6087</Color> 
+    <SolidColorBrush x:Key="JobStateWorkingHoverBrush" Color="{StaticResource JobStateWorkingHoverColor}"/>
+    <Color x:Key="JobStateWorkingSelectedColor">#25608b</Color>
+    <SolidColorBrush x:Key="JobStateWorkingSelectedBrush" Color="{StaticResource JobStateWorkingSelectedColor}"/>
+
+    <Color x:Key="JobStateFinishedColor">#265d38</Color>
+    <SolidColorBrush x:Key="JobStateFinishedBrush" Color="{StaticResource JobStateFinishedColor}"/>
+    <Color x:Key="JobStateFinishedHoverColor">#326944</Color>
+    <SolidColorBrush x:Key="JobStateFinishedHoverBrush" Color="{StaticResource JobStateFinishedHoverColor}"/>
+    <Color x:Key="JobStateFinishedSelectedColor">#2c6a41</Color>
+    <SolidColorBrush x:Key="JobStateFinishedSelectedBrush" Color="{StaticResource JobStateFinishedSelectedColor}"/>
+
+    <Color x:Key="JobStateFailedColor">#773b39</Color>
+    <SolidColorBrush x:Key="JobStateFailedBrush" Color="{StaticResource JobStateFailedColor}"/>
+    <Color x:Key="JobStateFailedHoverColor">#844745</Color>
+    <SolidColorBrush x:Key="JobStateFailedHoverBrush" Color="{StaticResource JobStateFailedHoverColor}"/>
+    <Color x:Key="JobStateFailedSelectedColor">#884543</Color>
+    <SolidColorBrush x:Key="JobStateFailedSelectedBrush" Color="{StaticResource JobStateFailedSelectedColor}"/>
+
+    <Color x:Key="JobStateStoppedColor">#22272A</Color>
+    <SolidColorBrush x:Key="JobStateStoppedBrush" Color="{StaticResource JobStateStoppedColor}"/>
+    <Color x:Key="JobStateStoppedHoverColor">#292e31</Color>
+    <SolidColorBrush x:Key="JobStateStoppedHoverBrush" Color="{StaticResource JobStateStoppedHoverColor}"/>
+    <Color x:Key="JobStateStoppedSelectedColor">#282e31</Color>
+    <SolidColorBrush x:Key="JobStateStoppedSelectedBrush" Color="{StaticResource JobStateStoppedSelectedColor}"/>
+
+    <Color x:Key="JobStatePausedColor">#001A2E</Color>
+    <SolidColorBrush x:Key="JobStatePausedBrush" Color="{StaticResource JobStatePausedColor}"/>
+    <Color x:Key="JobStatePausedHoverColor">#031f33</Color>
+    <SolidColorBrush x:Key="JobStatePausedHoverBrush" Color="{StaticResource JobStatePausedHoverColor}"/>
+    <Color x:Key="JobStatePausedSelectedColor">#001f36</Color>
+    <SolidColorBrush x:Key="JobStatePausedSelectedBrush" Color="{StaticResource JobStatePausedSelectedColor}"/>
+
+    <!-- ListBox Colors -->
+    <Color x:Key="ListBoxBackgroundColor">#FF161618</Color>
+    <SolidColorBrush x:Key="ListBoxBackgroundBrush" Color="{StaticResource ListBoxBackgroundColor}"/>
+
+</ResourceDictionary>

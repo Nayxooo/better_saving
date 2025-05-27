@@ -190,9 +190,9 @@ public class backupJob : INotifyPropertyChanged
         }
     }
 
-    private List<string> FilesToBackup { get; set; } = new List<string>();
+    private readonly List<string> FilesToBackup  = [];
 
-    public int IdleTime { get; set; } = 300000; // 5 minutes default idle time
+    public int IdleTime = 300000; // 5 minutes default idle time
 
     private float _progress;
     public float Progress
@@ -324,7 +324,7 @@ public class backupJob : INotifyPropertyChanged
         _addToBlockedJobs = addToBlockedJobs ?? (_ => { }); // Default to no-op if not provided
 
         // Initialize default values
-        State = JobStates.Idle;
+        State = JobStates.Stopped;
         IsPausing = false;
         Progress = 0;
         TotalFilesCopied = 0;
@@ -359,11 +359,11 @@ public class backupJob : INotifyPropertyChanged
         FilesToBackup.Clear();
         // If this method is called when a job is already in a terminal state (Failed, Stopped),
         // it might not be desired to change it back to Working.
-        // However, typically this is called for Idle jobs or as part of ExecuteAsync.
+        // However, typically this is called for Stopped jobs or as part of ExecuteAsync.
         // For now, let's assume it's okay to set to Working if not already Failed.
-        if (State != JobStates.Failed && State != JobStates.Stopped)
+        if (State != JobStates.Failed && State != JobStates.Paused)
         {
-            if (_initializing) State = JobStates.Idle; // Set to Idle first, then Working in ExecuteAsync
+            if (_initializing) State = JobStates.Stopped; // Set to Stopped first, then Working in ExecuteAsync
             else State = JobStates.Working; // Indicate scanning is in progress
         }
 
@@ -392,9 +392,9 @@ public class backupJob : INotifyPropertyChanged
 
         if (TotalFilesToCopy == 0)
         {
-            // No files in source, job is effectively finished or idle.
-            // UpdateProgress will handle setting state to Finished if appropriate (e.g., if Idle).
-            if (State == JobStates.Working) State = JobStates.Idle; // If scanning made it working, but no files.
+            // No files in source, job is effectively finished or Stoped.
+            // UpdateProgress will handle setting state to Finished if appropriate (e.g., if Stopped).
+            if (State == JobStates.Working) State = JobStates.Stopped; // If scanning made it working, but no files.
             UpdateProgress();
             return;
         }
@@ -439,15 +439,6 @@ public class backupJob : INotifyPropertyChanged
 
         // After processing all files, update NumberFilesLeftToDo based on the populated FilesToBackup list
         NumberFilesLeftToDo = FilesToBackup.Count;
-
-        // If the state was 'Working' due to scan, and scan is done, revert to Idle if no files to backup,
-        // or let ExecuteAsync handle it. UpdateProgress will set to Finished if applicable.
-        if (State == JobStates.Working)
-        {
-            // UpdateProgress will set to Finished if TotalFilesCopied == TotalFilesToCopy
-            // Otherwise, it remains Working, which is fine if ExecuteAsync is about to run.
-            // If UpdateFilesCount is called standalone, and it's done, it should be Idle if there's work, or Finished.
-        }
         UpdateProgress(); // Update overall progress and potentially state
     }
 
@@ -474,7 +465,7 @@ public class backupJob : INotifyPropertyChanged
             Progress = (float)(cappedFilesCopied * 100.0 / TotalFilesToCopy);
         }
 
-        if (Progress >= 100 && (State == JobStates.Working || State == JobStates.Idle) && TotalFilesToCopy > 0)
+        if (Progress >= 100 && (State == JobStates.Working || State == JobStates.Stopped) && TotalFilesToCopy > 0)
         {
             // If all files are copied (TotalFilesCopied == TotalFilesToCopy)
             if (TotalFilesCopied == TotalFilesToCopy)
@@ -482,7 +473,7 @@ public class backupJob : INotifyPropertyChanged
                 State = JobStates.Finished;
             }
         }
-        else if (TotalFilesToCopy == 0 && State == JobStates.Idle) // Empty job considered finished
+        else if (TotalFilesToCopy == 0 && State == JobStates.Stopped) // Empty job considered finished
         {
             State = JobStates.Finished;
         }
@@ -494,130 +485,107 @@ public class backupJob : INotifyPropertyChanged
         }
     }
 
-    // Mise à jour de ExecuteAsync pour gérer la pause et les logiciels bloquants
+    /// <summary>
+    /// Executes the backup job asynchronously.
+    /// This method handles the main backup logic, including file processing,
+    /// checking for blocking software, and updating job state.
+    /// It will run until the job is either paused, stopped, or fails.
+    /// CancellationToken can be used to stop the job externally.
+    /// </summary>
+    /// <param name="cancellationToken">Cancellation token to stop the job externally.</param>
+    /// <returns>A Task representing the asynchronous operation.</returns>
     public async Task ExecuteAsync(CancellationToken cancellationToken)
     {
-        State = JobStates.Working;
-        IsPausing = false;
-        await UpdateFilesCountInternalAsync(); // Initial scan or rescan, now async
-
+        if (!Directory.Exists(SourceDirectory)) throw new DirectoryNotFoundException($"Source directory '{SourceDirectory}' does not exist.");
+        if (!Directory.Exists(TargetDirectory)) throw new DirectoryNotFoundException($"Target directory '{TargetDirectory}' does not exist.");
         try
         {
-            while (State != JobStates.Stopped && State != JobStates.Failed && !cancellationToken.IsCancellationRequested)
+            if (State == JobStates.Stopped) await UpdateFilesCountInternalAsync(); // Initial scan or rescan if the job was stopped, now async
+            State = JobStates.Working;
+
+            while (State != JobStates.Paused && State != JobStates.Failed && !cancellationToken.IsCancellationRequested)
             {
-                if (NumberFilesLeftToDo == 0)
-                {
-                    // If all files were processed and it became 0, UpdateProgress might have set it to Finished.
-                    // If Finished, we should not go to Idle for continuous backup unless explicitly designed.
-                    // For now, replicating console logic: if finished, it will idle and rescan.
-                    if (State == JobStates.Finished) // If UpdateProgress set it to Finished
-                    {
-                        // Behavior for continuous backup: after finishing, go to Idle and wait.
-                        State = JobStates.Idle;
-                    }
-
-                    if (State == JobStates.Idle)
-                    {
-                        try
-                        {
-                            await Task.Delay(IdleTime, cancellationToken);
-                        }
-                        catch (TaskCanceledException)
-                        {
-                            State = JobStates.Stopped;
-                            return;
-                        }
-                        if (cancellationToken.IsCancellationRequested) { State = JobStates.Stopped; return; }
-
-                        State = JobStates.Working; // Assume work will be done after delay
-                        await UpdateFilesCountInternalAsync(); // Re-scan for changes, now async
-                        if (NumberFilesLeftToDo == 0 && State != JobStates.Failed) // If still nothing after re-scan
-                        {
-                            State = JobStates.Idle; // Go back to idle
-                            continue;
-                        }
-                    }
-                }
-
                 if (State == JobStates.Finished && NumberFilesLeftToDo == 0) // If it was set to finished and no files left
                 {
-                    State = JobStates.Idle; // For continuous backup, go to idle then rescan after delay
+                    State = JobStates.Stopped; // For continuous backup, go to Stopped then rescan after delay
+                    // If it becomes Stopped, the outer while loop condition (State != Paused) might still be true.
+                    // It should re-evaluate after this. If it's stopped, it might need to re-scan or wait.
+                    // The current logic will call UpdateFilesCountInternalAsync at the end of the loop if state is working.
+                    // If state becomes stopped, and then the while loop continues, it might try to process with an empty list.
+                    // Let's ensure if it's stopped, it effectively waits for the next cycle or a start command.
+                    // The current continuous backup logic (rescan at end of while) handles this.
+                    await Task.Delay(IdleTime, cancellationToken); // Wait before rescanning if it was finished
+                    await UpdateFilesCountInternalAsync(); // Rescan
+                    if (NumberFilesLeftToDo == 0 && TotalFilesToCopy > 0) State = JobStates.Finished; // Remain finished if still no files after rescan
+                    else if (TotalFilesToCopy == 0) State = JobStates.Finished; // No files to backup
+                    else State = JobStates.Working; // Ready for next batch
                     continue;
                 }
-                State = JobStates.Working; // Ensure state is working if there are files
+
+                State = JobStates.Working; // Ensure state is working if there are files or if recovering from Finished->Stopped
 
                 // Get priority file extensions from settings
                 var settings = Settings.LoadSettings();
                 var priorityExtensions = settings.PriorityFileExtensions;
 
-                // Sort files to prioritize specified extensions
-                var sortedFilesToBackup = FilesToBackup.ToArray();
+                // Prepare the list of files to process for this iteration
+                var currentFilesToBackupArray = FilesToBackup.ToArray();
                 if (priorityExtensions.Count > 0)
                 {
-                    // Put files with priority extensions first
-                    sortedFilesToBackup = sortedFilesToBackup
+                    currentFilesToBackupArray = [.. currentFilesToBackupArray
                         .OrderByDescending(file =>
-                            priorityExtensions.Contains(Path.GetExtension(file).ToLower()))
-                        .ToArray();
+                            priorityExtensions.Contains(Path.GetExtension(file).ToLower()))];
                 }
 
-                foreach (var file in sortedFilesToBackup)
+                // Determine how many files from this batch have already been processed
+                // This allows resuming from where it left off if ExecuteAsync is re-entered after a pause.
+                int filesProcessedInThisBatch = FilesToBackup.Count - NumberFilesLeftToDo;
+                if (filesProcessedInThisBatch < 0) filesProcessedInThisBatch = 0; // Should not happen with current logic
+
+                var filesToIterate = currentFilesToBackupArray.Skip(filesProcessedInThisBatch);
+
+                foreach (var file in filesToIterate)
                 {
                     // Check for cancellation request (complete stop)
                     if (cancellationToken.IsCancellationRequested)
                     {
-                        State = JobStates.Stopped;
+                        State = JobStates.Paused;
                         IsPausing = false;
                         return;
                     }
 
-                    // Check for blocking software
-                    if (_isSoftwareRunning())
+                    // Check for blocking software - this loop waits for the current file
+                    while (_isSoftwareRunning() && !cancellationToken.IsCancellationRequested)
                     {
-                        IsPausing = true;
+                        if (State != JobStates.Paused) // Set to Paused and log only once per blocking incident
+                        {
+                            // IsPausing = true; // Visual hint that it's pausing due to software
+                            State = JobStates.Paused;
+                            _addToBlockedJobs(this); // Add to BlockedJobs
+                            BackupJobLogger?.LogBackupDetails(Name, "System", "Paused due to blocked software", 0, 0, 0);
+                        }
+                        await Task.Delay(1000, cancellationToken); // Wait for software to close
+                    }
+
+                    if (cancellationToken.IsCancellationRequested) // Check again after potential delay
+                    {
                         State = JobStates.Paused;
-                        _addToBlockedJobs(this); // Add to BlockedJobs
-                        BackupJobLogger?.LogBackupDetails(DateTime.Now.ToString("yyyy-MM-ddTHH:mm:ssZ"), Name, "System", "Pause due to blocked software", 0, 0, 0);
+                        IsPausing = false;
+                        return;
+                    }
 
-                        // Wait until blocking software is not running
-                        while (_isSoftwareRunning() && !cancellationToken.IsCancellationRequested)
-                        {
-                            await Task.Delay(1000, cancellationToken);
-                        }
-
-                        if (cancellationToken.IsCancellationRequested)
-                        {
-                            State = JobStates.Stopped;
-                            IsPausing = false;
-                            return;
-                        }
-
-                        // Resume working after blocking software is closed
+                    // If it was paused due to software, and software is now closed, resume to Working for this file
+                    if (State == JobStates.Paused) // Implies _isSoftwareRunning was true and now is false
+                    {
                         State = JobStates.Working;
-                        IsPausing = false;
-                        continue;
+                        // IsPausing = false; // Reset visual hint if it was set by this block
                     }
+                    // Ensure IsPausing reflects the external Pause() command's state if any,
+                    // not just the temporary state from blocking software.
+                    // The Pause() method sets _isPausing, Resume() clears it.
+                    // The blocking software logic above should not permanently change _isPausing if an external pause is active.
+                    // For simplicity, the blocking software pause is self-contained. If an external _isPausing is true, it will be caught later.
 
-                    // Check for manual pause request
-                    if (IsPausing)
-                    {
-                        State = JobStates.Paused;
-                        IsPausing = false;
-
-                        // Wait until we're no longer paused or we've been cancelled
-                        while (State == JobStates.Paused && !cancellationToken.IsCancellationRequested)
-                        {
-                            await Task.Delay(1000, cancellationToken);
-                        }
-
-                        if (cancellationToken.IsCancellationRequested)
-                        {
-                            State = JobStates.Stopped;
-                            IsPausing = false;
-                            return;
-                        }
-                        continue;
-                    }
 
                     var relativePath = Path.GetRelativePath(SourceDirectory, file);
                     var targetFilePath = Path.Combine(TargetDirectory, relativePath);
@@ -648,14 +616,14 @@ public class backupJob : INotifyPropertyChanged
                         ErrorMessage = $"Error processing file {file}: {ex.Message}";
                         State = JobStates.Failed;
                         // Log this error specifically if needed
-                        BackupJobLogger?.LogBackupDetails(DateTime.Now.ToString("yyyy-MM-ddTHH:mm:sszzz"), Name, file, targetFilePath, fileSize, -1, 0);
+                        BackupJobLogger?.LogBackupDetails(Name, file, targetFilePath, fileSize, -1, 0);
                         return;
                     }
                     if (timeElapsed == -1)
                     {
                         ErrorMessage = $"Error copying file: {file}";
                         // Adjusted to 6 arguments
-                        BackupJobLogger?.LogBackupDetails(DateTime.Now.ToString("yyyy-MM-ddTHH:mm:sszzz"), Name, file, targetFilePath, fileSize, -1, 0);
+                        BackupJobLogger?.LogBackupDetails(Name, file, targetFilePath, fileSize, -1, 0);
                         State = JobStates.Failed;
                         return;
                     }
@@ -663,7 +631,7 @@ public class backupJob : INotifyPropertyChanged
                     // Encrypt the file if needed and get the exit code
                     int encryptionExitCode = EncryptFileIfNeeded(targetFilePath);
 
-                    BackupJobLogger?.LogBackupDetails(DateTime.Now.ToString("yyyy-MM-ddTHH:mm:sszzz"), Name, file, targetFilePath, fileSize, timeElapsed, encryptionExitCode);
+                    BackupJobLogger?.LogBackupDetails(Name, file, targetFilePath, fileSize, timeElapsed, encryptionExitCode);
 
                     // Successfully copied
                     // Ensure NumberFilesLeftToDo doesn't go below zero
@@ -678,27 +646,38 @@ public class backupJob : INotifyPropertyChanged
 
                     if (State == JobStates.Finished) // If UpdateProgress set state to Finished
                     {
-                        break; // Exit the foreach loop, outer loop will handle idle/rescan
+                        break; // Exit the foreach loop, outer loop will handle Stopped/rescan/idle
                     }
 
-                    // Check if we need to pause after finishing this file
-                    if (IsPausing || _isSoftwareRunning())
+                    // Check if an external pause request (from Pause() method) has been made
+                    if (IsPausing)
                     {
-                        // The next iteration of the loop will handle the pause
-                        continue;
+                        State = JobStates.Paused; // Set the actual state to Paused
+                        // IsPausing remains true, to be reset by Resume() or Stop()
+                        BackupJobLogger?.LogBackupDetails(Name, "System", "Paused by user request", 0, 0, 0);
+                        return; // Exit ExecuteAsync, job is now paused.
                     }
                 }
 
                 // After processing a batch, if not stopped/failed/finished, re-scan for continuous backup.
                 if (State == JobStates.Working && !cancellationToken.IsCancellationRequested)
                 {
-                    await UpdateFilesCountInternalAsync(); // Check for new files that might have appeared, now async
+                    // If all files in the current FilesToBackup list were processed (NumberFilesLeftToDo == 0)
+                    // or if the list was empty to begin with.
+                    if (NumberFilesLeftToDo == 0)
+                    {
+                        await Task.Delay(IdleTime, cancellationToken); // Wait before rescanning
+                        await UpdateFilesCountInternalAsync(); // Check for new files
+                        if (NumberFilesLeftToDo == 0 && TotalFilesToCopy > 0) State = JobStates.Finished; // Still no new files to backup but source not empty
+                        else if (TotalFilesToCopy == 0) State = JobStates.Finished; // Source is empty
+                        // If new files found, State remains Working.
+                    }
                 }
             }
         }
         catch (TaskCanceledException)
         {
-            State = JobStates.Stopped;
+            State = JobStates.Paused;
             IsPausing = false; // Reset IsPausing flag when job is stopped
         }
         catch (Exception ex)
@@ -711,21 +690,21 @@ public class backupJob : INotifyPropertyChanged
         {
             if (cancellationToken.IsCancellationRequested && State != JobStates.Failed)
             {
-                State = JobStates.Stopped;
-                IsPausing = false; // Ensure IsPausing is reset when job is stopped
+                State = JobStates.Paused;
+                IsPausing = false; // Ensure IsPausing is reset when job is stopped (cancelled)
             }
             else if (State == JobStates.Working) // If loop terminated while still "Working"
             {
-                State = JobStates.Stopped;
-                IsPausing = false; // Ensure IsPausing is reset when job is stopped
+                State = JobStates.Paused;
+                IsPausing = false; // If loop exited unexpectedly while 'Working', transition to 'Paused' and reset IsPausing.
             }
         }
     }
 
-    // Ajout des méthodes manquantes
+
     public async Task Start()
     {
-        if (State != JobStates.Idle && State != JobStates.Stopped && State != JobStates.Failed && State != JobStates.Paused)
+        if (State != JobStates.Stopped && State != JobStates.Paused && State != JobStates.Failed)
         {
             ErrorMessage = $"Cannot start job in state {State}";
             return;
@@ -756,7 +735,7 @@ public class backupJob : INotifyPropertyChanged
         }
 
         _executionCts?.Cancel();
-        State = JobStates.Stopped;
+        State = JobStates.Paused;
         IsPausing = false;
     }
 

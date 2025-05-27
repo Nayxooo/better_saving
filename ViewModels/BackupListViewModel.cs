@@ -104,7 +104,7 @@ namespace better_saving.ViewModels
             {
                 // If any blocked software is running, set the error message and log it
                 ErrorMessage = $"Cannot start jobs: {_mainViewModel.GetRunningBlockedSoftware()} is running.";
-                _logger.LogBackupDetails(DateTime.Now.ToString("o"), "System", "StartAllJobs", ErrorMessage, 0, 0);
+                _logger.LogBackupDetails("System", "StartAllJobs", ErrorMessage, 0, 0);
                 return;
             }
 
@@ -153,14 +153,14 @@ namespace better_saving.ViewModels
             }
             else
             {
-                // Sort by state: Finished > Working > Idle > Failed
+                // Sort by state: Finished > Working > Failed > Paused > Stopped
                 tempList = [.. tempList.OrderBy(j => j.State switch
                 {
                     JobStates.Finished => 0,
                     JobStates.Working => 1,
                     JobStates.Failed => 2,
-                    JobStates.Stopped => 3,
-                    JobStates.Idle => 4,
+                    JobStates.Paused => 3,
+                    JobStates.Stopped => 4,
                     _ => 5 // Default case for any other states
                 }).ThenBy(j => j.Name)];
             }

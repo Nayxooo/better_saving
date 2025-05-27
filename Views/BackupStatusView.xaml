@@ -360,7 +360,7 @@
                                     <MultiDataTrigger>
                                         <MultiDataTrigger.Conditions>
                                             <Condition Binding="{Binding JobState}"
-                                                       Value="Stopped"/>
+                                                       Value="Paused"/>
                                             <Condition Binding="{Binding IsJobPausing}"
                                                        Value="False"/>
                                         </MultiDataTrigger.Conditions>
@@ -380,7 +380,7 @@
                                     <MultiDataTrigger>
                                         <MultiDataTrigger.Conditions>
                                             <Condition Binding="{Binding JobState}"
-                                                       Value="Idle"/>
+                                                       Value="Stopped"/>
                                             <Condition Binding="{Binding IsJobPausing}"
                                                        Value="False"/>
                                         </MultiDataTrigger.Conditions>

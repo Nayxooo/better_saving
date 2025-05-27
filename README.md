@@ -88,10 +88,10 @@ The modern WPF interface includes:
 
 ### Job States
 
-- **Idle**: Job is created but not started
 - **Working**: Job is actively backing up files
 - **Finished**: Job completed successfully
-- **Stopped**: Job was manually stopped or paused
+- **Paused**: Job is temporarily halted (can be resumed from the same point)
+- **Stopped**: Job is stopped and restarting will begin from the beginning
 - **Failed**: Job encountered an error
 
 ## Advanced Features
@@ -106,7 +106,7 @@ Set file extensions that should be backed up first, ensuring critical files are 
 Prevent backups from running when specified software is active, avoiding potential conflicts.
 
 ### Continuous Backup
-Jobs automatically monitor for changes and maintain up-to-date backups with configurable idle times.
+Jobs automatically monitor for changes and maintain up-to-date backups.
 
 ## Project Structure
 

@@ -5,20 +5,51 @@
         xmlns:views="clr-namespace:better_saving.Views"
         xmlns:local="clr-namespace:better_saving"
         xmlns:converter="clr-namespace:better_saving.Converters"
-        Title="EasySave33"
+        Title="EasySave Monitor"
         Icon="pack://application:,,,/Assets/AppIcon/icon.ico"
         Height="700"
         Width="1300"
         MinHeight="700"
         MinWidth="1300"
-        Background="#FF1E1E1E">    <Window.Resources>
+        Background="#FF1E1E1E">
+    
+    <Window.Resources>
         <converter:NullOrEmptyToVisibilityConverter x:Key="NullToVisibilityConverter"/>
         <converter:BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter"/>
         <converter:BooleanToColorConverter x:Key="BooleanToColorConverter"/>
+        <converter:BooleanToConnectionTextConverter x:Key="BooleanToConnectionTextConverter"/>
+        <converter:BooleanToCommandConverter x:Key="BooleanToCommandConverter"/>
+        
         <!-- Global UI Scaling -->
         <ScaleTransform x:Key="GlobalScale"
                         ScaleX="1.5"
                         ScaleY="1.5"/>
+        
+        <!-- Custom Button Style -->
+        <Style x:Key="CustomButtonStyle" TargetType="Button">
+            <Setter Property="Background" Value="#22272A"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Height" Value="30"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border Background="{TemplateBinding Background}"
+                                BorderThickness="0"
+                                CornerRadius="5">
+                            <ContentPresenter HorizontalAlignment="Center" 
+                                            VerticalAlignment="Center"/>
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Background" Value="#32373A"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+
         <!-- Custom Button Style for Settings View -->
         <Style x:Key="SettingsButtonStyle"
                TargetType="Button">
@@ -91,6 +122,78 @@
                     </ControlTemplate>
                 </Setter.Value>
             </Setter>
+        </Style>
+
+        <!-- Style pour les TextBox de connexion -->
+        <Style x:Key="ConnectionTextBoxStyle" TargetType="TextBox">
+            <Setter Property="Background" Value="#FF2D3239"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Height" Value="30"/>
+            <Setter Property="VerticalContentAlignment" Value="Center"/>
+            <Setter Property="Padding" Value="10,0"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="TextBox">
+                        <Border Background="{TemplateBinding Background}"
+                                BorderThickness="0"
+                                CornerRadius="5">
+                            <ScrollViewer x:Name="PART_ContentHost"
+                                        Margin="{TemplateBinding Padding}"
+                                        VerticalAlignment="Center"/>
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- Style pour les boutons de connexion -->
+        <Style x:Key="ConnectionButtonStyle" TargetType="Button">
+            <Setter Property="Background" Value="#3B7A57"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="BorderThickness" Value="2"/>
+            <Setter Property="BorderBrush" Value="#4C9A6D"/>
+            <Setter Property="Height" Value="40"/>
+            <Setter Property="Width" Value="140"/>
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="FontWeight" Value="Bold"/>
+            <Setter Property="Margin" Value="0"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="border" 
+                                Background="{TemplateBinding Background}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                CornerRadius="8">
+                            <ContentPresenter HorizontalAlignment="Center" 
+                                            VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="border" Property="Background" Value="#4C9A6D"/>
+                                <Setter TargetName="border" Property="BorderBrush" Value="#5CAA7D"/>
+                                <Setter TargetName="border" Property="Effect">
+                                    <Setter.Value>
+                                        <DropShadowEffect Color="#3B7A57" 
+                                                        Direction="0" 
+                                                        ShadowDepth="0" 
+                                                        BlurRadius="15" 
+                                                        Opacity="0.5"/>
+                                    </Setter.Value>
+                                </Setter>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+            <Style.Triggers>
+                <Trigger Property="IsEnabled" Value="False">
+                    <Setter Property="Background" Value="#FF404040"/>
+                    <Setter Property="BorderBrush" Value="#FF505050"/>
+                </Trigger>
+            </Style.Triggers>
         </Style>
 
         <DataTemplate DataType="{x:Type vm:BackupCreationViewModel}">
@@ -253,25 +356,76 @@
             </StackPanel>
         </DataTemplate>
     </Window.Resources>
+
     <Grid>
-        <Grid.LayoutTransform>
-            <ScaleTransform ScaleX="1.5"
-                            ScaleY="1.5"/>
-        </Grid.LayoutTransform>
-        <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="Auto"
-                    MinWidth="250"
-                    MaxWidth="400"/>
-            <ColumnDefinition Width="*"/>
-        </Grid.ColumnDefinitions>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="60"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
 
-        <ContentControl Grid.Column="0"
-                        Content="{Binding ListVM}"
-                        HorizontalAlignment="Stretch"/>
+        <!-- Barre de connexion -->
+        <Border Grid.Row="0" 
+                Background="#FF22272A"
+                CornerRadius="0,0,10,10"
+                Margin="0,0,0,10">
+            <Grid Margin="20,0">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
 
-        <ContentControl Grid.Column="1"
-                        MinWidth="300"
-                        Content="{Binding CurrentView}"
-                        HorizontalAlignment="Stretch"/>
+                <!-- Champs de connexion -->
+                <StackPanel Grid.Column="0" 
+                          Orientation="Horizontal" 
+                          Margin="0,0,15,0">
+                    <TextBox Text="{Binding ConnectionVM.ServerAddress}" 
+                             Width="150"
+                             Style="{StaticResource ConnectionTextBoxStyle}"
+                             Margin="0,0,5,0"/>
+                    
+                    <TextBox Text="{Binding ConnectionVM.ServerPort}" 
+                             Width="70"
+                             Style="{StaticResource ConnectionTextBoxStyle}"/>
+                </StackPanel>
+
+                <!-- Bouton de connexion -->
+                <Button Grid.Column="1"
+                        Content="{Binding ConnectionVM.IsConnected, Converter={StaticResource BooleanToConnectionTextConverter}}"
+                        Command="{Binding ConnectionVM.ConnectCommand}"
+                        Style="{StaticResource ConnectionButtonStyle}"
+                        Background="{Binding ConnectionVM.IsConnected, Converter={StaticResource BooleanToColorConverter}, ConverterParameter='#FF404040;#3B7A57'}"
+                        BorderBrush="{Binding ConnectionVM.IsConnected, Converter={StaticResource BooleanToColorConverter}, ConverterParameter='#FF505050;#4C9A6D'}"
+                        ToolTip="{Binding ConnectionVM.IsConnected, Converter={StaticResource BooleanToConnectionTextConverter}, ConverterParameter='Se déconnecter du serveur;Se connecter au serveur'}"
+                        HorizontalAlignment="Left"
+                        Margin="0,0,0,0"/>
+
+                <!-- Statut de connexion -->
+                <TextBlock Grid.Column="2"
+                          Text="{Binding ConnectionVM.ConnectionStatus}"
+                          Foreground="{Binding ConnectionVM.IsConnected, Converter={StaticResource BooleanToColorConverter}, ConverterParameter='#4C9A6D;#FF6B6B'}"
+                          VerticalAlignment="Center"
+                          FontWeight="SemiBold"
+                          Margin="15,0,0,0"/>
+            </Grid>
+        </Border>
+
+        <!-- Contenu principal -->
+        <Grid Grid.Row="1">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="300"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+
+            <!-- Liste des backups -->
+            <ContentControl Content="{Binding ListVM}"
+                           Grid.Column="0"
+                           Margin="10,0,0,10"/>
+
+            <!-- Vue détaillée -->
+            <ContentControl Content="{Binding CurrentView}"
+                           Grid.Column="1"
+                           Margin="10,0,10,10"/>
+        </Grid>
     </Grid>
 </Window>

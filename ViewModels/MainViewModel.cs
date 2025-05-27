@@ -14,6 +14,7 @@ namespace better_saving.ViewModels
     {
         private BackupListViewModel _listVM;
         private ViewModelBase? _currentView;
+        private ConnectionViewModel _connectionVM;
         private List<string> _blockedSoftware = [];
         private string? _runningBlockedSoftware;
         private string _selectedLanguage;
@@ -22,6 +23,12 @@ namespace better_saving.ViewModels
         {
             get => _listVM;
             set => SetProperty(ref _listVM, value);
+        }
+
+        public ConnectionViewModel ConnectionVM
+        {
+            get => _connectionVM;
+            set => SetProperty(ref _connectionVM, value);
         }
 
         public ViewModelBase? CurrentView
@@ -37,8 +44,6 @@ namespace better_saving.ViewModels
             }
         }
 
-        public ICommand ShowCreateJobViewCommand { get; }
-        public ICommand ShowSettingsViewCommand { get; }
         public ICommand ChangeLanguageCommand { get; }
 
         public string SelectedLanguage
@@ -54,11 +59,11 @@ namespace better_saving.ViewModels
                 }
             }
         }
+
         public MainViewModel()
         {
             _listVM = new BackupListViewModel(this);
-            ShowCreateJobViewCommand = new RelayCommand(_ => ShowCreateJobViewInternal());
-            ShowSettingsViewCommand = new RelayCommand(_ => ShowSettingsViewInternal());
+            _connectionVM = new ConnectionViewModel();
             ChangeLanguageCommand = new RelayCommand(param => SelectedLanguage = param?.ToString() ?? "en");
 
             // Load settings from file
@@ -78,26 +83,16 @@ namespace better_saving.ViewModels
             CurrentView = new BAViewModel(this);
         }
 
-        internal void ShowCreateJobViewInternal()
-        {
-            CurrentView = new BackupCreationViewModel(this);
-        }
-
-        internal void ShowSettingsViewInternal()
-        {
-            CurrentView = new SettingsViewModel(this);
-        }
-
         public void ShowJobStatus(backupJob selectedJob)
         {
             CurrentView = new BackupStatusViewModel(selectedJob, this);
         }
+
         public void SetBlockedSoftware(List<string> softwareList)
         {
             _blockedSoftware = softwareList ?? [];
             _listVM.GetLogger().LogBackupDetails(System.DateTime.Now.ToString("o"), "System", "Settings",
                 $"Blocked software updated to: {(_blockedSoftware.Count != 0 ? string.Join(", ", _blockedSoftware) : "(empty)")}", 0, 0);
-            (_listVM.StartAllJobsCommand as RelayCommand)?.RaiseCanExecuteChanged();
         }
 
         public List<string> GetBlockedSoftware()
@@ -188,32 +183,19 @@ namespace better_saving.ViewModels
                         Arguments = $"\"{file}\" \"{keyPath}\"",
                         CreateNoWindow = true,
                         UseShellExecute = false,
-                        RedirectStandardOutput = true,
-                        RedirectStandardError = true
                     };
 
-                    using Process? proc = Process.Start(psi);
-                    if (proc == null)
-                    {
-                        System.Windows.MessageBox.Show("Erreur lors du démarrage de CryptoSoft.");
-                        return;
-                    }
-                    string output = proc.StandardOutput.ReadToEnd();
-                    string error = proc.StandardError.ReadToEnd();
-                    proc.WaitForExit();
-
-                    if (!string.IsNullOrWhiteSpace(error))
-                    {
-                        System.Windows.MessageBox.Show("Erreur CryptoSoft : " + error);
-                        _listVM.GetLogger().LogBackupDetails(DateTime.Now.ToString("o"), "Crypto", "EncryptError", error, 0, 0);
-                    }
+                    using var process = Process.Start(psi);
+                    process?.WaitForExit();
                 }
-                catch (Exception ex)
+                catch (System.Exception ex)
                 {
-                    _listVM.GetLogger().LogBackupDetails(DateTime.Now.ToString("o"), "Crypto", "Exception", ex.Message, 0, 0);
+                    _listVM.GetLogger().LogBackupDetails(System.DateTime.Now.ToString("o"), "System", "Encryption",
+                        $"Error encrypting file {file}: {ex.Message}", 0, 0);
                 }
             }
         }
+
         private void ChangeLanguage(string languageCode)
         {
             try
@@ -243,7 +225,9 @@ namespace better_saving.ViewModels
                              .FirstOrDefault(d => d.Source?.OriginalString.Contains("Strings.") == true);
                 if (old != null) System.Windows.Application.Current.Resources.MergedDictionaries.Remove(old);
 
-                System.Windows.Application.Current.Resources.MergedDictionaries.Add(dict);                // Update language in settings file
+                System.Windows.Application.Current.Resources.MergedDictionaries.Add(dict);
+
+                // Update language in settings file
                 var settings = Settings.LoadSettings();
                 settings.Language = languageCode;
                 settings.BlockedSoftware = _blockedSoftware;
@@ -255,7 +239,7 @@ namespace better_saving.ViewModels
                     CurrentView = new SettingsViewModel(this);
                 }
             }
-            catch (Exception ex)
+            catch (System.Exception ex)
             {
                 _listVM.GetLogger().LogBackupDetails(DateTime.Now.ToString("o"),
                     "System", "Language", $"Error changing language: {ex.Message}", 0, 0);

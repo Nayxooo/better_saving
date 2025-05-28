@@ -24,6 +24,8 @@ namespace better_saving.ViewModels
         private string? _runningBlockedSoftware;
         private string _selectedLanguage;
         private ObservableCollection<backupJob> _blockedJobs = new ObservableCollection<backupJob>();
+        private readonly TCPServer _tcpServer;
+        private const string StateFileName = "state.json"; // Define state file name
 
         private long _currentGlobalTransferringSizeInBytes = 0; // Tracks current total size of files being transferred, in bytes
         public long CurrentGlobalTransferringSizeInBytes => _currentGlobalTransferringSizeInBytes; // Public getter
@@ -77,21 +79,26 @@ namespace better_saving.ViewModels
 
         public MainViewModel()
         {
-            _listVM = new BackupListViewModel(this);
+            _tcpServer = new TCPServer(this);
+            _listVM = new BackupListViewModel(this, _tcpServer); // Pass TCPServer to BackupListViewModel
             ShowCreateJobViewCommand = new RelayCommand(_ => ShowCreateJobViewInternal());
             ToggleSettingsViewCommand = new RelayCommand(_ => ToggleSettingsViewInternal());
             ChangeLanguageCommand = new RelayCommand(param => SelectedLanguage = param?.ToString() ?? "en");
             ExecuteCommand = new RelayCommand(param => Execute(param as backupJob));
             PauseCommand = new RelayCommand(param => Pause(param as backupJob), param => CanPause(param as backupJob));
-            StopCommand = new RelayCommand(param => Stop(param as backupJob), param => CanStop(param as backupJob));
-
-            // Load settings from file
+            StopCommand = new RelayCommand(param => Stop(param as backupJob), param => CanStop(param as backupJob));            // Load settings from file
             var settings = Settings.LoadSettings();
             _blockedSoftware = settings.BlockedSoftware;
             _selectedLanguage = settings.Language;
 
             // Apply loaded language
             ChangeLanguage(_selectedLanguage);
+
+            // Start TCP server if enabled in settings
+            if (settings.IsTcpServerEnabled)
+            {
+                ToggleTcpServer(true);
+            }
 
             // Initialiser le monitoring des tâches bloquées
             InitializeBlockedJobsMonitoring();
@@ -197,6 +204,30 @@ namespace better_saving.ViewModels
         {
             var settings = Settings.LoadSettings();
             return settings.MaxFileTransferSize;
+        }
+
+        public void ToggleTcpServer(bool enable)
+        {
+            if (enable)
+            {
+                _tcpServer.Start();
+            }
+            else
+            {
+                _tcpServer.Stop();
+            }
+            OnPropertyChanged(nameof(IsTcpServerRunning)); // Notify that server status might have changed
+            OnPropertyChanged(nameof(GetTcpServerAddress)); // Notify that server address might have changed
+        }
+
+        public bool IsTcpServerRunning()
+        {
+            return _tcpServer.IsRunning;
+        }
+
+        public string GetTcpServerAddress()
+        {
+            return _tcpServer.GetServerAddress();
         }
 
 

@@ -135,12 +135,7 @@ namespace better_saving.ViewModels
                     // PAUSE action
                     if (SelectedJob._executionCts != null && !SelectedJob._executionCts.IsCancellationRequested)
                     {
-                        // Set IsPausing flag to true
-                        SelectedJob.IsPausing = true;
-                        
-                        SelectedJob._executionCts.Cancel();
-                        // ExecuteAsync in BackupJob should handle the OperationCanceledException
-                        // and set the job's state to Stopped.
+                        SelectedJob.Pause();
                     }
                 }
                 else if (SelectedJob.State == JobStates.Stopped ||

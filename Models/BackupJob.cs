@@ -113,6 +113,20 @@ public class backupJob : INotifyPropertyChanged
         }
     }
 
+    private bool _isStopping;
+    public bool IsStopping
+    {
+        get => _isStopping;
+        set
+        {
+            if (_isStopping != value)
+            {
+                _isStopping = value;
+                OnPropertyChanged();
+            }
+        }
+    }
+
     private bool _isPausing;
     public bool IsPausing
     {
@@ -430,6 +444,9 @@ public class backupJob : INotifyPropertyChanged
 
                     var targetFilePath = Path.Combine(TargetDirectory, Path.GetRelativePath(SourceDirectory, file));
 
+                    if (State == JobStates.Stopped) continue;
+
+
                     // seperate if statement to avoid unnecessary hash checks
                     if (!File.Exists(targetFilePath) || Type == JobType.Full)
                     { FilesToBackup.Add(file); }
@@ -499,11 +516,20 @@ public class backupJob : INotifyPropertyChanged
         // Check if the cancellation token has been requested
         if (cancellationToken.IsCancellationRequested)
         {
-            // If so, set the job state to Stopped and return true
-            State = JobStates.Stopped;
-            IsPausing = false; // Reset pausing flag
+            if (IsStopping)
+            {
+                State = JobStates.Stopped;
+                BackupJobLogger?.LogBackupDetails(Name, "SystemOperation", "Job stopped by user.", 0, 0, NumberFilesLeftToDo);
+            }
+            else
+            {
+                State = JobStates.Paused;
+                BackupJobLogger?.LogBackupDetails(Name, "SystemOperation", "Job paused by user.", 0, 0, NumberFilesLeftToDo);
+            }
+            
             UpdateProgress();
-            BackupJobLogger?.LogBackupDetails(Name, "SystemOperation", "Job stopped by user.", 0, 0, NumberFilesLeftToDo);
+            IsPausing = false; // Reset pausing flag
+            IsStopping = false;
             return true;
         }
         return false;
@@ -579,10 +605,6 @@ public class backupJob : INotifyPropertyChanged
 
         foreach (var sourceFilePath in sortedFilesToBackup)
         {
-            if (CheckCancellationRequested(cancellationToken))
-            {
-                throw new OperationCanceledException("Job execution cancelled by user.");
-            }
             // Check for blocked software before each file
             if (_isSoftwareRunning())
             {
@@ -620,7 +642,10 @@ public class backupJob : INotifyPropertyChanged
             try
             {
                 // currentFileSize is already set from above.
-
+                if (CheckCancellationRequested(cancellationToken))
+                {
+                    throw new OperationCanceledException("Job execution cancelled by user.");
+                }
                 if (_mainViewModel != null)
                 {
                     while (!_mainViewModel.CanTransferFile(currentFileSize) && !cancellationToken.IsCancellationRequested)
@@ -662,6 +687,9 @@ public class backupJob : INotifyPropertyChanged
                         continue; // Skip to the next file
                     }
                 }
+
+                if (State == JobStates.Stopped) continue;
+
                 // log once the file has been successfully copied
                 BackupJobLogger?.LogBackupDetails(Name, sourceFilePath, targetFilePath, (ulong)currentFileSize, transferTime, NumberFilesLeftToDo); // Assuming 0 for transferTime for now
 
@@ -683,16 +711,9 @@ public class backupJob : INotifyPropertyChanged
             }
             catch (OperationCanceledException)
             {
-                // When Stop() is called, _executionCts is cancelled.
-                // Stop() itself sets State = JobStates.Stopped and IsPausing = false.
-                // CheckCancellationRequested() also sets State = JobStates.Stopped if token is cancelled.
-                // Therefore, if this exception is caught due to a Stop operation,
-                // the State should already be JobStates.Stopped. We should not change it.
-                // Ensure IsPausing is false as Stop() would have set it.
-                IsPausing = false;
                 UpdateProgress(); // Update progress based on the current state (e.g., Stopped)
                 BackupJobLogger?.LogBackupDetails(Name, "SystemOperation", $"Job operation cancelled. Current state: {State}.", 0, 0, NumberFilesLeftToDo);
-                throw; // Rethrow the exception
+                // throw; // Rethrow the exception
             }
             catch (Exception ex)
             {
@@ -719,7 +740,7 @@ public class backupJob : INotifyPropertyChanged
             else if (State != JobStates.Failed)
             {
                 State = JobStates.Stopped;
-                ErrorMessage = ErrorMessage ?? "Job finished with some files potentially not processed.";
+                ErrorMessage ??= "Job finished with some files potentially not processed.";
             }
         }
 
@@ -751,17 +772,17 @@ public class backupJob : INotifyPropertyChanged
         }
         catch (OperationCanceledException)
         {
-            State = JobStates.Stopped; 
+            State = JobStates.Stopped;
             IsPausing = false;
             BackupJobLogger?.LogBackupDetails(Name, "SystemOperation", "Job start was cancelled.", 0, 0, NumberFilesLeftToDo);
-            UpdateProgress(); 
+            UpdateProgress();
         }
         catch (Exception ex)
         {
             ErrorMessage = $"Error starting job: {ex.Message}";
             State = JobStates.Failed;
             IsPausing = false;
-            UpdateProgress(); 
+            UpdateProgress();
         }
     }
 
@@ -771,14 +792,15 @@ public class backupJob : INotifyPropertyChanged
         {
             return;
         }
-
+        IsPausing = true;
+        IsStopping = true;
         _executionCts?.Cancel();
         State = JobStates.Stopped;
-        IsPausing = false;
         // Reset progress-related fields when stopping
         Progress = 0;
         TotalFilesCopied = 0;
         TotalSizeCopied = 0;
+        NumberFilesLeftToDo = TotalFilesToCopy;
         // NumberFilesLeftToDo will be updated by UpdateFilesCountInternalAsync if the job is restarted
         // For a stopped job, it's reasonable to show 0 progress.
         // Or, we could preserve the last known NumberFilesLeftToDo if that's preferred for a stopped state.
@@ -793,8 +815,8 @@ public class backupJob : INotifyPropertyChanged
             ErrorMessage = $"Cannot pause job in state {State}";
             return;
         }
-        // Set IsPausing flag to true - this will signal the job to pause after the current file completes
         IsPausing = true;
+        _executionCts?.Cancel();
     }
 
     public async Task Resume()

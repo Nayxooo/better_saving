@@ -35,10 +35,10 @@ namespace better_saving.ViewModels
         public ICommand FilterJobsCommand { get; }
         public ICommand ShowJobDetailsCommand { get; }
 
-        public BackupListViewModel(MainViewModel mainViewModel)
+        public BackupListViewModel(MainViewModel mainViewModel, TCPServer tcpServer) // Added TCPServer parameter
         {
             _mainViewModel = mainViewModel;
-            _logger = new Logger();
+            _logger = new Logger(tcpServer); // Pass TCPServer to Logger
             _logger.SetJobProvider(() => Jobs); // Provide the Jobs collection to the logger
             LoadJobsFromStateLog(); // Renamed method call
 
@@ -51,7 +51,8 @@ namespace better_saving.ViewModels
         public Logger GetLogger() // Added to allow access to the logger instance
         {
             return _logger;
-        }        private void LoadJobsFromStateLog() // Renamed method
+        }
+        private void LoadJobsFromStateLog() // Renamed method
         {
             var loadedJobs = _logger.LoadJobsState();
             if (loadedJobs != null && loadedJobs.Count > 0)
@@ -60,7 +61,8 @@ namespace better_saving.ViewModels
                 // No additional logger setup needed as the logger is already passed during job creation in LoadJobsState()
             }
             // If no jobs are loaded, we keep the empty Jobs collection as is without updating state.json
-        }        public void AddJob(backupJob job)
+        }
+        public void AddJob(backupJob job)
         {
             Jobs.Add(job);
             _logger.UpdateAllJobsState(); // Logger now gets jobs via provider
@@ -104,7 +106,7 @@ namespace better_saving.ViewModels
             {
                 // If any blocked software is running, set the error message and log it
                 ErrorMessage = $"Cannot start jobs: {_mainViewModel.GetRunningBlockedSoftware()} is running.";
-                _logger.LogBackupDetails("System", "StartAllJobs", ErrorMessage, 0, 0);
+                _logger.LogBackupDetails("System", "StartAllJobs", ErrorMessage, 0, 0, 0);
                 return;
             }
 

@@ -1,7 +1,7 @@
 <ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-                    xmlns:sys="clr-namespace:System;assembly=System.Runtime">
-
+                    xmlns:sys="clr-namespace:System;assembly=System.Runtime"
+                    xmlns:system="clr-namespace:System;assembly=mscorlib">
 
     <!-- BackupCreationView -->
     <sys:String x:Key="BackupCreationTitle">Backup Job Creation²</sys:String>
@@ -59,4 +59,13 @@
     <sys:String x:Key="SaveButtonToolTip">Save Settings</sys:String>
     <sys:String x:Key="Cancel">Cancel</sys:String>
     <sys:String x:Key="CancelButtonToolTip">Cancel Changes</sys:String>
+
+    <!-- TCP Server Settings -->
+    <sys:String x:Key="TCPServerSettingsTitle">TCP Server Settings</sys:String>
+    <sys:String x:Key="EnableTCPServer">Enable TCP Server</sys:String>
+    <sys:String x:Key="TCPPort">TCP Port:</sys:String>
+    <sys:String x:Key="MaxConnections">Maximum Connections:</sys:String>
+    <sys:String x:Key="ConnectionTimeout">Connection Timeout (in seconds):</sys:String>
+    <sys:String x:Key="AllowRemoteJobControl">Allow Remote Job Control</sys:String>
+    <sys:String x:Key="ListeningOn">Listening on: {0}:{1}</sys:String>
 </ResourceDictionary>

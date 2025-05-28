@@ -1,3 +1,55 @@
+## EasySave [v3.0.0-preview] - 2025-05-28
+
+### Info
+This version introduces server-side capabilities for remote job management via TCP. The client-side application for remote control is in development.
+
+### Added
+- **TCP Server for Remote Job Management:**
+    - Integrated a TCP server to allow remote monitoring and control of backup jobs.
+    - Supports commands: `PING`, `START_JOB`, `PAUSE_JOB`, `STOP_JOB`.
+    - Broadcasts `state.json` updates to connected clients (sensitive path information is excluded).
+    - New settings in `SettingsView` to enable/disable the TCP server and view its IPaddress:Port.
+- **New Icons:**
+    - Added new icon for jobs in `Paused` state.
+- **Enhanced Job Control Logic:**
+    - Added `IsStopping` property to `Models/BackupJob.cs` to clearly differentiate stop actions from pause actions during task cancellation.
+- **Error Logging:**
+    - `Models/logger.cs` now includes an `LogError` method to write detailed errors to `logs/EasySave33_bugReport.log`.
+    - The `EasySave33_bugReport.log` file is cleared on application startup.
+- **Localization:**
+    - Added localization strings for TCP server settings in `Resources/Localization/Strings.en-US.xaml` and `Resources/Localization/Strings.fr-FR.xaml`.
+- **Enums:**
+    - Introduced `RemoteCommands` enum in `Models/Enums.cs` for TCP communication.
+- **Settings:**
+    - Added `IsTcpServerEnabled` property to `Models/Settings.cs` to persist TCP server state.
+
+### Changed
+- **Job Pause/Stop Behavior (`Models/BackupJob.cs`):**
+    - `Stop()` method now sets `IsStopping` and `IsPausing` flags; progress and file counts are reset.
+    - `Pause()` method now directly cancels the execution token; `CheckCancellationRequested()` handles setting the state to `Paused`.
+    - `CheckCancellationRequested()` now distinguishes between stop (sets state to `Stopped`) and pause (sets state to `Paused`), logging the specific action.
+    - `ExecuteAsync()` includes more robust checks for `JobStates.Stopped` and refined `OperationCanceledException` handling.
+- **ViewModel Architecture & Interactions:**
+    - `ViewModels/MainViewModel.cs`: Instantiates and manages the `TCPServer`, passing it to `BackupListViewModel` and `Logger`. Handles TCP server toggling based on settings.
+    - `ViewModels/SettingsViewModel.cs`: Manages TCP server enable/disable state, displays server address, and indicates unsaved changes in the view title with an asterisk (`*`).
+    - `ViewModels/BackupStatusViewModel.cs`: `ExecutePauseResumeJob` now calls `SelectedJob.Pause()` for cleaner pause initiation.
+    - `ViewModels/BackupListViewModel.cs`: Constructor now accepts and passes `TCPServer` to the `Logger`.
+- **Logging (`Models/logger.cs`):**
+    - Daily log files now use the `.log` extension (previously `.json`) and a new structured text format (e.g., `[{timestamp}] [{jobName}] ...`).
+    - `UpdateAllJobsState()` now notifies the `TCPServer` to broadcast `state.json` changes to connected clients.
+- **UI/UX:**
+    - **Icons:**
+        - Updated `Assets/Icons/pause.svg` and `Assets/Icons/play.svg`.
+        - Cleaned metadata from `Assets/Icons/settings.svg`.
+    - `Views/BackupListView.xaml`: Icons for 'Stopped' and 'Paused' states updated to use the new/modified pause icons. Minor style adjustments for item selection.
+    - `Views/SettingsView.xaml`:
+        - Added UI elements for TCP server configuration (enable toggle, address display).
+        - Improved styling for TextBoxes (`RoundedTextBoxStyle`) and CheckBoxes (`ModernCheckBoxStyle`).
+        - Settings title now indicates unsaved changes.
+
+### Fixed
+- **Logging Call:** Corrected arguments in a `LogBackupDetails` call within `BackupListViewModel.StartAllJobs()` to ensure all required parameters (including `encryptionExitCode`) are passed when blocked software prevents job startup.
+
 ## EasySave [v3.0.0-beta.5] - 2025-05-27
 
 ### Info

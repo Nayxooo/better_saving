@@ -10,12 +10,14 @@ namespace better_saving
     public partial class App : System.Windows.Application {
 
         private Logger? _appLogger;
+        
+        private readonly string errorLogPath = Path.Combine(AppContext.BaseDirectory, "logs\\EasySave33.bugReport");
 
         protected override void OnStartup(StartupEventArgs e)
         {
             // Lower-level exception handler
             AppDomain.CurrentDomain.UnhandledException += CurrentDomain_UnhandledException;
-            
+
             base.OnStartup(e);
 
             // Initialize logger early
@@ -44,7 +46,6 @@ namespace better_saving
 
         private void CurrentDomain_UnhandledException(object sender, UnhandledExceptionEventArgs e)
         {
-            string errorLogPath = Path.Combine(AppContext.BaseDirectory, "logs\\EasySave33.bugReport");
             try
             {
                 string errorMessage = "\nAn unhandled domain exception occurred.\n";
@@ -58,16 +59,14 @@ namespace better_saving
                 }
                 errorMessage += $"IsTerminating: {e.IsTerminating}\n";
 
-                File.AppendAllText(errorLogPath, $"{DateTime.Now}: {errorMessage}");
-
-                _appLogger?.LogBackupDetails("ApplicationStartupError", "AppDomainUnhandledException", $"\"{errorMessage}\"", 0, 0, -1);
+                _appLogger?.LogError($"ApplicationStartupError | AppDomainUnhandledException \"{errorMessage}\"");
             }
             catch (Exception logEx)
             {
                 // Fallback if logging itself fails
                 try
                 {
-                    File.AppendAllText(errorLogPath, $"{DateTime.Now}: Logging domain exception failed: {logEx.ToString()}\nOriginal exception: {e.ExceptionObject?.ToString() ?? "null"}\n");
+                    File.AppendAllText(errorLogPath, $"{DateTime.Now}: Logging domain exception failed: {logEx}\nOriginal exception: {e.ExceptionObject?.ToString() ?? "null"}\n");
                 }
                 catch { /* Ultimate fallback: swallow if even this fails */ }
             }
@@ -81,7 +80,7 @@ namespace better_saving
 
         private void App_DispatcherUnhandledException(object sender, DispatcherUnhandledExceptionEventArgs e)
         {
-            _appLogger?.LogBackupDetails("ApplicationStartupError", "UnhandledException", e.Exception.ToString(), 0, 0, -1);
+            _appLogger?.LogError($"ApplicationStartupError | DispatcherUnhandledException \"{e.Exception}\"");
             // Optionally, display a message to the user
             System.Windows.MessageBox.Show("An unexpected error occurred. Please check the logs for more details.", "Application Error", System.Windows.MessageBoxButton.OK, System.Windows.MessageBoxImage.Error);
             

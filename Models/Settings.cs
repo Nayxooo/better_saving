@@ -12,6 +12,7 @@ namespace better_saving.Models
         public List<string> PriorityFileExtensions { get; set; } = [];
         public int MaxFileTransferSize { get; set; } = 0; // Default size in KB
         public string Language { get; set; } = "en-US";
+        public bool IsTcpServerEnabled { get; set; } = false; // Default to false
 
         /// <summary>
         /// Saves the current settings to the settings file

@@ -5,8 +5,8 @@
              xmlns:converter="clr-namespace:better_saving.Converters"
              Background="{StaticResource ViewBackgroundGlobalBrush}">
     <UserControl.Resources>
-        <converter:NullOrEmptyToVisibilityConverter x:Key="NullToVisibilityConverter"/>
-        <converter:IconColorConverter x:Key="IconColorConverter"/>
+        <converter:NullOrEmptyToVisibilityConverter x:Key="NullToVisibilityConverter" />
+        <converter:IconColorConverter x:Key="IconColorConverter" />
         <Style x:Key="FocusVisual">
             <Setter Property="Control.Template">
                 <Setter.Value>
@@ -16,50 +16,59 @@
                                    StrokeDashArray="1 2"
                                    Stroke="{DynamicResource {x:Static SystemColors.ControlTextBrushKey}}"
                                    SnapsToDevicePixels="true"
-                                   StrokeThickness="1"/>
+                                   StrokeThickness="1" />
                     </ControlTemplate>
                 </Setter.Value>
             </Setter>
         </Style>
         <SolidColorBrush x:Key="Button.Static.Background"
-                         Color="#FFDDDDDD"/> <!-- #DDDDDD  -->
+                         Color="#FFDDDDDD" />
+        <!-- #DDDDDD -->
         <SolidColorBrush x:Key="Button.Static.Border"
-                         Color="#FF707070"/> <!-- #707070 -->
+                         Color="#FF707070" />
+        <!-- #707070 -->
         <SolidColorBrush x:Key="Button.MouseOver.Background"
-                         Color="#FFBEE6FD"/> <!-- #BEE6FD -->
+                         Color="#FFBEE6FD" />
+        <!-- #BEE6FD -->
         <SolidColorBrush x:Key="Button.MouseOver.Border"
-                         Color="#FF3C7FB1"/> <!-- #3C7FB1 -->
+                         Color="#FF3C7FB1" />
+        <!-- #3C7FB1 -->
         <SolidColorBrush x:Key="Button.Pressed.Background"
-                         Color="#FFC4E5F6"/> <!-- #C4E5F6 -->
+                         Color="#FFC4E5F6" />
+        <!-- #C4E5F6 -->
         <SolidColorBrush x:Key="Button.Pressed.Border"
-                         Color="#FF2C628B"/> <!-- #2C628B -->
+                         Color="#FF2C628B" />
+        <!-- #2C628B -->
         <SolidColorBrush x:Key="Button.Disabled.Background"
-                         Color="#FFF4F4F4"/> <!-- #F4F4F4 -->
+                         Color="#FFF4F4F4" />
+        <!-- #F4F4F4 -->
         <SolidColorBrush x:Key="Button.Disabled.Border"
-                         Color="#FFADB2B5"/> <!-- #ADB2B5 -->
+                         Color="#FFADB2B5" />
+        <!-- #ADB2B5 -->
         <SolidColorBrush x:Key="Button.Disabled.Foreground"
-                         Color="#FF838383"/> <!-- #838383 -->
+                         Color="#FF838383" />
+        <!-- #838383 -->
         <Style TargetType="{x:Type Button}">
             <Setter Property="FocusVisualStyle"
-                    Value="{x:Null}"/>
+                    Value="{x:Null}" />
             <Setter Property="Background"
-                    Value="{StaticResource Button.Static.Background}"/>
+                    Value="{StaticResource Button.Static.Background}" />
             <Setter Property="BorderBrush"
-                    Value="{StaticResource Button.Static.Border}"/>
+                    Value="{StaticResource Button.Static.Border}" />
             <Setter Property="Foreground"
-                    Value="{DynamicResource {x:Static SystemColors.ControlTextBrushKey}}"/>
+                    Value="{DynamicResource {x:Static SystemColors.ControlTextBrushKey}}" />
             <Setter Property="BorderThickness"
-                    Value="1"/>
+                    Value="1" />
             <Setter Property="HorizontalContentAlignment"
-                    Value="Center"/>
+                    Value="Center" />
             <Setter Property="VerticalContentAlignment"
-                    Value="Center"/>
+                    Value="Center" />
             <Setter Property="Padding"
-                    Value="1"/>
+                    Value="1" />
             <Setter Property="Cursor"
-                    Value="Hand"/>
+                    Value="Hand" />
             <Setter Property="OverridesDefaultStyle"
-                    Value="True"/>
+                    Value="True" />
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="{x:Type Button}">
@@ -77,7 +86,7 @@
                                                   VerticalAlignment="Center"
                                                   Margin="{TemplateBinding Padding}"
                                                   RecognizesAccessKey="True"
-                                                  SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}"/>
+                                                  SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}" />
                             </Border>
                         </Grid>
                         <ControlTemplate.Triggers>
@@ -85,37 +94,37 @@
                                      Value="true">
                                 <Setter Property="BorderBrush"
                                         TargetName="border"
-                                        Value="{DynamicResource {x:Static SystemColors.HighlightBrushKey}}"/>
+                                        Value="{DynamicResource {x:Static SystemColors.HighlightBrushKey}}" />
                             </Trigger>
                             <Trigger Property="IsMouseOver"
                                      Value="true">
                                 <Setter Property="Background"
                                         TargetName="border"
-                                        Value="{StaticResource Button.MouseOver.Background}"/>
+                                        Value="{StaticResource Button.MouseOver.Background}" />
                                 <Setter Property="BorderBrush"
                                         TargetName="border"
-                                        Value="{StaticResource Button.MouseOver.Border}"/>
+                                        Value="{StaticResource Button.MouseOver.Border}" />
                             </Trigger>
                             <Trigger Property="IsPressed"
                                      Value="true">
                                 <Setter Property="Background"
                                         TargetName="border"
-                                        Value="{StaticResource Button.Pressed.Background}"/>
+                                        Value="{StaticResource Button.Pressed.Background}" />
                                 <Setter Property="BorderBrush"
                                         TargetName="border"
-                                        Value="{StaticResource Button.Pressed.Border}"/>
+                                        Value="{StaticResource Button.Pressed.Border}" />
                             </Trigger>
                             <Trigger Property="IsEnabled"
                                      Value="false">
                                 <Setter Property="Background"
                                         TargetName="border"
-                                        Value="{StaticResource Button.Disabled.Background}"/>
+                                        Value="{StaticResource Button.Disabled.Background}" />
                                 <Setter Property="BorderBrush"
                                         TargetName="border"
-                                        Value="{StaticResource Button.Disabled.Border}"/>
+                                        Value="{StaticResource Button.Disabled.Border}" />
                                 <Setter Property="TextElement.Foreground"
                                         TargetName="contentPresenter"
-                                        Value="{StaticResource Button.Disabled.Foreground}"/>
+                                        Value="{StaticResource Button.Disabled.Foreground}" />
                             </Trigger>
                         </ControlTemplate.Triggers>
                     </ControlTemplate>
@@ -125,11 +134,10 @@
     </UserControl.Resources>
     <Grid>
         <Grid.RowDefinitions>
-            <RowDefinition Height="auto"/>
-            <RowDefinition Height="*"/>
-            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
-
         <StackPanel Grid.Row="0"
                     Orientation="Horizontal"
                     Margin="10"
@@ -147,7 +155,7 @@
                       Fill="{StaticResource WhiteBrush}"
                       Stretch="Uniform"
                       Width="15"
-                      Height="15"/>
+                      Height="15" />
                 <Button.Style>
                     <Style TargetType="Button"
                            BasedOn="{StaticResource {x:Type Button}}">
@@ -166,26 +174,26 @@
                                                           VerticalAlignment="Center"
                                                           Margin="{TemplateBinding Padding}"
                                                           RecognizesAccessKey="True"
-                                                          SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}"/>
+                                                          SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}" />
                                     </Border>
                                     <ControlTemplate.Triggers>
                                         <Trigger Property="IsMouseOver"
                                                  Value="True">
                                             <Setter Property="Background"
                                                     TargetName="border"
-                                                    Value="{StaticResource SecondaryHoverBrush}"/>
+                                                    Value="{StaticResource SecondaryHoverBrush}" />
                                         </Trigger>
                                     </ControlTemplate.Triggers>
                                 </ControlTemplate>
                             </Setter.Value>
                         </Setter>
                         <Setter Property="FocusVisualStyle"
-                                Value="{x:Null}"/>
+                                Value="{x:Null}" />
                         <Style.Triggers>
                             <Trigger Property="IsMouseOver"
                                      Value="True">
                                 <Setter Property="Opacity"
-                                        Value="1"/>
+                                        Value="1" />
                             </Trigger>
                         </Style.Triggers>
                     </Style>
@@ -194,13 +202,14 @@
             <TextBlock Text="{DynamicResource BackupJobListTitle}"
                        MinWidth="180"
                        Foreground="{StaticResource WhiteBrush}"
-                       FontSize="25"/>
+                       FontSize="25" />
             <Border CornerRadius="15"
-                    Background="{StaticResource ListBoxBackgroundBrush}" 
+                    Background="{StaticResource ListBoxBackgroundBrush}"
                     Margin="5,0,5,0"
                     Height="35"
                     VerticalAlignment="Center"
-                    Padding="5,0,5,0"> <!-- #161618-->
+                    Padding="5,0,5,0">
+                <!-- #161618 -->
                 <StackPanel Orientation="Horizontal"
                             Margin="0,0,0,0">
                     <Button Name="StartAllJobsButton"
@@ -217,7 +226,7 @@
                               Stretch="Uniform"
                               Width="15"
                               Height="15"
-                              Margin="2,0,0,0"/>
+                              Margin="2,0,0,0" />
                         <Button.Style>
                             <Style TargetType="Button"
                                    BasedOn="{StaticResource {x:Type Button}}">
@@ -236,21 +245,21 @@
                                                                   VerticalAlignment="Center"
                                                                   Margin="{TemplateBinding Padding}"
                                                                   RecognizesAccessKey="True"
-                                                                  SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}"/>
+                                                                  SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}" />
                                             </Border>
                                             <ControlTemplate.Triggers>
                                                 <Trigger Property="IsMouseOver"
                                                          Value="True">
                                                     <Setter Property="Background"
                                                             TargetName="border"
-                                                            Value="{StaticResource PrimaryHoverBrush}"/>
+                                                            Value="{StaticResource PrimaryHoverBrush}" />
                                                 </Trigger>
                                             </ControlTemplate.Triggers>
                                         </ControlTemplate>
                                     </Setter.Value>
                                 </Setter>
                                 <Setter Property="FocusVisualStyle"
-                                        Value="{x:Null}"/>
+                                        Value="{x:Null}" />
                             </Style>
                         </Button.Style>
                     </Button>
@@ -267,7 +276,7 @@
                               Fill="{StaticResource WhiteBrush}"
                               Stretch="Uniform"
                               Width="15"
-                              Height="15"/>
+                              Height="15" />
                         <Button.Style>
                             <Style TargetType="Button"
                                    BasedOn="{StaticResource {x:Type Button}}">
@@ -286,21 +295,21 @@
                                                                   VerticalAlignment="Center"
                                                                   Margin="{TemplateBinding Padding}"
                                                                   RecognizesAccessKey="True"
-                                                                  SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}"/>
+                                                                  SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}" />
                                             </Border>
                                             <ControlTemplate.Triggers>
                                                 <Trigger Property="IsMouseOver"
                                                          Value="True">
                                                     <Setter Property="Background"
                                                             TargetName="border"
-                                                            Value="{StaticResource PrimaryHoverBrush}"/>
+                                                            Value="{StaticResource PrimaryHoverBrush}" />
                                                 </Trigger>
                                             </ControlTemplate.Triggers>
                                         </ControlTemplate>
                                     </Setter.Value>
                                 </Setter>
                                 <Setter Property="FocusVisualStyle"
-                                        Value="{x:Null}"/>
+                                        Value="{x:Null}" />
                             </Style>
                         </Button.Style>
                     </Button>
@@ -311,8 +320,7 @@
                    Foreground="Red"
                    Margin="10,5"
                    Grid.Row="1"
-                   Visibility="{Binding ErrorMessage, Converter={StaticResource NullToVisibilityConverter}}"/>
-
+                   Visibility="{Binding ErrorMessage, Converter={StaticResource NullToVisibilityConverter}}" />
         <ListBox Grid.Row="1"
                  ItemsSource="{Binding Jobs}"
                  Margin="10,0,10,0"
@@ -332,7 +340,7 @@
                             BorderBrush="{TemplateBinding BorderBrush}">
                         <ScrollViewer Padding="{TemplateBinding Padding}"
                                       Focusable="false">
-                            <ItemsPresenter SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}"/>
+                            <ItemsPresenter SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}" />
                         </ScrollViewer>
                     </Border>
                 </ControlTemplate>
@@ -340,17 +348,17 @@
             <ListBox.ItemContainerStyle>
                 <Style TargetType="ListBoxItem">
                     <Setter Property="Margin"
-                            Value="10,10,10,0"/>
+                            Value="10,10,10,0" />
                     <Setter Property="Padding"
-                            Value="0"/>
+                            Value="0" />
                     <Setter Property="HorizontalContentAlignment"
-                            Value="Stretch"/>
+                            Value="Stretch" />
                     <Setter Property="FocusVisualStyle"
-                            Value="{x:Null}"/>
+                            Value="{x:Null}" />
                     <Setter Property="Template">
                         <Setter.Value>
                             <ControlTemplate TargetType="ListBoxItem">
-                                <ContentPresenter/>
+                                <ContentPresenter />
                             </ControlTemplate>
                         </Setter.Value>
                     </Setter>
@@ -371,9 +379,8 @@
                                 <Setter Property="Template">
                                     <Setter.Value>
                                         <ControlTemplate TargetType="{x:Type Button}">
-
                                             <Grid>
-                                                <Border CornerRadius="20"
+                                                <Border CornerRadius="25"
                                                         ClipToBounds="True"
                                                         x:Name="border"
                                                         Background="{TemplateBinding Background}"
@@ -385,158 +392,165 @@
                                                                       VerticalAlignment="Center"
                                                                       Margin="{TemplateBinding Padding}"
                                                                       RecognizesAccessKey="True"
-                                                                      SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}"/>
+                                                                      SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}" />
                                                 </Border>
                                             </Grid>
+                                            <ControlTemplate.Triggers>
+                                                <Trigger Property="IsKeyboardFocused"
+                                                         Value="True">
+                                                    <Setter Property="CornerRadius"
+                                                            TargetName="border"
+                                                            Value="20" />
+                                                </Trigger>
+                                            </ControlTemplate.Triggers>
                                         </ControlTemplate>
                                     </Setter.Value>
                                 </Setter>
                                 <Setter Property="OverridesDefaultStyle"
-                                        Value="True"/>
+                                        Value="True" />
                                 <Setter Property="FocusVisualStyle"
-                                        Value="{x:Null}"/>
+                                        Value="{x:Null}" />
                                 <Setter Property="Background"
-                                        Value="{StaticResource ButtonDefaultBackgroundBrush}"/>
+                                        Value="{StaticResource ButtonDefaultBackgroundBrush}" />
                                 <Setter Property="Foreground"
-                                        Value="{StaticResource WhiteBrush}"/>
+                                        Value="{StaticResource WhiteBrush}" />
                                 <!-- Job state based colors -->
                                 <Style.Triggers>
                                     <DataTrigger Binding="{Binding State}"
                                                  Value="Working">
                                         <Setter Property="Background"
-                                                Value="{StaticResource JobStateWorkingBrush}"/>
+                                                Value="{StaticResource JobStateWorkingBrush}" />
                                     </DataTrigger>
                                     <DataTrigger Binding="{Binding State}"
                                                  Value="Finished">
                                         <Setter Property="Background"
-                                                Value="{StaticResource JobStateFinishedBrush}"/>
+                                                Value="{StaticResource JobStateFinishedBrush}" />
                                     </DataTrigger>
                                     <DataTrigger Binding="{Binding State}"
                                                  Value="Failed">
                                         <Setter Property="Background"
-                                                Value="{StaticResource JobStateFailedBrush}"/>
+                                                Value="{StaticResource JobStateFailedBrush}" />
                                     </DataTrigger>
                                     <DataTrigger Binding="{Binding State}"
                                                  Value="Stopped">
                                         <Setter Property="Background"
-                                                Value="{StaticResource JobStateStoppedBrush}"/>
+                                                Value="{StaticResource JobStateStoppedBrush}" />
                                     </DataTrigger>
                                     <DataTrigger Binding="{Binding State}"
                                                  Value="Paused">
                                         <Setter Property="Background"
-                                                Value="{StaticResource JobStatePausedBrush}"/>
+                                                Value="{StaticResource JobStatePausedBrush}" />
                                     </DataTrigger>
                                     <!-- Hover effects - exactly 10% brighter for each state -->
                                     <MultiDataTrigger>
                                         <MultiDataTrigger.Conditions>
                                             <Condition Binding="{Binding State}"
-                                                       Value="Working"/>
+                                                       Value="Working" />
                                             <Condition Binding="{Binding RelativeSource={RelativeSource Self}, Path=IsMouseOver}"
-                                                       Value="True"/>
+                                                       Value="True" />
                                         </MultiDataTrigger.Conditions>
                                         <Setter Property="Background"
-                                                Value="{StaticResource JobStateWorkingHoverBrush}"/>
+                                                Value="{StaticResource JobStateWorkingHoverBrush}" />
                                     </MultiDataTrigger>
                                     <MultiDataTrigger>
                                         <MultiDataTrigger.Conditions>
                                             <Condition Binding="{Binding State}"
-                                                       Value="Finished"/>
+                                                       Value="Finished" />
                                             <Condition Binding="{Binding RelativeSource={RelativeSource Self}, Path=IsMouseOver}"
-                                                       Value="True"/>
+                                                       Value="True" />
                                         </MultiDataTrigger.Conditions>
                                         <Setter Property="Background"
-                                                Value="{StaticResource JobStateFinishedHoverBrush}"/>
+                                                Value="{StaticResource JobStateFinishedHoverBrush}" />
                                     </MultiDataTrigger>
                                     <MultiDataTrigger>
                                         <MultiDataTrigger.Conditions>
                                             <Condition Binding="{Binding State}"
-                                                       Value="Failed"/>
+                                                       Value="Failed" />
                                             <Condition Binding="{Binding RelativeSource={RelativeSource Self}, Path=IsMouseOver}"
-                                                       Value="True"/>
+                                                       Value="True" />
                                         </MultiDataTrigger.Conditions>
                                         <Setter Property="Background"
-                                                Value="{StaticResource JobStateFailedHoverBrush}"/>
+                                                Value="{StaticResource JobStateFailedHoverBrush}" />
                                     </MultiDataTrigger>
                                     <MultiDataTrigger>
                                         <MultiDataTrigger.Conditions>
                                             <Condition Binding="{Binding State}"
-                                                       Value="Stopped"/>
+                                                       Value="Stopped" />
                                             <Condition Binding="{Binding RelativeSource={RelativeSource Self}, Path=IsMouseOver}"
-                                                       Value="True"/>
+                                                       Value="True" />
                                         </MultiDataTrigger.Conditions>
                                         <Setter Property="Background"
-                                                Value="{StaticResource JobStateStoppedHoverBrush}"/>
+                                                Value="{StaticResource JobStateStoppedHoverBrush}" />
                                     </MultiDataTrigger>
                                     <MultiDataTrigger>
                                         <MultiDataTrigger.Conditions>
                                             <Condition Binding="{Binding State}"
-                                                       Value="Paused"/>
+                                                       Value="Paused" />
                                             <Condition Binding="{Binding RelativeSource={RelativeSource Self}, Path=IsMouseOver}"
-                                                       Value="True"/>
+                                                       Value="True" />
                                         </MultiDataTrigger.Conditions>
                                         <Setter Property="Background"
-                                                Value="{StaticResource JobStatePausedHoverBrush}"/>
+                                                Value="{StaticResource JobStatePausedHoverBrush}" />
                                     </MultiDataTrigger>
-
                                     <!-- Selected job effects -->
                                     <MultiDataTrigger>
                                         <MultiDataTrigger.Conditions>
                                             <Condition Binding="{Binding State}"
-                                                       Value="Working"/>
+                                                       Value="Working" />
                                             <Condition Binding="{Binding RelativeSource={RelativeSource Self}, Path=IsKeyboardFocused}"
-                                                       Value="True"/>
+                                                       Value="True" />
                                         </MultiDataTrigger.Conditions>
                                         <Setter Property="Background"
-                                                Value="{StaticResource JobStateWorkingSelectedBrush}"/>
+                                                Value="{StaticResource JobStateWorkingSelectedBrush}" />
                                     </MultiDataTrigger>
                                     <MultiDataTrigger>
                                         <MultiDataTrigger.Conditions>
                                             <Condition Binding="{Binding State}"
-                                                       Value="Finished"/>
+                                                       Value="Finished" />
                                             <Condition Binding="{Binding RelativeSource={RelativeSource Self}, Path=IsKeyboardFocused}"
-                                                       Value="True"/>
+                                                       Value="True" />
                                         </MultiDataTrigger.Conditions>
                                         <Setter Property="Background"
-                                                Value="{StaticResource JobStateFinishedSelectedBrush}"/>
+                                                Value="{StaticResource JobStateFinishedSelectedBrush}" />
                                     </MultiDataTrigger>
                                     <MultiDataTrigger>
                                         <MultiDataTrigger.Conditions>
                                             <Condition Binding="{Binding State}"
-                                                       Value="Failed"/>
+                                                       Value="Failed" />
                                             <Condition Binding="{Binding RelativeSource={RelativeSource Self}, Path=IsKeyboardFocused}"
-                                                       Value="True"/>
+                                                       Value="True" />
                                         </MultiDataTrigger.Conditions>
                                         <Setter Property="Background"
-                                                Value="{StaticResource JobStateFailedSelectedBrush}"/>
+                                                Value="{StaticResource JobStateFailedSelectedBrush}" />
                                     </MultiDataTrigger>
                                     <MultiDataTrigger>
                                         <MultiDataTrigger.Conditions>
                                             <Condition Binding="{Binding State}"
-                                                       Value="Stopped"/>
+                                                       Value="Stopped" />
                                             <Condition Binding="{Binding RelativeSource={RelativeSource Self}, Path=IsKeyboardFocused}"
-                                                       Value="True"/>
+                                                       Value="True" />
                                         </MultiDataTrigger.Conditions>
                                         <Setter Property="Background"
-                                                Value="{StaticResource JobStateStoppedSelectedBrush}"/>
+                                                Value="{StaticResource JobStateStoppedSelectedBrush}" />
                                     </MultiDataTrigger>
                                     <MultiDataTrigger>
                                         <MultiDataTrigger.Conditions>
                                             <Condition Binding="{Binding State}"
-                                                       Value="Paused"/>
+                                                       Value="Paused" />
                                             <Condition Binding="{Binding RelativeSource={RelativeSource Self}, Path=IsKeyboardFocused}"
-                                                       Value="True"/>
+                                                       Value="True" />
                                         </MultiDataTrigger.Conditions>
                                         <Setter Property="Background"
-                                                Value="{StaticResource JobStatePausedSelectedBrush}"/>
+                                                Value="{StaticResource JobStatePausedSelectedBrush}" />
                                     </MultiDataTrigger>
                                 </Style.Triggers>
                             </Style>
                         </Button.Style>
                         <Grid HorizontalAlignment="Left"
-                                VerticalAlignment="Center">
+                              VerticalAlignment="Center">
                             <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="Auto"/>
-                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="*" />
                             </Grid.ColumnDefinitions>
                             <!-- SVG Icon based on state -->
                             <!-- SVG Icon based on state -->
@@ -553,65 +567,64 @@
                                             <MultiDataTrigger>
                                                 <MultiDataTrigger.Conditions>
                                                     <Condition Binding="{Binding State}"
-                                                            Value="Stopped"/>
+                                                               Value="Stopped" />
                                                     <Condition Binding="{Binding IsPausing}"
-                                                            Value="True"/>
+                                                               Value="True" />
                                                 </MultiDataTrigger.Conditions>
                                                 <Setter Property="Content">
                                                     <Setter.Value>
                                                         <Path Data="M17.75 3C19.5449 3 21 4.45507 21 6.25V7H3V6.25C3 4.45507 4.45507 3 6.25 3H17.75ZM21 8.5V12.0218C19.9897 11.375 18.7886 11 17.5 11C13.9101 11 11 13.9101 11 17.5C11 18.7886 11.375 19.9897 12.0218 21H6.25C4.45507 21 3 19.5449 3 17.75V8.5H21ZM23 17.5C23 14.4624 20.5376 12 17.5 12C14.4624 12 12 14.4624 12 17.5C12 20.5376 14.4624 23 17.5 23C20.5376 23 23 20.5376 23 17.5ZM17.5 17.5001H19.5C19.7761 17.5001 20 17.7239 20 18.0001C20 18.2762 19.7761 18.5001 19.5 18.5001H17C16.7239 18.5001 16.5 18.2762 16.5 18.0001L16.5 17.9985L16.5 14.9999C16.5 14.7238 16.7239 14.4999 17 14.4999C17.2761 14.4999 17.5 14.7238 17.5 14.9999L17.5 17.5001Z"
                                                               Fill="{StaticResource WhiteBrush}"
-                                                              Stretch="Uniform"/>
+                                                              Stretch="Uniform" />
                                                     </Setter.Value>
                                                 </Setter>
                                             </MultiDataTrigger>
                                             <DataTrigger Binding="{Binding State}"
-                                                    Value="Working">
+                                                         Value="Working">
                                                 <Setter Property="Content">
                                                     <Setter.Value>
                                                         <Path Data="M21 8.5V12.0218C19.9897 11.375 18.7886 11 17.5 11C13.9101 11 11 13.9101 11 17.5C11 18.7886 11.375 19.9897 12.0218 21H6.25C4.45507 21 3 19.5449 3 17.75V8.5H21ZM17.75 3C19.5449 3 21 4.45507 21 6.25V7H3V6.25C3 4.45507 4.45507 3 6.25 3H17.75ZM23 17.5C23 14.4624 20.5376 12 17.5 12C14.4624 12 12 14.4624 12 17.5C12 20.5376 14.4624 23 17.5 23C20.5376 23 23 20.5376 23 17.5ZM14.5 14C14.7761 14 15 14.2239 15 14.5V15.0506C15.6349 14.4027 16.5203 14 17.5 14C18.6677 14 19.7018 14.5724 20.3368 15.4496C20.4987 15.6733 20.4487 15.9859 20.225 16.1478C20.0013 16.3098 19.6887 16.2597 19.5268 16.036C19.0717 15.4073 18.3334 15 17.5 15C16.6826 15 15.9564 15.392 15.4997 16H16.5C16.7761 16 17 16.2239 17 16.5C17 16.7761 16.7761 17 16.5 17H14.5C14.2239 17 14 16.7761 14 16.5V14.5C14 14.2239 14.2239 14 14.5 14ZM20 19.9494C19.3651 20.5973 18.4797 21 17.5 21C16.4268 21 15.4661 20.5164 14.8248 19.7569C14.6467 19.546 14.6733 19.2305 14.8843 19.0523C15.0952 18.8742 15.4107 18.9008 15.5889 19.1118C16.0482 19.6558 16.7337 20 17.5 20C18.3174 20 19.0436 19.608 19.5002 19H18.5C18.2239 19 18 18.7761 18 18.5C18 18.2239 18.2239 18 18.5 18H20.5C20.7761 18 21 18.2239 21 18.5V20.5C21 20.7761 20.7761 21 20.5 21C20.2239 21 20 20.7761 20 20.5V19.9494Z"
                                                               Fill="{StaticResource WhiteBrush}"
-                                                              Stretch="Uniform"/>
+                                                              Stretch="Uniform" />
                                                     </Setter.Value>
                                                 </Setter>
                                             </DataTrigger>
                                             <DataTrigger Binding="{Binding State}"
-                                                    Value="Finished">
+                                                         Value="Finished">
                                                 <Setter Property="Content">
                                                     <Setter.Value>
                                                         <Path Data="M17.75 3C19.5449 3 21 4.45507 21 6.25V7H3V6.25C3 4.45507 4.45507 3 6.25 3H17.75ZM21 8.5V12.0218C19.9897 11.375 18.7886 11 17.5 11C13.9101 11 11 13.9101 11 17.5C11 18.7886 11.375 19.9897 12.0218 21H6.25C4.45507 21 3 19.5449 3 17.75V8.5H21ZM23 17.5C23 20.5376 20.5376 23 17.5 23C14.4624 23 12 20.5376 12 17.5C12 14.4624 14.4624 12 17.5 12C20.5376 12 23 14.4624 23 17.5ZM19.8536 15.6464C19.6583 15.4512 19.3417 15.4512 19.1464 15.6464L16.5 18.2929L15.6036 17.3964C15.4083 17.2012 15.0917 17.2012 14.8964 17.3964C14.7012 17.5917 14.7012 17.9083 14.8964 18.1036L16.1464 19.3536C16.3417 19.5488 16.6583 19.5488 16.8536 19.3536L19.8536 16.3536C20.0488 16.1583 20.0488 15.8417 19.8536 15.6464Z"
                                                               Fill="{StaticResource WhiteBrush}"
-                                                              Stretch="Uniform"/>
+                                                              Stretch="Uniform" />
                                                     </Setter.Value>
                                                 </Setter>
                                             </DataTrigger>
                                             <DataTrigger Binding="{Binding State}"
-                                                    Value="Failed">
+                                                         Value="Failed">
                                                 <Setter Property="Content">
                                                     <Setter.Value>
-                                                        <Path Data="M17.5,12 C20.5375661,12 23,14.4624339 23,17.5 C23,20.5375661 20.5375661,23 17.5,23 C14.4624339,23 12,20.5375661 12,17.5 C12,14.4624339 14.4624339,12 17.5,12 Z M17.5,19.875 C17.1548,19.875 16.875,20.1548 16.875,20.5 C16.875,20.8452 17.1548,21.125 17.5,21.125 C17.8452,21.125 18.125,20.8452 18.125,20.5 C18.125,20.1548 17.8452,19.875 17.5,19.875 Z M21,8.5 L21,12.0218 C19.9906579,11.3752958 18.7891565,11 17.5,11 C13.9101491,11 11,13.9101491 11,17.5 C11,18.6894769 11.3195266,19.8043976 11.8774103,20.7635139 L12.0218,21 L6.25,21 C4.51696414,21 3.10075377,19.6435215 3.00514477,17.9344215 L3,17.75 L3,8.5 L21,8.5 Z M17.5,14 C17.2545778,14 17.0504,14.1769086 17.0080571,14.4101355 L17,14.5 L17,18.5 C17,18.7761 17.2239,19 17.5,19 C17.7454222,19 17.9496,18.8230914 17.9919429,18.5898645 L18,18.5 L18,14.5 C18,14.2239 17.7761,14 17.5,14 Z M17.75,3 C19.4830069,3 20.8992442,4.35645051 20.9948551,6.06557565 L21,6.25 L21,7 L3,7 L3,6.25 C3,4.51696414 4.35645051,3.10075377 6.06557565,3.00514477 L6.25,3 L17.75,3 Z"
-                                                              Fill="{StaticResource WhiteBrush}"
-                                                              Stretch="Uniform"/>
+                                                        <Path Data="M17.5,12 C20.5375661,12 23,14.4624339 23,17.5 C23,20.5375661 20.5375661,23 17.5,23 C14.4624339,23 12,20.5375661 12,17.5 C12,14.4624339 14.4624339,12 17.5,12 Z M17.5,19.875 C17.1548,19.875 16.875,20.1548 16.875,20.5 C16.875,20.8452 17.1548,21.125 17.5,21.125 C17.8452,21.125 18.125,20.8452 18.125,20.5 C18.125,20.1548 17.8452,19.875 17.5,19.875 Z M21,8.5 L21,12.0218 C19.9906579,11.3752958 18.7891565,11 17.5,11 C13.9101491,11 11,13.9101491 11,17.5 C11,18.6894769 11.3195266,19.8043976 11.8774103,20.7635139 L12.0218,21 L6.25,21 C4.51696414,21 3.10075377,19.6435215 3.00514477,17.9344215 L3,17.75 L3,8.5 L21,8.5 Z M17.5,14 C17.2545778,14 17.0504,14.1769086 17.0080571,14.4101355 L17,14.5 L17,18.5 C17,18.7761 17.2239,19 17.5,19 C17.7454222,19 17.9496,18.8230914 17.9919429,18.5898645 L18,18.5 L18,14.5 C18,14.2239 17.7761,14 17.5,14 Z M17.75,3 C19.4830069,3 20.8992442,4.35645051 20.9948551,6.06557565 L21,6.25 L21,7 L3,7 L3,6.25 C3,4.51696414 4.35645051,3.10075377 6.06557565,3.00514477 L6.25,3 L17.75,3 Z"                                                              Fill="{StaticResource WhiteBrush}"
+                                                              Stretch="Uniform" />
                                                     </Setter.Value>
                                                 </Setter>
                                             </DataTrigger>
                                             <DataTrigger Binding="{Binding State}"
-                                                    Value="Stopped">
-                                                <Setter Property="Content">
-                                                    <Setter.Value>
-                                                        <Path Data="M17.75 3C19.5449 3 21 4.45507 21 6.25V7H3V6.25C3 4.45507 4.45507 3 6.25 3H17.75ZM21 8.5V12.0218C19.9897 11.375 18.7886 11 17.5 11C13.9101 11 11 13.9101 11 17.5C11 18.7886 11.375 19.9897 12.0218 21H6.25C4.45507 21 3 19.5449 3 17.75V8.5H21ZM23 17.5C23 14.4624 20.5376 12 17.5 12C14.4624 12 12 14.4624 12 17.5C12 20.5376 14.4624 23 17.5 23C20.5376 23 23 20.5376 23 17.5ZM17.5 17.5001H19.5C19.7761 17.5001 20 17.7239 20 18.0001C20 18.2762 19.7761 18.5001 19.5 18.5001H17C16.7239 18.5001 16.5 18.2762 16.5 18.0001L16.5 17.9985L16.5 14.9999C16.5 14.7238 16.7239 14.4999 17 14.4999C17.2761 14.4999 17.5 14.7238 17.5 14.9999L17.5 17.5001Z"
-                                                              Fill="{StaticResource WhiteBrush}"
-                                                              Stretch="Uniform"/>
-                                                    </Setter.Value>
-                                                </Setter>
-                                            </DataTrigger>
-                                            <DataTrigger Binding="{Binding State}"
-                                                    Value="Paused">
+                                                         Value="Stopped">
                                                 <Setter Property="Content">
                                                     <Setter.Value>
                                                         <Path Data="M17.75 3C19.5449 3 21 4.45507 21 6.25V7H3V6.25C3 4.45507 4.45507 3 6.25 3H17.75ZM21 8.5V12.0218C19.9897 11.375 18.7886 11 17.5 11C13.9101 11 11 13.9101 11 17.5C11 18.7886 11.375 19.9897 12.0218 21H6.25C4.45507 21 3 19.5449 3 17.75V8.5H21ZM23 17.5C23 14.4624 20.5376 12 17.5 12C14.4624 12 12 14.4624 12 17.5C12 20.5376 14.4624 23 17.5 23C20.5376 23 23 20.5376 23 17.5ZM17.5 17.5001H19.5C19.7761 17.5001 20 17.7239 20 18.0001C20 18.2762 19.7761 18.5001 19.5 18.5001H17C16.7239 18.5001 16.5 18.2762 16.5 18.0001L16.5 17.9985L16.5 14.9999C16.5 14.7238 16.7239 14.4999 17 14.4999C17.2761 14.4999 17.5 14.7238 17.5 14.9999L17.5 17.5001Z"
                                                               Fill="{StaticResource WhiteBrush}"
-                                                              Stretch="Uniform"/>
+                                                              Stretch="Uniform" />
+                                                    </Setter.Value>
+                                                </Setter>
+                                            </DataTrigger>
+                                            <DataTrigger Binding="{Binding State}"
+                                                         Value="Paused">
+                                                <Setter Property="Content">
+                                                    <Setter.Value>
+                                                        <Path Data="M17.75 3C19.5449 3 21 4.45507 21 6.25V7H3V6.25C3 4.45507 4.45507 3 6.25 3H17.75Z M21 8.5V12.0218C19.9897 11.375 18.7886 11 17.5 11C13.9101 11 11 13.9101 11 17.5C11 18.7886 11.375 19.9897 12.0218 21H6.25C4.45507 21 3 19.5449 3 17.75V8.5H21Z M23 17.5C23 14.4624 20.5376 12 17.5 12C14.4624 12 12 14.4624 12 17.5C12 20.5376 14.4624 23 17.5 23C20.5376 23 23 20.5376 23 17.5Z M15.5 14.5 V20.5 H16.5 V14.5 H15.5Z M18.5 14.5 V20.5 H19.5 V14.5 H18.5Z"
+                                                              Fill="{StaticResource WhiteBrush}"
+                                                              Stretch="Uniform" />
                                                     </Setter.Value>
                                                 </Setter>
                                             </DataTrigger>
@@ -625,7 +638,7 @@
                                        HorizontalAlignment="Left"
                                        TextAlignment="Left"
                                        FontWeight="SemiBold"
-                                       TextTrimming="CharacterEllipsis"/>
+                                       TextTrimming="CharacterEllipsis" />
                         </Grid>
                     </Button>
                 </DataTemplate>
@@ -647,7 +660,7 @@
                   Stretch="Uniform"
                   Width="35"
                   Height="35"
-                  Margin="0,0,0,0"/>
+                  Margin="0,0,0,0" />
             <Button.Style>
                 <Style TargetType="Button"
                        BasedOn="{StaticResource {x:Type Button}}">
@@ -667,7 +680,7 @@
                                                           VerticalAlignment="Center"
                                                           Margin="{TemplateBinding Padding}"
                                                           RecognizesAccessKey="True"
-                                                          SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}"/>
+                                                          SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}" />
                                     </Border>
                                 </Grid>
                                 <ControlTemplate.Triggers>
@@ -675,14 +688,14 @@
                                              Value="True">
                                         <Setter Property="Background"
                                                 TargetName="border"
-                                                Value="{StaticResource PrimaryHoverBrush}"/>
+                                                Value="{StaticResource PrimaryHoverBrush}" />
                                     </Trigger>
                                 </ControlTemplate.Triggers>
                             </ControlTemplate>
                         </Setter.Value>
                     </Setter>
                     <Setter Property="FocusVisualStyle"
-                            Value="{x:Null}"/>
+                            Value="{x:Null}" />
                 </Style>
             </Button.Style>
         </Button>

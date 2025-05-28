@@ -1,6 +1,7 @@
 <ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-                    xmlns:sys="clr-namespace:System;assembly=System.Runtime">
+                    xmlns:sys="clr-namespace:System;assembly=System.Runtime"
+                    xmlns:system="clr-namespace:System;assembly=mscorlib">
 
     <!-- BackupCreationView -->
     <sys:String x:Key="BackupCreationTitle">Creation d'une sauvegarde²</sys:String>
@@ -58,4 +59,13 @@
     <sys:String x:Key="SaveButtonToolTip">Enregistrer les paramètres</sys:String>
     <sys:String x:Key="Cancel">Annuler</sys:String>
     <sys:String x:Key="CancelButtonToolTip">Annuler les modifications</sys:String>
+
+    <!-- TCP Server Settings -->
+    <sys:String x:Key="TCPServerSettingsTitle">Paramètres du serveur TCP</sys:String>
+    <sys:String x:Key="EnableTCPServer">Activer le serveur TCP</sys:String>
+    <sys:String x:Key="TCPPort">Port TCP:</sys:String>
+    <sys:String x:Key="MaxConnections">Nombre maximum de connexions:</sys:String>
+    <sys:String x:Key="ConnectionTimeout">Délai d'expiration de la connexion (en secondes):</sys:String>
+    <sys:String x:Key="AllowRemoteJobControl">Autoriser le contrôle des tâches à distance</sys:String>
+    <sys:String x:Key="ListeningOn">Écoute sur : {0}:{1}</sys:String>
 </ResourceDictionary>

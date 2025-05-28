@@ -50,15 +50,10 @@
     <sys:String x:Key="MaxFileTranferSizeLabel">
         Taille Maximale de Transfert (en Ko):
     </sys:String>
-    <sys:String x:Key="MaxFileTranferSizeToolTip">
+    <sys:String x:Key="MaxFileTransferSizeToolTip">
         Définissez la taille maximale des fichiers pouvant être transférés simultanément pour l'ensemble des tâches.
-         | (par exemple : si défini à 100 (Ko), la taille combinée de tous les fichiers en cours de transfert à un instant T ne dépassera pas 100 Ko). Par défaut, aucune limite.
+         | (par exemple : si défini à 100 (Ko), la taille combinée de tous les fichiers en cours de transfert à un instant T ne dépassera pas 100 Ko). Par défaut, aucune limite (0).
     </sys:String>
-
-    <sys:String x:Key="Save">Enregistrer</sys:String>
-    <sys:String x:Key="SaveButtonToolTip">Enregistrer les paramètres</sys:String>
-    <sys:String x:Key="Cancel">Annuler</sys:String>
-    <sys:String x:Key="CancelButtonToolTip">Annuler les modifications</sys:String>
 
     <!-- TCP Server Settings -->
     <sys:String x:Key="TCPServerSettingsTitle">Paramètres du serveur TCP</sys:String>
@@ -68,4 +63,11 @@
     <sys:String x:Key="ConnectionTimeout">Délai d'expiration de la connexion (en secondes):</sys:String>
     <sys:String x:Key="AllowRemoteJobControl">Autoriser le contrôle des tâches à distance</sys:String>
     <sys:String x:Key="ListeningOn">Écoute sur : {0}:{1}</sys:String>
+    <sys:String x:Key="IPAddressToolTip">Adresse IP locale du serveur. Si vous souhaitez accéder au serveur depuis un autre réseau, utilisez l'adresse IP publique du serveur et redirigez le port sur votre routeur.</sys:String>
+
+    <!-- Common Strings -->
+    <sys:String x:Key="Save">Enregistrer</sys:String>
+    <sys:String x:Key="SaveButtonToolTip">Enregistrer les paramètres</sys:String>
+    <sys:String x:Key="Cancel">Annuler</sys:String>
+    <sys:String x:Key="CancelButtonToolTip">Annuler les modifications</sys:String>
 </ResourceDictionary>

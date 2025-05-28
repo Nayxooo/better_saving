@@ -50,15 +50,10 @@
     <sys:String x:Key="MaxFileTranferSizeLabel">
         Maximum Transfer Size (in KB):
     </sys:String>
-    <sys:String x:Key="MaxFileTranferSizeToolTip">
+    <sys:String x:Key="MaxFileTransferSizeToolTip">
         Set the maximum size of files that can be transferred across all jobs at once.
-         | (e.g.: if set to 100 (KB), the combine size of all files being transferred at an instant T won't exceed 100KB). Default is no limit.
+         | (e.g.: if set to 100 (KB), the combine size of all files being transferred at an instant T won't exceed 100KB). By default, no limit (0).
     </sys:String>
-
-    <sys:String x:Key="Save">Save</sys:String>
-    <sys:String x:Key="SaveButtonToolTip">Save Settings</sys:String>
-    <sys:String x:Key="Cancel">Cancel</sys:String>
-    <sys:String x:Key="CancelButtonToolTip">Cancel Changes</sys:String>
 
     <!-- TCP Server Settings -->
     <sys:String x:Key="TCPServerSettingsTitle">TCP Server Settings</sys:String>
@@ -68,4 +63,11 @@
     <sys:String x:Key="ConnectionTimeout">Connection Timeout (in seconds):</sys:String>
     <sys:String x:Key="AllowRemoteJobControl">Allow Remote Job Control</sys:String>
     <sys:String x:Key="ListeningOn">Listening on: {0}:{1}</sys:String>
+    <sys:String x:Key="IPAddressToolTip">Local IP Address of the server. If you cant to access the server from another Network, use the public IP address of the server and forward the port on your router.</sys:String>
+
+    <!-- Common Strings -->
+    <sys:String x:Key="Save">Save</sys:String>
+    <sys:String x:Key="SaveButtonToolTip">Save Settings</sys:String>
+    <sys:String x:Key="Cancel">Cancel</sys:String>
+    <sys:String x:Key="CancelButtonToolTip">Cancel Changes</sys:String>
 </ResourceDictionary>

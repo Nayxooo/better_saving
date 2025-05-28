@@ -193,6 +193,7 @@
                       Style="{StaticResource ModernCheckBoxStyle}" />
             <TextBox Text="{Binding TcpServerAddress}"
                      IsReadOnly="True"
+                     ToolTip="{DynamicResource IPAddressToolTip}"
                      Background="Transparent"
                      BorderThickness="0"
                      Foreground="{StaticResource WhiteBrush}"

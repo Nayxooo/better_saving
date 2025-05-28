@@ -4,6 +4,24 @@ namespace better_saving
 {
     public partial class App : System.Windows.Application {
 
+            private Mutex? _mutex;
+
+        protected override void OnStartup(StartupEventArgs e)
+        {
+            const string mutexName = "better_saving_unique_instance";
+            bool createdNew;
+
+            _mutex = new Mutex(true, mutexName, out createdNew);
+
+            if (!createdNew)
+            {
+                System.Windows.MessageBox.Show("L'application est déjà en cours d'exécution.", "Attention", MessageBoxButton.OK, MessageBoxImage.Warning);
+                Shutdown(); // ferme immédiatement
+                return;
+            }
+
+            base.OnStartup(e); // continue l'exécution normale (ouvre MainWindow)
+        }
         public static void LoadLanguageDictionary(string cultureName)
         {
             // Chemin vers les fichiers : “Resources/Localization/Strings.<culture>.xaml”

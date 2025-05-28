@@ -253,25 +253,59 @@
             </StackPanel>
         </DataTemplate>
     </Window.Resources>
-    <Grid>
-        <Grid.LayoutTransform>
-            <ScaleTransform ScaleX="1.5"
-                            ScaleY="1.5"/>
-        </Grid.LayoutTransform>
-        <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="Auto"
-                    MinWidth="250"
-                    MaxWidth="400"/>
-            <ColumnDefinition Width="*"/>
-        </Grid.ColumnDefinitions>
 
-        <ContentControl Grid.Column="0"
+    <DockPanel LastChildFill="True">
+
+        <!-- Top Save Button -->
+        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="10" DockPanel.Dock="Top">
+            <Button Content="Sauvegarder"
+                Command="{Binding SaveCommand}"
+                Width="120"
+                Height="40"
+                Background="#3b7a57"
+                Foreground="White"
+                Cursor="Hand"
+                ToolTip="Sauvegarder maintenant"
+                Style="{StaticResource SettingsButtonStyle}" />
+        </StackPanel>
+
+        <Grid>
+            <Grid.LayoutTransform>
+                <ScaleTransform ScaleX="1.5"
+                            ScaleY="1.5"/>
+            </Grid.LayoutTransform>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto"
+                              MinWidth="250"
+                              MaxWidth="400"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+
+            <ContentControl Grid.Column="0"
                         Content="{Binding ListVM}"
                         HorizontalAlignment="Stretch"/>
 
-        <ContentControl Grid.Column="1"
-                        MinWidth="300"
-                        Content="{Binding CurrentView}"
-                        HorizontalAlignment="Stretch"/>
-    </Grid>
+            <!-- Colonne droite : CurrentView + Monitoring Réseau -->
+            <Grid Grid.Column="1" MinWidth="300">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="*" />
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
+
+                <!-- Vue principale -->
+                <ContentControl Content="{Binding CurrentView}" Grid.Row="0" HorizontalAlignment="Stretch" />
+
+                <!-- Monitoring Réseau -->
+                <StackPanel Grid.Row="1" Margin="10" Background="#FF1E1E1E">
+                    <TextBlock Text="Bande passante max (Ko/s):" Foreground="White" />
+                    <TextBox Name="BandwidthLimitBox" Text="500" Width="100" Margin="0,5" />
+
+                    <TextBlock Text="Utilisation réseau (Ko/s):" Foreground="White" Margin="0,0,0,5" />
+                    <ProgressBar Name="NetworkUsageBar" Minimum="0" Maximum="10000" Height="20" Margin="0,0,0,5" />
+                    <TextBlock Name="NetworkUsageText" Foreground="White" FontWeight="Bold" />
+                </StackPanel>
+            </Grid>
+
+        </Grid>
+    </DockPanel>
 </Window>

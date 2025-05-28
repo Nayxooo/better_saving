@@ -1,13 +1,25 @@
-﻿using System.Windows;
+﻿using System.Threading.Tasks;
+using CommunityToolkit.Mvvm.Input;
+using better_saving;
 
-namespace better_saving
+namespace better_saving.ViewModels
 {
-    public partial class MainWindow : Window
-    {        public MainWindow()
+    public class MainWindow : BaseViewModel
+    {
+        private readonly BackupManager _BackupManage = new BackupManager();
+        private BackupManager _SaveManager = new BackupManager();
+
+        public IAsyncRelayCommand SaveCommand { get; }
+
+        public MainWindow()
         {
-            InitializeComponent();
-            // Assign our MainViewModel as the DataContext
-            DataContext = new ViewModels.MainViewModel();
+            SaveCommand = new AsyncRelayCommand(SaveAsync);
+        }
+
+        private async Task SaveAsync()
+        {
+            bool value = await _SaveManager.SaveAsync();
+
         }
     }
 }

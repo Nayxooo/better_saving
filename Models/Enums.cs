@@ -15,4 +15,13 @@ namespace better_saving.Models
         Failed, // Job has failed
         Idle // Job has been created but not started
     }
+
+        public enum RemoteCommands
+    {
+        PING,
+        START_JOB, // Start a job
+        PAUSE_JOB, // Stop a job
+        STOP_JOB, // Pause a job
+        UNKNOWN // Unknown command
+    }
 }

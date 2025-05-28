@@ -80,6 +80,9 @@ namespace better_saving.ViewModels
         public MainViewModel()
         {
             _tcpServer = new TCPServer(this);
+            var tempLogger = new Logger();
+            _tcpServer.SetStateFilePath(tempLogger.GetStateLogFilePath());
+
             _listVM = new BackupListViewModel(this, _tcpServer); // Pass TCPServer to BackupListViewModel
             ShowCreateJobViewCommand = new RelayCommand(_ => ShowCreateJobViewInternal());
             ToggleSettingsViewCommand = new RelayCommand(_ => ToggleSettingsViewInternal());

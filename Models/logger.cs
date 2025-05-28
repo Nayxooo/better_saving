@@ -51,6 +51,14 @@ namespace better_saving.Models
             }
         }
 
+        /// <summary>
+        /// Public getter for the state log file path.
+        /// </summary>
+        public string GetStateLogFilePath()
+        {
+            return StateLogFilePath;
+        }
+
         public void LogError(string errorMessage)
         {
             lock (logLock)
@@ -213,7 +221,7 @@ namespace better_saving.Models
                     }
 
                     // Notify TCPServer about the update
-                    _tcpServer?.HandleStateFileUpdate(StateLogFilePath);
+                    _tcpServer?.HandleStateFileUpdate();
                 }
                 catch (Exception ex)
                 {

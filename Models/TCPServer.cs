@@ -21,6 +21,9 @@ namespace better_saving.Models
         private TcpListener? _listener;
         private readonly List<BinaryWriter> _clientWriters = [];
         private readonly object _clientsLock = new();
+        private string? StateLogFilePath;
+        private string? stateJsonContent;
+        private string? tempStateJsonContent;
         private CancellationTokenSource? _cancellationTokenSource;
         private Task? _listenTask;
         private readonly string logFilePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "logs/TcpServer.log");
@@ -52,6 +55,11 @@ namespace better_saving.Models
             {
                 Log($"Failed to clear log file at startup: {ex.Message}");
             }
+        }
+
+        public void SetStateFilePath(string stateFilePath)
+        {
+            StateLogFilePath = stateFilePath;
         }
 
         private void Log(string message)
@@ -384,6 +392,19 @@ namespace better_saving.Models
                                     responseMessage = "ERROR: STOP_JOB requires 1 argument: jobName";
                                 }
                                 break;
+                            case RemoteCommands.GET_JOBS:
+                                string? jobsState = GetJobsStateContent();
+                                if (!string.IsNullOrEmpty(jobsState))
+                                {
+                                    responseMessage = jobsState;
+                                    Log($"Sending job states to {client.Client.RemoteEndPoint}");
+                                }
+                                else
+                                {
+                                    responseMessage = "ERROR: Could not retrieve job states.";
+                                    Log($"Failed to retrieve job states for {client.Client.RemoteEndPoint}. StateLogFilePath: {StateLogFilePath}");
+                                }
+                                break;
                             default:
                                 responseMessage = "ERROR: Unknown command.";
                                 Log($"Received unknown command '{command}' from {client.Client.RemoteEndPoint}.");
@@ -444,7 +465,61 @@ namespace better_saving.Models
             }
         }
 
-        public void HandleStateFileUpdate(string StateLogFilePath)
+        /// <summary>
+        /// Gets the content of the state.json file, removing sensitive information.
+        /// </summary>
+        /// <returns></returns>
+        private string? GetJobsStateContent()
+        {
+            if (string.IsNullOrWhiteSpace(StateLogFilePath))
+            {
+                Log("StateLogFilePath is not set, cannot get state JSON content.");
+                return null;
+            }
+
+            try
+            {
+                string content = File.ReadAllText(StateLogFilePath);
+                if (string.IsNullOrWhiteSpace(content))
+                {
+                    Log($"State file {StateLogFilePath} is empty or whitespace.");
+                    return null;
+                }
+
+                JsonArray? stateJsonArray = JsonNode.Parse(content)?.AsArray();
+                if (stateJsonArray == null)
+                {
+                    Log($"Error parsing state file {StateLogFilePath} as JSON.");
+                    return null;
+                }
+
+                // Remove sensitive information like directory paths
+                for (int i = stateJsonArray.Count - 1; i >= 0; i--)
+                {
+                    if (stateJsonArray[i] is JsonObject jobObject)
+                    {
+                        jobObject.Remove("SourceDirectory");
+                        jobObject.Remove("TargetDirectory");
+                    }
+                }
+
+                // Convert the modified state JSON back to a string
+                return stateJsonArray.ToJsonString(new JsonSerializerOptions { WriteIndented = true }) ?? "{}";
+            }
+            catch (FileNotFoundException)
+            {
+                Log($"Error: State file not found at {StateLogFilePath}");
+                return null;
+            }
+            catch (Exception ex)
+            {
+                Log($"Error reading state file {StateLogFilePath}: {ex.Message}");
+                return null;
+            }
+        }
+        
+
+        public void HandleStateFileUpdate()
         {
             Log($"Attempting to broadcast state.json update.");
 
@@ -454,59 +529,22 @@ namespace better_saving.Models
                 return;
             }
 
-            string stateJsonContent;
-            JsonArray? stateJsonArray;
-            try
-            {
-                stateJsonContent = File.ReadAllText(StateLogFilePath);
-                if (string.IsNullOrWhiteSpace(stateJsonContent))
-                {
-                    Log($"State file {StateLogFilePath} is empty or whitespace.");
-                    return;
-                }
-                stateJsonArray = JsonNode.Parse(stateJsonContent)?.AsArray();
-                if (stateJsonArray == null)
-                {
-                    Log($"Error parsing state file {StateLogFilePath} as JSON.");
-                    return;
-                }
-            }
-            catch (FileNotFoundException)
-            {
-                Log($"Error: State file not found at {StateLogFilePath}");
-                return;
-            }
-            catch (Exception ex)
-            {
-                Log($"Error reading state file {StateLogFilePath}: {ex.Message}");
-                return;
-            }
-            // remove sensitive information like directory paths
-            if (stateJsonArray == null)
-            {
-                Log("State JSON array is null after parsing.");
-                return;
-            }
-
-
-            Log($"Removing sensitive information from state.json content.");
-            for (int i = stateJsonArray.Count - 1; i >= 0; i--)
-            {
-                if (stateJsonArray[i] is JsonObject jobObject)
-                {
-                    jobObject.Remove("SourceDirectory");
-                    jobObject.Remove("TargetDirectory");
-                }
-            }
-
-
             // Convert the modified state JSON back to a string
-            stateJsonContent = stateJsonArray?.ToJsonString(new JsonSerializerOptions { WriteIndented = true }) ?? "{}";
+            stateJsonContent = GetJobsStateContent();
             if (string.IsNullOrWhiteSpace(stateJsonContent))
             {
                 Log("State JSON content is empty after processing.");
                 return;
             }
+
+            if (stateJsonContent == tempStateJsonContent)
+            {
+                Log("State JSON content has not changed, skipping broadcast.");
+                return;
+            }
+
+            // Update the tempStateJsonContent to the current state
+            tempStateJsonContent = stateJsonContent;
 
 
             byte[] stateBytes = Encoding.UTF8.GetBytes(stateJsonContent);

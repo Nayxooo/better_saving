@@ -22,6 +22,7 @@ namespace better_saving.Models
         START_JOB, // Start a job
         PAUSE_JOB, // Stop a job
         STOP_JOB, // Pause a job
+        GET_JOBS, // Get the state.json file (without sensitive data)
         UNKNOWN // Unknown command
     }
 }

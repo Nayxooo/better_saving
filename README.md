@@ -2,20 +2,28 @@
 
 A robust C# file backup application with a modern WPF GUI interface for efficiently managing backup jobs.
 
+
+## Changelog
+
+For a detailed list of changes, new features, and bug fixes in each version, please see the [CHANGELOG.md](CHANGELOG.md) file.
+
 ## Features
 
 - **Modern WPF Interface**: Intuitive Windows-native graphical user interface
 - **Multiple Backup Types**: Support for full and differential backups
 - **Job Management**: Create, start, stop, pause, resume, and monitor backup jobs
+- **Remote Job Management (TCP Server)**: Monitor and control backup jobs remotely via TCP (client application in development).
+- **Global Transfer Throttling**: Limit total concurrent file transfer size across all backup jobs to manage bandwidth and system resources.
 - **Real-time Progress Tracking**: Visual progress bars and status indicators
-- **Comprehensive Logging**: Detailed logging of backup activities and states
+- **Comprehensive Logging**: Detailed logging of backup activities, states, and critical errors to daily structured text logs and a dedicated `EasySave33_bugReport.log`.
 - **Multi-language Support**: Support for English and French languages
 - **File Verification**: Uses XXHash64 algorithm for efficient file comparison
 - **Blocked Software Detection**: Prevents backups when specified software is running
-- **File Encryption**: Automatic encryption of specified file types using CryptoSoft
+- **File Encryption**: Automatic encryption of specified file types using CryptoSoft (automatically downloaded if not present)
 - **Priority File Extensions**: Backup files with specific extensions first
 - **Continuous Backup**: Automatic monitoring and backup of changes
 - **Settings Persistence**: Save and load application settings automatically
+- **Enhanced Stability**: Robust global unhandled exception handling.
 
 ## Getting Started
 
@@ -108,6 +116,9 @@ Prevent backups from running when specified software is active, avoiding potenti
 ### Continuous Backup
 Jobs automatically monitor for changes and maintain up-to-date backups.
 
+### Remote Job Management
+Enable the built-in TCP server to monitor and control backup jobs (start, pause, stop) from a remote client. The server also broadcasts job state updates. (Client application is currently in development).
+
 ## Project Structure
 
 - **Models/**: Core data models for backup jobs, logging, hashing, and settings
@@ -122,25 +133,21 @@ Jobs automatically monitor for changes and maintain up-to-date backups.
 - **Framework**: .NET 8.0 with WPF
 - **Architecture**: MVVM (Model-View-ViewModel) pattern
 - **Hashing**: XXHash64 for efficient file comparison
-- **Logging**: JSON-based daily logs with detailed operation tracking
+- **Logging**: Structured text-based daily logs (`.log`) with detailed operation tracking and a separate `EasySave33_bugReport.log` for critical errors.
+- **Remote Management**: TCP server for remote job control and state broadcasting.
 - **Settings**: Persistent JSON configuration files
 - **Threading**: Async/await pattern for non-blocking operations
 
 ## Configuration Files
 
-- `EasySave33.settings`: Application settings (blocked software, file extensions, language)
-- `state.json`: Current state of all backup jobs
-- `logs/`: Daily backup operation logs
-- `CryptoSoft.settings`: Encryption configuration (if using encryption features)
+- `EasySave33.settings`: Application settings (blocked software, file extensions, language, TCP server state, transfer limits)
+- `CryptoSoft.settings`: Encryption configuration (if using encryption features) (automatically created if not present)
 
 ## Dependencies
 
 - **SharpVectors.Wpf**: SVG icon rendering
 - **System.IO.Hashing**: XXHash64 implementation
 
-## Documentation
-
-For a comprehensive overview of the codebase, including detailed explanations of architecture, components, and implementation details, please see the UML diagrams in the `UMLs/` directory.
 
 ## Acknowledgments
 

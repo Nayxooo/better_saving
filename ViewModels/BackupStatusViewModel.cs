@@ -1,12 +1,13 @@
-using better_saving.Models; 
-using System.ComponentModel; 
+using better_saving.Models;
+using System.ComponentModel;
 using System.Windows.Input; // Added for ICommand
 using System.Threading; // Added for CancellationTokenSource
 using System.Threading.Tasks; // Added for Task
 using System;
 
 namespace better_saving.ViewModels
-{    public class BackupStatusViewModel : ViewModelBase
+{
+    public class BackupStatusViewModel : ViewModelBase
     {
         private backupJob _selectedJob;
         private readonly MainViewModel? _mainViewModel;
@@ -66,13 +67,17 @@ namespace better_saving.ViewModels
                     break;
                 case nameof(backupJob.TotalSizeCopied):
                     OnPropertyChanged(nameof(TotalSizeCopied));
-                    break;                case nameof(backupJob.ErrorMessage):
+                    break;
+                case nameof(backupJob.ErrorMessage):
                     OnPropertyChanged(nameof(ErrorMessage));
+                    break;
+                case nameof(backupJob.InfoMessage):
+                    OnPropertyChanged(nameof(InfoMessage));
                     break;
                 case nameof(backupJob.IsPausing):
                     OnPropertyChanged(nameof(IsJobPausing));
                     break;
-                // Add other properties if needed
+                    // Add other properties if needed
             }
         }
         // Expose properties of SelectedJob that BackupStatusView will bind to
@@ -80,7 +85,7 @@ namespace better_saving.ViewModels
         public string JobName => SelectedJob.Name;
         public string SourceDirectory => SelectedJob.SourceDirectory;
         public string TargetDirectory => SelectedJob.TargetDirectory;
-        public string JobType => SelectedJob.Type.ToString();        public string JobState => SelectedJob.State.ToString();
+        public string JobType => SelectedJob.Type.ToString(); public string JobState => SelectedJob.State.ToString();
         public bool IsJobPausing => SelectedJob.IsPausing;
         public float JobProgress => SelectedJob.Progress;
         public long TotalFilesToCopy => SelectedJob.TotalFilesToCopy;
@@ -88,6 +93,7 @@ namespace better_saving.ViewModels
         public ulong TotalSizeToCopy => SelectedJob.TotalSizeToCopy;
         public long TotalSizeCopied => SelectedJob.TotalSizeCopied;
         public string? ErrorMessage => SelectedJob.ErrorMessage;
+        public string? InfoMessage => SelectedJob.InfoMessage;
 
         public ICommand PauseResumeJobCommand { get; }
         public ICommand DeleteJobCommand { get; }
@@ -112,24 +118,24 @@ namespace better_saving.ViewModels
 
             var logger = _mainViewModel?.ListVM.GetLogger();
 
-            if (logger == null && SelectedJob.State != JobStates.Working)
+            if (logger == null && (SelectedJob.State != JobStates.Working))
             {
-                SelectedJob.ErrorMessage = "Logger not available. Cannot start/resume job.";
-                OnPropertyChanged(nameof(ErrorMessage));
+                SelectedJob.InfoMessage = "Logger not available. Cannot start/resume job.";
+                OnPropertyChanged(nameof(InfoMessage)); // Changed from ErrorMessage
                 return;
             }
 
             if (_mainViewModel?.IsSoftwareRunning() == true)
             {
-                SelectedJob.ErrorMessage = $"Cannot start/resume job: {_mainViewModel.GetRunningBlockedSoftware()} is running.";
-                // Corrected LogBackupDetails call: added encryptionExitCode (NumberFilesLeftToDo as placeholder)
-                _mainViewModel?.ListVM.GetLogger()?.LogBackupDetails(SelectedJob.Name, "SystemOperation", SelectedJob.ErrorMessage ?? "Blocked software", 0, 0, SelectedJob.NumberFilesLeftToDo);
-                OnPropertyChanged(nameof(ErrorMessage));
+                SelectedJob.InfoMessage = $"Cannot start/resume job: {_mainViewModel.GetRunningBlockedSoftware()} is running.";
+                _mainViewModel?.ListVM.GetLogger()?.LogBackupDetails(SelectedJob.Name, "SystemOperation",
+                    SelectedJob.InfoMessage ?? "Blocked software", 0, 0, SelectedJob.NumberFilesLeftToDo); // Changed from ErrorMessage
+                OnPropertyChanged(nameof(InfoMessage)); // Changed from ErrorMessage
                 return;
             }
 
             try
-            {                
+            {
                 if (SelectedJob.State == JobStates.Working)
                 {
                     // PAUSE action
@@ -138,36 +144,18 @@ namespace better_saving.ViewModels
                         SelectedJob.Pause();
                     }
                 }
-                else if (SelectedJob.State == JobStates.Stopped ||
-                         SelectedJob.State == JobStates.Paused ||
-                         SelectedJob.State == JobStates.Failed ||
-                         SelectedJob.State == JobStates.Finished) 
+                else if (SelectedJob.State == JobStates.Paused)
                 {
-                    SelectedJob._executionCts?.Dispose(); // Dispose any existing CTS
-                    SelectedJob._executionCts = new CancellationTokenSource(); // Create a new CTS for the job
-
-                    // Execute the job on a background thread    
+                    // RESUME action - Use the proper Resume method
                     await Task.Run(async () =>
                     {
                         try
                         {
-                            if (logger == null) // Should not happen if the initial check passed, but as a safeguard
-                            {
-                                SelectedJob.State = JobStates.Failed;
-                                SelectedJob.ErrorMessage = "Critical error: Logger became null before job execution.";
-                                return;
-                            }
-                            await SelectedJob.ExecuteAsync(SelectedJob._executionCts.Token);
+                            await SelectedJob.Resume();
                         }
                         catch (OperationCanceledException)
                         {
-                            // This is expected if the job is stopped.
-                            // The state should be set to Stopped within ExecuteAsync.
-                            // If not already Stopped, explicitly set it.
-                            if (SelectedJob.State != JobStates.Stopped)
-                            {
-                                SelectedJob.State = JobStates.Stopped;
-                            }
+                            // The job was cancelled, state is handled in CheckCancellationRequested
                         }
                         catch (Exception ex)
                         {
@@ -176,6 +164,27 @@ namespace better_saving.ViewModels
                                 SelectedJob.State = JobStates.Failed;
                             }
                             SelectedJob.ErrorMessage = $"Job execution encountered an error: {ex.Message}";
+                        }
+                    });
+                }
+                else if (SelectedJob.State == JobStates.Stopped ||
+                         SelectedJob.State == JobStates.Failed ||
+                         SelectedJob.State == JobStates.Finished)
+                {
+                    // START action - New execution
+                    await Task.Run(async () =>
+                    {
+                        try
+                        {
+                            await SelectedJob.Start();
+                        }
+                        catch (Exception ex)
+                        {
+                            SelectedJob.ErrorMessage = $"Job execution encountered an error: {ex.Message}";
+                            if (SelectedJob.State != JobStates.Failed)
+                            {
+                                SelectedJob.State = JobStates.Failed;
+                            }
                         }
                     });
                 }

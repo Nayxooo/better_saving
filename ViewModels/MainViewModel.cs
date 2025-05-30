@@ -25,8 +25,6 @@ namespace better_saving.ViewModels
         private string _selectedLanguage;
         private ObservableCollection<backupJob> _blockedJobs = new ObservableCollection<backupJob>();
         private readonly TCPServer _tcpServer;
-        private const string StateFileName = "state.json"; // Define state file name
-
         private long _currentGlobalTransferringSizeInBytes = 0; // Tracks current total size of files being transferred, in bytes
         public long CurrentGlobalTransferringSizeInBytes => _currentGlobalTransferringSizeInBytes; // Public getter
 
@@ -106,8 +104,14 @@ namespace better_saving.ViewModels
             // Initialiser le monitoring des tâches bloquées
             InitializeBlockedJobsMonitoring();
 
-            _listVM.GetLogger().LogBackupDetails("System", "Settings",
-                $"Settings loaded - Blocked software: {(_blockedSoftware.Count != 0 ? string.Join(", ", _blockedSoftware) : "(empty)")}", 0, 0, 0);
+            // log all settings loaded
+            string settingsLog = $"Settings loaded: Language={_selectedLanguage}, BlockedSoftware={(_blockedSoftware.Count != 0 ? string.Join(", ", _blockedSoftware) : "(empty)")}, " +
+                $"FileExtensions={string.Join(", ", settings.FileExtensions)}, " +
+                $"PriorityFileExtensions={string.Join(", ", settings.PriorityFileExtensions)}, " +
+                $"MaxFileTransferSize={settings.MaxFileTransferSize}KB, " + 
+                $"TcpServerEnabled={settings.IsTcpServerEnabled}";
+
+            _listVM.GetLogger().LogBackupDetails("System", "Settings", settingsLog, 0, 0, 0);
         }
 
         internal void ShowBA()

@@ -192,7 +192,7 @@ namespace better_saving.Models
                             Type = job.Type.ToString(), // Enum to string
                             State = job.State.ToString(),   // Enum to string
                             TotalFilesToCopy = job.TotalFilesToCopy,
-                            TotalFilesSize = job.TotalSizeToCopy,
+                            TotalFilesSize = job.TotalSizeToCopy, // Renamed from TotalFilesSize for consistency
                             NumberFilesLeftToDo = job.NumberFilesLeftToDo,
                             Progress = job.Progress,
                             ErrorMessage = job.ErrorMessage
@@ -241,13 +241,13 @@ namespace better_saving.Models
             {
                 if (!File.Exists(StateLogFilePath))
                 {
-                    return new List<backupJob>(); // Return empty list if state file doesn\'t exist
+                    return []; // Return empty list if state file doesn\'t exist
                 }
                 // Read the JSON content from the state file
                 string jsonContent = File.ReadAllText(StateLogFilePath);
                 if (string.IsNullOrWhiteSpace(jsonContent))
                 {
-                    return new List<backupJob>(); // Return empty list if state file is empty
+                    return []; // Return empty list if state file is empty
                 }
 
                 // Deserialize the JSON content to a list of job states
@@ -265,32 +265,30 @@ namespace better_saving.Models
                         string targetDir = jobStateElement.GetProperty("TargetDirectory").GetString() ?? "";
                         string typeStr = jobStateElement.GetProperty("Type").GetString() ?? JobType.Full.ToString();
                         JobType type = Enum.Parse<JobType>(typeStr, true);
+                        string stateStr = jobStateElement.GetProperty("State").GetString() ?? JobStates.Stopped.ToString();
 
-                        // Create the job instance.
-                        // Pass \'this\' as the logger.
-                        var job = new backupJob(name, sourceDir, targetDir, type, this);                    // Restore additional properties like State and Progress if they are stored and settable
-                                                                                                            // Example:
-                        if (jobStateElement.TryGetProperty("State", out JsonElement stateElement))
+                        // parse the state, only accept stopped, paused and failed states
+                        if (!Enum.TryParse(stateStr, true, out JobStates state) || state != JobStates.Failed)
                         {
-                            string jobStatusStr = stateElement.GetString() ?? JobStates.Stopped.ToString();
-                            JobStates jobState = Enum.Parse<JobStates>(jobStatusStr, true);
-
-                            if (jobState == JobStates.Paused) job.State = JobStates.Paused;
-
-                            // If state is Failed, ensure Progress is 0 regardless of what's in the file
-                            if (jobState == JobStates.Failed)
-                            {
-                                job.Progress = 0;
-                            }
-                            else if (jobStateElement.TryGetProperty("Progress", out JsonElement progressElement))
-                            {
-                                job.Progress = progressElement.GetSingle(); // Progress is now a float
-                            }
+                            state = JobStates.Stopped; // Default to Stopped if parsing fails or state is not valid
                         }
-                        else if (jobStateElement.TryGetProperty("Progress", out JsonElement progressElement))
+
+                        int totalFilesToCopy = jobStateElement.GetProperty("TotalFilesToCopy").GetInt32();
+                        int numberFilesLeftToDo = jobStateElement.GetProperty("NumberFilesLeftToDo").GetInt32();
+                        int totalFilesCopied = totalFilesToCopy - numberFilesLeftToDo;
+
+                        // Create the job instance and set its properties
+                        var job = new backupJob(name, sourceDir, targetDir, type, this)
                         {
-                            job.Progress = progressElement.GetSingle(); // Progress is now a float
-                        }
+                            State = state,
+                            TotalFilesToCopy = totalFilesToCopy,
+                            NumberFilesLeftToDo = numberFilesLeftToDo,
+                            TotalFilesCopied = totalFilesCopied,
+                            TotalSizeToCopy = jobStateElement.GetProperty("TotalFilesSize").GetUInt64(),
+                            Progress = (float)jobStateElement.GetProperty("Progress").GetDouble(),
+                            ErrorMessage = jobStateElement.GetProperty("ErrorMessage").GetString() ?? ""
+                        };
+                        // job.UpdateProgress(); // Removed: Progress is now loaded directly
 
                         loadedJobs.Add(job);
                     }

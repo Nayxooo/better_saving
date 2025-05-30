@@ -20,6 +20,7 @@
     <!-- BackupStatusView -->
     <sys:String x:Key="JobStatusDetailsTitle">Détails de la tâche</sys:String>
     <sys:String x:Key="ErrorLabel">Erreur:</sys:String>
+    <sys:String x:Key="InfoLabel">Info:</sys:String>
     <sys:String x:Key="DeleteJobToolTip">Supprimer la tâche</sys:String>
     <sys:String x:Key="PauseResumeJobToolTip">Mettre en pause/Reprendre la tâche</sys:String>
     <sys:String x:Key="StartAllJobsToolTip">Démarrer toutes les tâches</sys:String>
@@ -40,11 +41,11 @@
     <sys:String x:Key="BlockedSoftwareLabel">Logiciels bloquants (séparés par des virgules, ex. : 'calc.exe, notepad.exe'):</sys:String>
     <sys:String x:Key="BlockedSoftwareToolTip">Exemple : calc.exe, notepad.exe</sys:String>
 
-    <sys:String x:Key="FileExtensionsLabel">Extensions de fichiers à chiffrer (séparés par des virgules, ex. : '.txt, .docx'):</sys:String>
-    <sys:String x:Key="FileExtensionsToolTip">Exemple : .json, .mp4</sys:String>
+    <sys:String x:Key="FileExtensionsEncryptLabel">Extensions de fichiers à chiffrer (séparés par des virgules, ex. : '.txt, .docx') (.* pour chiffrer tous les fichiers):</sys:String>
+    <sys:String x:Key="FileExtensionsEncryptToolTip">Exemple : .json, .mp4</sys:String>
 
-    <sys:String x:Key="PriorityFileExtensionsLabel">Extensions de fichiers prioritaires (séparés par des virgules, ex. : '.doc', '.xlsx'):</sys:String>
-    <sys:String x:Key="PriorityFileExtensionsToolTip">Les fichiers avec ces extensions seront sauvegardés en premier</sys:String>
+    <sys:String x:Key="PriorityFileExtensionsEncryptLabel">Extensions de fichiers prioritaires (séparés par des virgules, ex. : '.doc', '.xlsx'):</sys:String>
+    <sys:String x:Key="PriorityFileExtensionsEncryptToolTip">Les fichiers avec ces extensions seront sauvegardés en premier</sys:String>
 
     <!-- la taille totale des fichiers transférés simultanément pour toutes les tâches ne doit pas dépasser cette limite -->
     <sys:String x:Key="MaxFileTranferSizeLabel">

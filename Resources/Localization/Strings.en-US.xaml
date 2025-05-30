@@ -20,6 +20,7 @@
     <!-- BackupStatusView -->
     <sys:String x:Key="JobStatusDetailsTitle">Job Status Details</sys:String>
     <sys:String x:Key="ErrorLabel">Error:</sys:String>
+    <sys:String x:Key="InfoLabel">Info:</sys:String>
     <sys:String x:Key="DeleteJobToolTip">Delete Job</sys:String>
     <sys:String x:Key="PauseResumeJobToolTip">Pause/Resume Job</sys:String>
     <sys:String x:Key="StartAllJobsToolTip">Start All Jobs</sys:String>
@@ -40,11 +41,11 @@
     <sys:String x:Key="BlockedSoftwareLabel">Blocked Software (comma-separated, e.g.: 'calc.exe','notepad.exe'):</sys:String>
     <sys:String x:Key="BlockedSoftwareToolTip">Example: calc.exe, notepad.exe</sys:String>
 
-    <sys:String x:Key="FileExtensionsLabel">File extensions to encrypt (comma-separated, e.g.: '.txt', '.docx'):</sys:String>
-    <sys:String x:Key="FileExtensionsToolTip">Example: .json, .mp4</sys:String>
+    <sys:String x:Key="FileExtensionsEncryptLabel">File extensions to encrypt (comma-separated, e.g.: '.txt', '.docx') (.* to encrypt all files):</sys:String>
+    <sys:String x:Key="FileExtensionsEncryptToolTip">Example: .json, .mp4</sys:String>
 
-    <sys:String x:Key="PriorityFileExtensionsLabel">Priority File Extensions (comma-separated, e.g.: '.doc', '.xlsx'):</sys:String>
-    <sys:String x:Key="PriorityFileExtensionsToolTip">Files with these extensions will be backed up first</sys:String>
+    <sys:String x:Key="PriorityFileExtensionsEncryptLabel">Priority File Extensions (comma-separated, e.g.: '.doc', '.xlsx'):</sys:String>
+    <sys:String x:Key="PriorityFileExtensionsEncryptToolTip">Files with these extensions will be backed up first</sys:String>
 
     <!-- the total size of files that are being transferd acrross all jobs should not exceed this limit -->
     <sys:String x:Key="MaxFileTranferSizeLabel">

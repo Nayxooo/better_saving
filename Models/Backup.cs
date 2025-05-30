@@ -11,7 +11,7 @@ public class Backup
     /// <returns>
     /// The time taken in milliseconds to copy the file, or -1 if the operation failed.
     /// </returns>
-    public static int backupFile(string sourceFilePath, string targetFilePath)
+    public static int BackupFile(string sourceFilePath, string targetFilePath)
     {
         // copy the file from source to target
         // keep track of the file size and time taken for the backup

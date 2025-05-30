@@ -180,7 +180,7 @@ namespace better_saving.ViewModels
         }
 
         // Helper method to get localized string (assuming you have such a mechanism)
-        private string GetLocalized(string key)
+        private static string GetLocalized(string key)
         {
             // This is a placeholder. You'll need to implement this based on your localization setup.
             // For example, using Application.Current.FindResource(key) as string;

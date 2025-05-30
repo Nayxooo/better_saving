@@ -142,34 +142,34 @@
                                             TrueColor="{StaticResource SecondaryBrush}"
                                             FalseColor="{StaticResource ButtonDefaultBackgroundBrush}" />
     </UserControl.Resources>
-    <StackPanel Margin="0">
+    <StackPanel Margin="10">
         <!-- SettingsTitle -->
         <TextBlock Text="{Binding SettingsTitle}"
                    Foreground="{StaticResource WhiteBrush}"
-                   FontSize="16" />
+                   FontSize="24" />
         <!-- BlockedSoftware -->
         <TextBlock Text="{DynamicResource BlockedSoftwareLabel}"
                    Foreground="{StaticResource WhiteBrush}"
-                   Margin="0,3,0,0" />
+                   Margin="0,6,0,0" />
         <TextBox Text="{Binding BlockedSoftwareText}"
                  Margin="0,3"
                  ToolTip="{DynamicResource BlockedSoftwareToolTip}"
                  Style="{StaticResource RoundedTextBoxStyle}" />
         <!-- FileExtensions -->
-        <TextBlock Text="{DynamicResource FileExtensionsLabel}"
+        <TextBlock Text="{DynamicResource FileExtensionsEncryptLabel}"
                    Foreground="{StaticResource WhiteBrush}"
                    Margin="0,3,0,0" />
         <TextBox Text="{Binding FileExtensionsText}"
                  Margin="0,3"
-                 ToolTip="{DynamicResource FileExtensionsToolTip}"
+                 ToolTip="{DynamicResource FileExtensionsEncryptToolTip}"
                  Style="{StaticResource RoundedTextBoxStyle}" />
         <!-- PriorityFileExtensions -->
-        <TextBlock Text="{DynamicResource PriorityFileExtensionsLabel}"
+        <TextBlock Text="{DynamicResource PriorityFileExtensionsEncryptLabel}"
                    Foreground="{StaticResource WhiteBrush}"
                    Margin="0,3,0,0" />
         <TextBox Text="{Binding PriorityFileExtensionsText}"
                  Margin="0,3"
-                 ToolTip="{DynamicResource PriorityFileExtensionsToolTip}"
+                 ToolTip="{DynamicResource PriorityFileExtensionsEncryptToolTip}"
                  Style="{StaticResource RoundedTextBoxStyle}" />
         <!-- MaxFileTranferSize -->
         <TextBlock Text="{DynamicResource MaxFileTranferSizeLabel}"

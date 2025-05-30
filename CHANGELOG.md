@@ -1,3 +1,27 @@
+## EasySave [v3.0.0] - 2025-05-31
+
+### Info
+This version includes several bug fixes and feature enhancements.
+
+Exited from the preview stage as client is in working state (not yet fully featured).
+
+### Added
+- **Job Status View UI:**
+    - Added an `infoMessage` textbox in `JobStatusView`.
+
+### Changed
+- **TCP Server Performance:**
+    - Optimized state.json broadcasting to reduce network traffic.
+- **ReadMe Updates:**
+    - Updated README with new images of the GUI.
+- **Job Loading:**
+    - Changed how a job is loaded to include the full progress.
+
+
+### Fixed
+- **Job Execution:** Fixed a bug where jobs would not pause and resume correctly.
+- **Logging:** Fixed logging in `BackupJobs.cs`.
+
 ## EasySave [v3.0.0-preview] - 2025-05-28
 
 ### Info

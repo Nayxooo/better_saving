@@ -39,6 +39,8 @@
     <!-- Text Colors -->
     <Color x:Key="ErrorTextColor">#FFFF0500</Color> <!-- #FF0500 -->
     <SolidColorBrush x:Key="ErrorTextBrush" Color="{StaticResource ErrorTextColor}"/>
+    <Color x:Key="InfoTextColor">#FFCCFFFF</Color> <!-- #CCFFFF -->
+    <SolidColorBrush x:Key="InfoTextBrush" Color="{StaticResource InfoTextColor}"/>
     <Color x:Key="JobStateTextColor">LightSkyBlue</Color>
     <SolidColorBrush x:Key="JobStateTextBrush" Color="{StaticResource JobStateTextColor}"/>
 

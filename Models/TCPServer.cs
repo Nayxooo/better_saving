@@ -521,8 +521,6 @@ namespace better_saving.Models
 
         public void HandleStateFileUpdate()
         {
-            Log($"Attempting to broadcast state.json update.");
-
             if (!IsRunning)
             {
                 Log("Server not running, cannot handle state file update.");
@@ -533,16 +531,18 @@ namespace better_saving.Models
             stateJsonContent = GetJobsStateContent();
             if (string.IsNullOrWhiteSpace(stateJsonContent))
             {
+                Log("Attempting to broadcast state.json update.");
                 Log("State JSON content is empty after processing.");
                 return;
             }
 
             if (stateJsonContent == tempStateJsonContent)
             {
-                Log("State JSON content has not changed, skipping broadcast.");
                 return;
             }
 
+
+            Log("Attempting to broadcast state.json update.");
             // Update the tempStateJsonContent to the current state
             tempStateJsonContent = stateJsonContent;
 
@@ -599,7 +599,7 @@ namespace better_saving.Models
                     }
                 }
             }
-            if (clientsToRemove.Any())
+            if (clientsToRemove.Count != 0)
             {
                 Log($"Removed {clientsToRemove.Count} client(s) after broadcast attempt.");
             }

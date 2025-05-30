@@ -63,7 +63,7 @@ namespace better_saving.ViewModels
         public MainViewModel()
         {
             _listVM = new BackupListViewModel(this);
-            _connectionVM = new ConnectionViewModel();
+            _connectionVM = new ConnectionViewModel(_listVM);
             ChangeLanguageCommand = new RelayCommand(param => SelectedLanguage = param?.ToString() ?? "en");
 
             // Load settings from file
@@ -198,52 +198,11 @@ namespace better_saving.ViewModels
 
         private void ChangeLanguage(string languageCode)
         {
-            try
-            {
-                var culture = new CultureInfo(languageCode);
-                Thread.CurrentThread.CurrentCulture = culture;
-                Thread.CurrentThread.CurrentUICulture = culture;
-
-                var dict = new ResourceDictionary();
-                switch (languageCode)
-                {
-                    case "fr":
-                    case "fr-FR":
-                        dict.Source = new Uri("..\\Resources\\Localization\\Strings.fr-FR.xaml", UriKind.Relative);
-                        languageCode = "fr-FR";
-                        break;
-
-                    case "en":
-                    case "en-US":
-                    default:
-                        dict.Source = new Uri("..\\Resources\\Localization\\Strings.en-US.xaml", UriKind.Relative);
-                        languageCode = "en-US";
-                        break;
-                }
-
-                var old = System.Windows.Application.Current.Resources.MergedDictionaries
-                             .FirstOrDefault(d => d.Source?.OriginalString.Contains("Strings.") == true);
-                if (old != null) System.Windows.Application.Current.Resources.MergedDictionaries.Remove(old);
-
-                System.Windows.Application.Current.Resources.MergedDictionaries.Add(dict);
-
-                // Update language in settings file
-                var settings = Settings.LoadSettings();
-                settings.Language = languageCode;
-                settings.BlockedSoftware = _blockedSoftware;
-                Settings.SaveSettings(settings);
-
-                // If SettingsViewModel is currently displayed, refresh it
-                if (CurrentView is SettingsViewModel)
-                {
-                    CurrentView = new SettingsViewModel(this);
-                }
-            }
-            catch (System.Exception ex)
-            {
-                _listVM.GetLogger().LogBackupDetails(DateTime.Now.ToString("o"),
-                    "System", "Language", $"Error changing language: {ex.Message}", 0, 0);
-            }
+            App.LoadLanguageDictionary(languageCode);
+            var settings = Settings.LoadSettings();
+            settings.Language = languageCode;
+            settings.BlockedSoftware = _blockedSoftware;
+            Settings.SaveSettings(settings);
         }
     }
 }

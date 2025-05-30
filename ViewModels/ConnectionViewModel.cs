@@ -3,24 +3,39 @@ using System.Windows.Input;
 using better_saving.Services;
 using System.Threading.Tasks;
 using System.Windows;
+using System.Text.Json;
+using better_saving.Models;
+using System.Collections.Generic;
+using System.IO;
 
 namespace better_saving.ViewModels
 {
     public class ConnectionViewModel : ViewModelBase
     {
         private readonly SocketService _socketService;
-        private string _serverAddress = "169.254.50.74";
+        private readonly BackupListViewModel _backupListViewModel;
+        private string _serverAddress = "192.168.1.17";
         private string _serverPort = "8989";
         private bool _isConnected;
         private string _connectionStatus = "Non connecté";
+        private readonly string _stateFilePath;
 
         public ICommand ConnectCommand { get; }
 
-        public ConnectionViewModel()
+        public ConnectionViewModel(BackupListViewModel backupListViewModel)
         {
             _socketService = new SocketService();
+            _backupListViewModel = backupListViewModel;
             _socketService.ConnectionStateChanged += OnConnectionStateChanged;
             _socketService.MessageReceived += OnMessageReceived;
+            
+            // Définir le chemin du fichier state.json dans le dossier logs
+            string logsDirectory = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "logs");
+            if (!Directory.Exists(logsDirectory))
+            {
+                Directory.CreateDirectory(logsDirectory);
+            }
+            _stateFilePath = Path.Combine(logsDirectory, "state.json");
             
             ConnectCommand = new RelayCommand(_ => ExecuteConnectCommand());
         }
@@ -92,6 +107,9 @@ namespace better_saving.ViewModels
                 await _socketService.ConnectAsync(_serverAddress, port);
                 ConnectionStatus = "Connecté";
                 IsConnected = true;
+
+                // Envoyer un PING initial pour vérifier la connexion
+                await SendCommand(RemoteCommands.PING);
             }
             catch (TimeoutException)
             {
@@ -144,12 +162,97 @@ namespace better_saving.ViewModels
         {
             System.Windows.Application.Current.Dispatcher.Invoke(() =>
             {
-                // Pour l'instant on affiche juste dans la console
-                Console.WriteLine($"Message reçu: {message}");
-                
-                // TODO: Parser le JSON et mettre à jour la liste des backups
-                // Si le message est un state.json, il faudra le désérialiser et mettre à jour l'interface
+                try
+                {
+                    // Tenter de désérialiser le message comme un state.json
+                    var jobs = JsonSerializer.Deserialize<List<JsonElement>>(message);
+                    if (jobs != null)
+                    {
+                        // Sauvegarder le state.json reçu
+                        File.WriteAllText(_stateFilePath, message);
+                        
+                        // Mettre à jour les jobs
+                        UpdateBackupJobs(jobs);
+                    }
+                }
+                catch (JsonException)
+                {
+                    // Si ce n'est pas un JSON valide, c'est peut-être une réponse à une commande
+                    Console.WriteLine($"Message reçu (non-JSON): {message}");
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Erreur lors du traitement du message : {ex.Message}");
+                }
             });
+        }
+
+        private void UpdateBackupJobs(List<JsonElement> jobStates)
+        {
+            var logger = _backupListViewModel.GetLogger();
+            var updatedJobs = new List<backupJob>();
+
+            foreach (var jobState in jobStates)
+            {
+                try
+                {
+                    string name = jobState.GetProperty("Name").GetString() ?? "";
+                    string sourceDir = jobState.GetProperty("SourceDirectory").GetString() ?? "";
+                    string targetDir = jobState.GetProperty("TargetDirectory").GetString() ?? "";
+                    string typeStr = jobState.GetProperty("Type").GetString() ?? JobType.Full.ToString();
+                    JobType type = Enum.Parse<JobType>(typeStr, true);
+
+                    var job = new backupJob(name, sourceDir, targetDir, type, logger);
+
+                    if (jobState.TryGetProperty("State", out JsonElement stateElement))
+                    {
+                        string stateStr = stateElement.GetString() ?? JobStates.Idle.ToString();
+                        job.State = Enum.Parse<JobStates>(stateStr, true);
+                    }
+
+                    if (jobState.TryGetProperty("Progress", out JsonElement progressElement))
+                    {
+                        job.Progress = (byte)progressElement.GetInt32();
+                    }
+
+                    if (jobState.TryGetProperty("ErrorMessage", out JsonElement errorElement))
+                    {
+                        job.ErrorMessage = errorElement.GetString();
+                    }
+
+                    updatedJobs.Add(job);
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Erreur lors de la mise à jour d'un job : {ex.Message}");
+                }
+            }
+
+            // Mettre à jour la collection de jobs
+            _backupListViewModel.Jobs.Clear();
+            foreach (var job in updatedJobs)
+            {
+                _backupListViewModel.Jobs.Add(job);
+            }
+        }
+
+        public async Task SendCommand(RemoteCommands command)
+        {
+            if (!IsConnected)
+            {
+                throw new InvalidOperationException("Non connecté au serveur");
+            }
+
+            try
+            {
+                string commandStr = command.ToString();
+                await _socketService.SendMessageAsync(commandStr);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Erreur lors de l'envoi de la commande : {ex.Message}");
+                throw;
+            }
         }
     }
 } 

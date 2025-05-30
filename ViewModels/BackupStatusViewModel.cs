@@ -1,6 +1,7 @@
 using better_saving.Models;
 using System;
 using System.ComponentModel;
+using System.Windows.Input;
 
 namespace better_saving.ViewModels
 {
@@ -28,6 +29,10 @@ namespace better_saving.ViewModels
         public ulong TotalSizeToCopy => _job.TotalSizeToCopy;
         public long TotalSizeCopied => _job.TotalSizeCopied;
         public string? ErrorMessage => _job.ErrorMessage;
+
+        public ICommand StartJobCommand { get; }
+        public ICommand PauseJobCommand { get; }
+        public ICommand StopJobCommand { get; }
 
         public string Status
         {
@@ -81,7 +86,42 @@ namespace better_saving.ViewModels
         {
             _job = job;
             _mainViewModel = mainViewModel;
+            
+            StartJobCommand = new RelayCommand(_ => StartJob(), _ => CanStartJob());
+            PauseJobCommand = new RelayCommand(_ => PauseJob(), _ => CanPauseJob());
+            StopJobCommand = new RelayCommand(_ => StopJob(), _ => CanStopJob());
+            
             SubscribeToJobEvents();
+        }
+
+        private bool CanStartJob()
+        {
+            return _job.State == JobStates.Idle || _job.State == JobStates.Stopped;
+        }
+
+        private bool CanPauseJob()
+        {
+            return _job.State == JobStates.Working;
+        }
+
+        private bool CanStopJob()
+        {
+            return _job.State == JobStates.Working || _job.State == JobStates.Idle;
+        }
+
+        private async void StartJob()
+        {
+            await _mainViewModel.ListVM.StartJob(_job.Name);
+        }
+
+        private async void PauseJob()
+        {
+            await _mainViewModel.ListVM.PauseJob(_job.Name);
+        }
+
+        private async void StopJob()
+        {
+            await _mainViewModel.ListVM.StopJob(_job.Name);
         }
 
         private void SubscribeToJobEvents()
@@ -118,6 +158,9 @@ namespace better_saving.ViewModels
                     break;
                 case nameof(backupJob.State):
                     OnPropertyChanged(nameof(JobState));
+                    (StartJobCommand as RelayCommand)?.RaiseCanExecuteChanged();
+                    (PauseJobCommand as RelayCommand)?.RaiseCanExecuteChanged();
+                    (StopJobCommand as RelayCommand)?.RaiseCanExecuteChanged();
                     break;
                 case nameof(backupJob.Progress):
                     OnPropertyChanged(nameof(JobProgress));

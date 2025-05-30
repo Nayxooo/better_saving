@@ -14,7 +14,7 @@ namespace better_saving.ViewModels
     {
         private readonly SocketService _socketService;
         private readonly BackupListViewModel _backupListViewModel;
-        private string _serverAddress = "192.168.1.17";
+        private string _serverAddress = "192.168.1.26";
         private string _serverPort = "8989";
         private bool _isConnected;
         private string _connectionStatus = "Non connecté";
@@ -105,11 +105,17 @@ namespace better_saving.ViewModels
 
                 ConnectionStatus = "Connexion en cours...";
                 await _socketService.ConnectAsync(_serverAddress, port);
+                
+                // Confirmation de connexion
+                Console.WriteLine($"[{DateTime.Now:yyyy-MM-ddTHH:mm:sszzz}] Connecté au serveur {_serverAddress}:{port}");
                 ConnectionStatus = "Connecté";
                 IsConnected = true;
-
-                // Envoyer un PING initial pour vérifier la connexion
-                await SendCommand(RemoteCommands.PING);
+                
+                // Envoyer GET_JOBS pour recevoir l'état des jobs
+                await SendCommand(RemoteCommands.GET_JOBS);
+                
+                // Démarrer la boucle de rafraîchissement des jobs
+                _ = StartJobsRefreshLoop();
             }
             catch (TimeoutException)
             {
@@ -164,75 +170,106 @@ namespace better_saving.ViewModels
             {
                 try
                 {
-                    // Tenter de désérialiser le message comme un state.json
+                    Console.WriteLine($"[{DateTime.Now:yyyy-MM-ddTHH:mm:sszzz}] Message reçu du serveur");
+                    
                     var jobs = JsonSerializer.Deserialize<List<JsonElement>>(message);
                     if (jobs != null)
                     {
-                        // Sauvegarder le state.json reçu
-                        File.WriteAllText(_stateFilePath, message);
+                        Console.WriteLine($"[{DateTime.Now:yyyy-MM-ddTHH:mm:sszzz}] {jobs.Count} jobs reçus");
                         
-                        // Mettre à jour les jobs
+                        // Sauvegarder dans logs/state.json
+                        File.WriteAllText(_stateFilePath, message);
+                        Console.WriteLine($"[{DateTime.Now:yyyy-MM-ddTHH:mm:sszzz}] State.json sauvegardé dans : {_stateFilePath}");
+                        
+                        // Mise à jour de l'UI
                         UpdateBackupJobs(jobs);
+                        Console.WriteLine($"[{DateTime.Now:yyyy-MM-ddTHH:mm:sszzz}] UI mise à jour avec les nouveaux jobs");
                     }
                 }
                 catch (JsonException)
                 {
-                    // Si ce n'est pas un JSON valide, c'est peut-être une réponse à une commande
-                    Console.WriteLine($"Message reçu (non-JSON): {message}");
+                    Console.WriteLine($"[{DateTime.Now:yyyy-MM-ddTHH:mm:sszzz}] Message reçu (non-JSON): {message}");
                 }
                 catch (Exception ex)
                 {
-                    Console.WriteLine($"Erreur lors du traitement du message : {ex.Message}");
+                    Console.WriteLine($"[{DateTime.Now:yyyy-MM-ddTHH:mm:sszzz}] Erreur lors du traitement du message : {ex.Message}");
                 }
             });
         }
 
         private void UpdateBackupJobs(List<JsonElement> jobStates)
         {
-            var logger = _backupListViewModel.GetLogger();
-            var updatedJobs = new List<backupJob>();
-
-            foreach (var jobState in jobStates)
+            try
             {
-                try
+                var logger = _backupListViewModel.GetLogger();
+                var updatedJobs = new List<backupJob>();
+
+                Console.WriteLine($"[{DateTime.Now:yyyy-MM-ddTHH:mm:sszzz}] Début mise à jour des jobs. Nombre de jobs reçus: {jobStates.Count}");
+
+                foreach (var jobState in jobStates)
                 {
-                    string name = jobState.GetProperty("Name").GetString() ?? "";
-                    string sourceDir = jobState.GetProperty("SourceDirectory").GetString() ?? "";
-                    string targetDir = jobState.GetProperty("TargetDirectory").GetString() ?? "";
-                    string typeStr = jobState.GetProperty("Type").GetString() ?? JobType.Full.ToString();
-                    JobType type = Enum.Parse<JobType>(typeStr, true);
-
-                    var job = new backupJob(name, sourceDir, targetDir, type, logger);
-
-                    if (jobState.TryGetProperty("State", out JsonElement stateElement))
+                    try
                     {
-                        string stateStr = stateElement.GetString() ?? JobStates.Idle.ToString();
-                        job.State = Enum.Parse<JobStates>(stateStr, true);
-                    }
+                        string name = jobState.GetProperty("Name").GetString() ?? "";
+                        Console.WriteLine($"[{DateTime.Now:yyyy-MM-ddTHH:mm:sszzz}] Traitement du job: {name}");
 
-                    if (jobState.TryGetProperty("Progress", out JsonElement progressElement))
+                        string sourceDir = jobState.GetProperty("SourceDirectory").GetString() ?? "";
+                        string targetDir = jobState.GetProperty("TargetDirectory").GetString() ?? "";
+                        string typeStr = jobState.GetProperty("Type").GetString() ?? JobType.Full.ToString();
+                        JobType type = Enum.Parse<JobType>(typeStr, true);
+
+                        var job = new backupJob(name, sourceDir, targetDir, type, logger);
+
+                        if (jobState.TryGetProperty("State", out JsonElement stateElement))
+                        {
+                            string stateStr = stateElement.GetString() ?? JobStates.Idle.ToString();
+                            job.State = Enum.Parse<JobStates>(stateStr, true);
+                        }
+
+                        if (jobState.TryGetProperty("Progress", out JsonElement progressElement))
+                        {
+                            job.Progress = (byte)progressElement.GetInt32();
+                        }
+
+                        if (jobState.TryGetProperty("ErrorMessage", out JsonElement errorElement))
+                        {
+                            job.ErrorMessage = errorElement.GetString();
+                        }
+
+                        updatedJobs.Add(job);
+                    }
+                    catch (Exception ex)
                     {
-                        job.Progress = (byte)progressElement.GetInt32();
+                        Console.WriteLine($"Erreur lors de la mise à jour d'un job : {ex.Message}");
                     }
-
-                    if (jobState.TryGetProperty("ErrorMessage", out JsonElement errorElement))
-                    {
-                        job.ErrorMessage = errorElement.GetString();
-                    }
-
-                    updatedJobs.Add(job);
                 }
-                catch (Exception ex)
+
+                // Mettre à jour la collection de jobs sur le thread UI
+                System.Windows.Application.Current.Dispatcher.Invoke(() =>
                 {
-                    Console.WriteLine($"Erreur lors de la mise à jour d'un job : {ex.Message}");
-                }
+                    try
+                    {
+                        Console.WriteLine($"[{DateTime.Now:yyyy-MM-ddTHH:mm:sszzz}] Mise à jour de l'UI avec {updatedJobs.Count} jobs");
+                        _backupListViewModel.Jobs.Clear();
+                        
+                        foreach (var job in updatedJobs)
+                        {
+                            _backupListViewModel.Jobs.Add(job);
+                        }
+
+                        // Forcer la mise à jour de l'UI
+                        _backupListViewModel.NotifyJobsChanged();
+                        Console.WriteLine($"[{DateTime.Now:yyyy-MM-ddTHH:mm:sszzz}] UI mise à jour avec succès");
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine($"[{DateTime.Now:yyyy-MM-ddTHH:mm:sszzz}] Erreur lors de la mise à jour de l'UI: {ex.Message}");
+                    }
+                });
             }
-
-            // Mettre à jour la collection de jobs
-            _backupListViewModel.Jobs.Clear();
-            foreach (var job in updatedJobs)
+            catch (Exception ex)
             {
-                _backupListViewModel.Jobs.Add(job);
+                Console.WriteLine($"[{DateTime.Now:yyyy-MM-ddTHH:mm:sszzz}] Erreur générale dans UpdateBackupJobs: {ex.Message}");
             }
         }
 
@@ -252,6 +289,23 @@ namespace better_saving.ViewModels
             {
                 Console.WriteLine($"Erreur lors de l'envoi de la commande : {ex.Message}");
                 throw;
+            }
+        }
+
+        private async Task StartJobsRefreshLoop()
+        {
+            while (IsConnected)
+            {
+                try
+                {
+                    await SendCommand(RemoteCommands.GET_JOBS);
+                    await Task.Delay(1000); // Attendre 1 seconde entre chaque rafraîchissement
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Erreur lors du rafraîchissement des jobs : {ex.Message}");
+                    await Task.Delay(5000); // Attendre plus longtemps en cas d'erreur
+                }
             }
         }
     }

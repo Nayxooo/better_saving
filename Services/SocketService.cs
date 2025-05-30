@@ -1,3 +1,4 @@
+using better_saving.Models;
 using System;
 using System.Net;
 using System.Net.Sockets;
@@ -80,6 +81,12 @@ namespace better_saving.Services
             }
         }
 
+        public async Task SendCommand(RemoteCommands command)
+        {
+            string commandStr = command.ToString();
+            await SendMessageAsync(commandStr);
+        }
+
         public void Disconnect()
         {
             try
@@ -141,12 +148,25 @@ namespace better_saving.Services
 
             try
             {
-                byte[] buffer = Encoding.UTF8.GetBytes(message);
-                await Task.Run(() => _socket.Send(buffer));
+                string timestamp = DateTime.Now.ToString("yyyy-MM-ddTHH:mm:sszzz");
+                Console.WriteLine($"[{timestamp}] client: {message}"); // Afficher le message envoyé
+
+                byte[] messageBytes = Encoding.UTF8.GetBytes(message);
+                byte[] lengthPrefix = BitConverter.GetBytes(messageBytes.Length);
+
+                // Envoyer d'abord la longueur du message
+                await Task.Factory.FromAsync(
+                    _socket.BeginSend(lengthPrefix, 0, lengthPrefix.Length, SocketFlags.None, null, _socket),
+                    _socket.EndSend);
+
+                // Puis envoyer le message lui-même
+                await Task.Factory.FromAsync(
+                    _socket.BeginSend(messageBytes, 0, messageBytes.Length, SocketFlags.None, null, _socket),
+                    _socket.EndSend);
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Erreur lors de l'envoi du message: {ex.Message}");
+                Console.WriteLine($"Erreur lors de l'envoi du message : {ex.Message}");
                 throw;
             }
         }

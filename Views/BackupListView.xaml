@@ -1,89 +1,149 @@
 <UserControl x:Class="better_saving.Views.BackupListView"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:local="clr-namespace:better_saving"
-             xmlns:converter="clr-namespace:better_saving.Converters"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:local="clr-namespace:better_saving.Views"
+             xmlns:vm="clr-namespace:better_saving.ViewModels"
+             xmlns:converters="clr-namespace:better_saving.Converters"
+             mc:Ignorable="d"
              Background="#FF1E1E1E">
+
     <UserControl.Resources>
-        <converter:NullOrEmptyToVisibilityConverter x:Key="NullToVisibilityConverter"/>
-        <converter:JobStateToIconConverter x:Key="JobStateToIconConverter"/>
-        <converter:IconColorConverter x:Key="IconColorConverter"/>
+        <converters:JobStateToIconConverter x:Key="JobStateToIconConverter"/>
+        <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter"/>
+        <converters:NullOrEmptyToVisibilityConverter x:Key="NullToVisibilityConverter"/>
+        <converters:IconColorConverter x:Key="IconColorConverter"/>
+
+        <!-- Style pour les éléments de la ListView -->
+        <Style x:Key="JobItemStyle" TargetType="ListViewItem">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="Margin" Value="5"/>
+            <Setter Property="Padding" Value="10"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ListViewItem">
+                        <Border Background="#FF161618"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                Padding="{TemplateBinding Padding}"
+                                CornerRadius="10">
+                            <ContentPresenter/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsSelected" Value="True">
+                                <Setter Property="Background" Value="#FF22272A"/>
+                            </Trigger>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter Property="Background" Value="#FF22272A"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- Style pour la ListView -->
+        <Style x:Key="JobListViewStyle" TargetType="ListView">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="ScrollViewer.HorizontalScrollBarVisibility" Value="Disabled"/>
+            <Setter Property="ScrollViewer.VerticalScrollBarVisibility" Value="Auto"/>
+            <Setter Property="ItemContainerStyle" Value="{StaticResource JobItemStyle}"/>
+        </Style>
+
+        <!-- Style pour les TextBlock -->
+        <Style x:Key="JobTextStyle" TargetType="TextBlock">
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+            <Setter Property="Margin" Value="5,0"/>
+        </Style>
+
+        <!-- Style pour la ProgressBar -->
+        <Style x:Key="JobProgressBarStyle" TargetType="ProgressBar">
+            <Setter Property="Height" Value="4"/>
+            <Setter Property="Margin" Value="5"/>
+            <Setter Property="Background" Value="#FF2D2D2D"/>
+            <Setter Property="Foreground" Value="#FF007ACC"/>
+            <Setter Property="BorderThickness" Value="0"/>
+        </Style>
     </UserControl.Resources>
-    
-    <Grid>
-        <Grid.RowDefinitions>
-            <RowDefinition Height="auto"/>
-            <RowDefinition Height="*"/>
-        </Grid.RowDefinitions>
 
+    <Grid Margin="10">
         <!-- Titre -->
-        <TextBlock Grid.Row="0"
-                  Text="{DynamicResource BackupJobListTitle}"
-                  Foreground="White"
-                  FontSize="25"
-                  Margin="10"/>
+        <StackPanel>
+            <TextBlock Text="Backup Job List"
+                      Foreground="White"
+                      FontSize="24"
+                      FontWeight="Bold"
+                      Margin="0,0,0,20"/>
 
-        <!-- Liste des backups -->
-        <ListView Grid.Row="1"
-                  x:Name="JobsListView"
-                  ItemsSource="{Binding Jobs}"
-                  SelectedItem="{Binding SelectedBackupJob}"
-                  Background="Transparent"
-                  BorderThickness="0"
-                  ScrollViewer.HorizontalScrollBarVisibility="Disabled">
-            <ListView.ItemContainerStyle>
-                <Style TargetType="ListViewItem">
-                    <Setter Property="Background" Value="Transparent"/>
-                    <Setter Property="BorderThickness" Value="0"/>
-                    <Setter Property="Margin" Value="5"/>
-                    <Setter Property="Padding" Value="10"/>
-                    <Setter Property="Template">
-                        <Setter.Value>
-                            <ControlTemplate TargetType="ListViewItem">
-                                <Border x:Name="Border"
-                                        Background="#FF161618"
-                                        CornerRadius="10"
-                                        BorderThickness="0">
-                                    <ContentPresenter/>
-                                </Border>
-                                <ControlTemplate.Triggers>
-                                    <Trigger Property="IsSelected" Value="True">
-                                        <Setter TargetName="Border" Property="Background" Value="#FF22272A"/>
-                                    </Trigger>
-                                    <Trigger Property="IsMouseOver" Value="True">
-                                        <Setter TargetName="Border" Property="Background" Value="#FF22272A"/>
-                                    </Trigger>
-                                </ControlTemplate.Triggers>
-                            </ControlTemplate>
-                        </Setter.Value>
-                    </Setter>
-                </Style>
-            </ListView.ItemContainerStyle>
-            <ListView.ItemTemplate>
-                <DataTemplate>
-                    <Grid Height="40">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="Auto"/>
-                            <ColumnDefinition Width="*"/>
-                        </Grid.ColumnDefinitions>
+            <!-- Liste des jobs avec style cliquable -->
+            <ListView ItemsSource="{Binding Jobs}"
+                     SelectedItem="{Binding SelectedBackupJob}"
+                     Background="Transparent"
+                     BorderThickness="0">
+                <ListView.ItemContainerStyle>
+                    <Style TargetType="ListViewItem">
+                        <Setter Property="Background" Value="#FF161618"/>
+                        <Setter Property="Margin" Value="0,5"/>
+                        <Setter Property="Padding" Value="15"/>
+                        <Setter Property="Cursor" Value="Hand"/>
+                        <Setter Property="Template">
+                            <Setter.Value>
+                                <ControlTemplate TargetType="ListViewItem">
+                                    <Border Background="{TemplateBinding Background}"
+                                            CornerRadius="10"
+                                            Padding="{TemplateBinding Padding}">
+                                        <ContentPresenter/>
+                                    </Border>
+                                    <ControlTemplate.Triggers>
+                                        <Trigger Property="IsSelected" Value="True">
+                                            <Setter Property="Background" Value="#FF22272A"/>
+                                        </Trigger>
+                                        <Trigger Property="IsMouseOver" Value="True">
+                                            <Setter Property="Background" Value="#FF22272A"/>
+                                        </Trigger>
+                                    </ControlTemplate.Triggers>
+                                </ControlTemplate>
+                            </Setter.Value>
+                        </Setter>
+                    </Style>
+                </ListView.ItemContainerStyle>
 
-                        <!-- Icône d'état -->
-                        <Path Grid.Column="0"
-                              Data="{Binding State, Converter={StaticResource JobStateToIconConverter}}"
-                              Fill="{Binding State, Converter={StaticResource IconColorConverter}}"
-                              Width="20"
-                              Height="20"
-                              Stretch="Uniform"
-                              Margin="0,0,10,0"/>
+                <ListView.ItemTemplate>
+                    <DataTemplate>
+                        <Grid>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                            </Grid.RowDefinitions>
 
-                        <!-- Nom du backup -->
-                        <TextBlock Grid.Column="1"
-                                  Text="{Binding Name}"
-                                  Foreground="White"
-                                  VerticalAlignment="Center"/>
-                    </Grid>
-                </DataTemplate>
-            </ListView.ItemTemplate>
-        </ListView>
+                            <!-- Nom du job -->
+                            <TextBlock Text="{Binding Name}"
+                                     Foreground="White"
+                                     FontSize="16"
+                                     FontWeight="SemiBold"/>
+
+                            <!-- État et progression -->
+                            <StackPanel Grid.Row="1" 
+                                      Orientation="Horizontal"
+                                      Margin="0,5,0,0">
+                                <TextBlock Text="{Binding State}"
+                                         Foreground="#AAAAAA"
+                                         FontSize="12"/>
+                                <TextBlock Text=" - "
+                                         Foreground="#AAAAAA"
+                                         FontSize="12"/>
+                                <TextBlock Text="{Binding Progress, StringFormat={}{0:0}%}"
+                                         Foreground="#AAAAAA"
+                                         FontSize="12"/>
+                            </StackPanel>
+                        </Grid>
+                    </DataTemplate>
+                </ListView.ItemTemplate>
+            </ListView>
+        </StackPanel>
     </Grid>
 </UserControl>

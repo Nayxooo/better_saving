@@ -2,32 +2,34 @@ using better_saving.Models;
 using System;
 using System.ComponentModel;
 using System.Windows.Input;
+using System.IO;
+using System.Text.Json;
+using System.Linq;
+using System.Reflection;
 
 namespace better_saving.ViewModels
 {
-    public class BackupStatusViewModel : ViewModelBase
+    public class BackupStatusViewModel : ViewModelBase, IDisposable
     {
         private readonly backupJob _job;
         private readonly MainViewModel _mainViewModel;
+        private readonly string _stateFilePath;
+        private readonly FileSystemWatcher _fileWatcher;
+        private readonly System.Timers.Timer _refreshTimer;
         private string _status = "En attente";
         private int _progress;
-        private string _currentFile = "";
         private long _filesRemaining;
         private long _filesTotal;
         private long _bytesRemaining;
         private long _bytesTotal;
-        private TimeSpan _estimatedTimeRemaining;
 
+        // Garder uniquement les propriétés pertinentes
         public string JobName => _job.Name;
-        public string SourceDirectory => _job.SourceDirectory;
-        public string TargetDirectory => _job.TargetDirectory;
         public string JobType => _job.Type.ToString();
         public string JobState => _job.State.ToString();
         public byte JobProgress => _job.Progress;
         public long TotalFilesToCopy => _job.TotalFilesToCopy;
-        public long TotalFilesCopied => _job.TotalFilesCopied;
-        public ulong TotalSizeToCopy => _job.TotalSizeToCopy;
-        public long TotalSizeCopied => _job.TotalSizeCopied;
+        public int NumberFilesLeftToDo => _job.NumberFilesLeftToDo;
         public string? ErrorMessage => _job.ErrorMessage;
 
         public ICommand StartJobCommand { get; }
@@ -46,12 +48,6 @@ namespace better_saving.ViewModels
             set => SetProperty(ref _progress, value);
         }
 
-        public string CurrentFile
-        {
-            get => _currentFile;
-            set => SetProperty(ref _currentFile, value);
-        }
-
         public long FilesRemaining
         {
             get => _filesRemaining;
@@ -64,34 +60,34 @@ namespace better_saving.ViewModels
             set => SetProperty(ref _filesTotal, value);
         }
 
-        public long BytesRemaining
-        {
-            get => _bytesRemaining;
-            set => SetProperty(ref _bytesRemaining, value);
-        }
-
-        public long BytesTotal
-        {
-            get => _bytesTotal;
-            set => SetProperty(ref _bytesTotal, value);
-        }
-
-        public TimeSpan EstimatedTimeRemaining
-        {
-            get => _estimatedTimeRemaining;
-            set => SetProperty(ref _estimatedTimeRemaining, value);
-        }
-
         public BackupStatusViewModel(backupJob job, MainViewModel mainViewModel)
         {
             _job = job;
             _mainViewModel = mainViewModel;
-            
+
+            // Initialiser le chemin du state.json
+            string logsDirectory = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "logs");
+            _stateFilePath = Path.Combine(logsDirectory, "state.json");
+
+            // Créer un FileSystemWatcher pour surveiller les changements
+            _fileWatcher = new FileSystemWatcher(logsDirectory, "state.json");
+            _fileWatcher.NotifyFilter = NotifyFilters.LastWrite | NotifyFilters.Size;
+            _fileWatcher.Changed += OnStateFileChanged;
+            _fileWatcher.EnableRaisingEvents = true;
+
+            // Timer de rafraîchissement
+            _refreshTimer = new System.Timers.Timer(1000); // Vérifier chaque seconde
+            _refreshTimer.Elapsed += (s, e) => LoadJobStatusFromStateLog();
+            _refreshTimer.Start();
+
             StartJobCommand = new RelayCommand(_ => StartJob(), _ => CanStartJob());
             PauseJobCommand = new RelayCommand(_ => PauseJob(), _ => CanPauseJob());
             StopJobCommand = new RelayCommand(_ => StopJob(), _ => CanStopJob());
-            
+
             SubscribeToJobEvents();
+            
+            // Chargement initial
+            LoadJobStatusFromStateLog();
         }
 
         private bool CanStartJob()
@@ -147,12 +143,6 @@ namespace better_saving.ViewModels
                 case nameof(backupJob.Name):
                     OnPropertyChanged(nameof(JobName));
                     break;
-                case nameof(backupJob.SourceDirectory):
-                    OnPropertyChanged(nameof(SourceDirectory));
-                    break;
-                case nameof(backupJob.TargetDirectory):
-                    OnPropertyChanged(nameof(TargetDirectory));
-                    break;
                 case nameof(backupJob.Type):
                     OnPropertyChanged(nameof(JobType));
                     break;
@@ -168,19 +158,138 @@ namespace better_saving.ViewModels
                 case nameof(backupJob.TotalFilesToCopy):
                     OnPropertyChanged(nameof(TotalFilesToCopy));
                     break;
-                case nameof(backupJob.TotalFilesCopied):
-                    OnPropertyChanged(nameof(TotalFilesCopied));
-                    break;
-                case nameof(backupJob.TotalSizeToCopy):
-                    OnPropertyChanged(nameof(TotalSizeToCopy));
-                    break;
-                case nameof(backupJob.TotalSizeCopied):
-                    OnPropertyChanged(nameof(TotalSizeCopied));
+                case nameof(backupJob.NumberFilesLeftToDo):
+                    OnPropertyChanged(nameof(NumberFilesLeftToDo));
                     break;
                 case nameof(backupJob.ErrorMessage):
                     OnPropertyChanged(nameof(ErrorMessage));
                     break;
             }
+        }
+
+        private void OnStateFileChanged(object sender, FileSystemEventArgs e)
+        {
+            System.Windows.Application.Current.Dispatcher.Invoke(() =>
+            {
+                try
+                {
+                    LoadJobStatusFromStateLog();
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Erreur lors du rechargement du state.json pour le status : {ex.Message}");
+                }
+            });
+        }
+
+        private void LoadJobStatusFromStateLog()
+        {
+            try
+            {
+                if (File.Exists(_stateFilePath))
+                {
+                    string jsonContent = File.ReadAllText(_stateFilePath);
+                    var jobStates = JsonSerializer.Deserialize<List<JsonElement>>(jsonContent);
+
+                    if (jobStates != null)
+                    {
+                        // Trouver le job correspondant dans le state.json
+                        var currentJobState = jobStates.FirstOrDefault(j => 
+                            j.GetProperty("Name").GetString() == _job.Name);
+
+                        if (currentJobState.ValueKind != JsonValueKind.Undefined)
+                        {
+                            System.Windows.Application.Current.Dispatcher.Invoke(() =>
+                            {
+                                try
+                                {
+                                    // Mettre à jour l'état et la progression
+                                    if (currentJobState.TryGetProperty("State", out JsonElement stateElement))
+                                    {
+                                        string stateStr = stateElement.GetString() ?? JobStates.Idle.ToString();
+                                        _job.State = Enum.Parse<JobStates>(stateStr, true);
+                                    }
+
+                                    if (currentJobState.TryGetProperty("Progress", out JsonElement progressElement))
+                                    {
+                                        _job.Progress = (byte)progressElement.GetInt32();
+                                    }
+
+                                    if (currentJobState.TryGetProperty("TotalFilesToCopy", out JsonElement totalElement))
+                                    {
+                                        var jobType = typeof(backupJob);
+                                        jobType.GetField("_totalFilesToCopy", BindingFlags.NonPublic | BindingFlags.Instance)
+                                            ?.SetValue(_job, totalElement.GetInt32());
+                                    }
+
+                                    if (currentJobState.TryGetProperty("NumberFilesLeftToDo", out JsonElement leftElement))
+                                    {
+                                        var jobType = typeof(backupJob);
+                                        jobType.GetField("_numberFilesLeftToDo", BindingFlags.NonPublic | BindingFlags.Instance)
+                                            ?.SetValue(_job, leftElement.GetInt32());
+                                    }
+
+                                    if (currentJobState.TryGetProperty("ErrorMessage", out JsonElement errorElement))
+                                    {
+                                        _job.ErrorMessage = errorElement.GetString();
+                                    }
+
+                                    // Notifier les changements
+                                    OnPropertyChanged(nameof(JobState));
+                                    OnPropertyChanged(nameof(JobProgress));
+                                    OnPropertyChanged(nameof(TotalFilesToCopy));
+                                    OnPropertyChanged(nameof(NumberFilesLeftToDo));
+                                    OnPropertyChanged(nameof(ErrorMessage));
+
+                                    // Mettre à jour l'état des commandes
+                                    (StartJobCommand as RelayCommand)?.RaiseCanExecuteChanged();
+                                    (PauseJobCommand as RelayCommand)?.RaiseCanExecuteChanged();
+                                    (StopJobCommand as RelayCommand)?.RaiseCanExecuteChanged();
+                                }
+                                catch (Exception ex)
+                                {
+                                    Console.WriteLine($"Erreur lors de la mise à jour du status : {ex.Message}");
+                                }
+                            });
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Erreur lors du chargement du state.json pour le status : {ex.Message}");
+            }
+        }
+
+        public void Dispose()
+        {
+            if (_fileWatcher != null)
+            {
+                try
+                {
+                    _fileWatcher.EnableRaisingEvents = false;
+                    _fileWatcher.Dispose();
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Erreur lors de la libération du FileWatcher : {ex.Message}");
+                }
+            }
+
+            if (_refreshTimer != null)
+            {
+                try
+                {
+                    _refreshTimer.Stop();
+                    _refreshTimer.Dispose();
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Erreur lors de la libération du Timer : {ex.Message}");
+                }
+            }
+
+            UnsubscribeFromJobEvents();
         }
     }
 }

@@ -174,7 +174,7 @@ public class backupJob : INotifyPropertyChanged
             {
                 _totalFilesCopied = value;
                 OnPropertyChanged();
-                UpdateProgress(); // Ajouter cet appel pour mettre à jour le state.json à chaque changement
+                UpdateProgress(); // Ajouter cet appel pour mettre ï¿½ jour le state.json ï¿½ chaque changement
             }
         }
     }
@@ -203,7 +203,7 @@ public class backupJob : INotifyPropertyChanged
             {
                 _totalSizeCopied = value;
                 OnPropertyChanged();
-                UpdateProgress(); // Ajouter cet appel pour mettre à jour le state.json à chaque changement
+                UpdateProgress(); // Ajouter cet appel pour mettre ï¿½ jour le state.json ï¿½ chaque changement
             }
         }
     }
@@ -623,13 +623,13 @@ public class backupJob : INotifyPropertyChanged
         // Reset IsPausing flag at the start of execution
         IsPausing = false;
         ErrorMessage = null; // Clear previous errors
-        State = JobStates.Working;
 
 
         if (State != JobStates.Paused)
         {
             await UpdateFilesCountInternalAsync(cancellationToken);
         }
+        State = JobStates.Working;
 
         if (TotalFilesToCopy == 0)
         {
@@ -778,9 +778,9 @@ public class backupJob : INotifyPropertyChanged
             }
             catch (OperationCanceledException)
             {
-                UpdateProgress(); // Update progress based on the current state (e.g., Stopped)
                 BackupJobLogger?.LogBackupDetails(Name, "SystemOperation", $"Job operation cancelled. Current state: {State}.", 0, 0, 0);
-                // throw; // Rethrow the exception
+                UpdateProgress(); // Update progress based on the current state (e.g., Stopped)
+                throw; // Rethrow the exception
             }
             catch (Exception ex)
             {
@@ -839,7 +839,6 @@ public class backupJob : INotifyPropertyChanged
         }
         catch (OperationCanceledException)
         {
-            State = JobStates.Stopped;
             IsPausing = false;
             UpdateProgress();
         }
@@ -893,22 +892,13 @@ public class backupJob : INotifyPropertyChanged
             return;
         }
 
-        try
+        if (_executionCts == null || _executionCts.IsCancellationRequested)
         {
-            if (_executionCts == null || _executionCts.IsCancellationRequested)
-            {
-                _executionCts?.Dispose();
-                _executionCts = new CancellationTokenSource();
-            }
+            _executionCts?.Dispose();
+            _executionCts = new CancellationTokenSource();
+        }
 
-            IsPausing = false;
-            await ExecuteAsync(_executionCts.Token);
-        }
-        catch (Exception ex)
-        {
-            ErrorMessage = GetLocalizedErrorMessage(BackupJobErrorMessageKeys.ErrorResumingJob, ex.Message);
-            State = JobStates.Failed;
-            IsPausing = false;
-        }
+        IsPausing = false;
+        await ExecuteAsync(_executionCts.Token);
     }
 }

@@ -20,6 +20,7 @@ namespace better_saving.Models
     {
         PING,
         START_JOB, // Start a job
+        RESUME_JOB, // Resume a paused job
         PAUSE_JOB, // Stop a job
         STOP_JOB, // Pause a job
         GET_JOBS, // Get the state.json file (without sensitive data)

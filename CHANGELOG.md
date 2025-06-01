@@ -1,3 +1,15 @@
+## EasySave [v3.0.3] - 2025-06-01
+
+### Added
+- **Remote Job Control (`Models/Enums.cs`, `Models/TCPServer.cs`):**
+    - Introduced `RESUME_JOB` command to the TCP server, enabling remote resumption of paused backup jobs.
+
+### Fixed
+- **Job State Handling (`Models/BackupJob.cs`):**
+    - Fixed a bug where the `Pause()` method would create an error if the job was already paused before (pause->resume->pause:error).
+- **Logging (`Models/logger.cs`):**
+    - Removed a redundant diagnostic log call from `UpdateAllJobsState` method.
+
 ## EasySave [v3.0.2] - 2025-06-01
 
 ### Changed

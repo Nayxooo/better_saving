@@ -159,7 +159,6 @@ namespace better_saving.Models
         public void UpdateAllJobsState(bool SkipNullCheck = false) // Parameter removed in previous step, logic now uses _jobProvider
         {
             Console.WriteLine("Updating all jobs state...");
-            LogError($"{_jobProvider?.Invoke()?.Count() ?? 0} jobs to update in state.json");
             if (_jobProvider == null)
             {
                 LogError($"{DateTime.Now:yyyy-MM-ddTHH:mm:sszzz} | LOGGER_FAILURE in UpdateAllJobsState: Job provider is not set.{Environment.NewLine}");
@@ -193,7 +192,7 @@ namespace better_saving.Models
                             Type = job.Type.ToString(), // Enum to string
                             State = job.State.ToString(),   // Enum to string
                             TotalFilesToCopy = job.TotalFilesToCopy,
-                            TotalFilesSize = job.TotalSizeToCopy, // Renamed from TotalFilesSize for consistency
+                            TotalFilesSize = job.TotalSizeToCopy,
                             NumberFilesLeftToDo = job.NumberFilesLeftToDo,
                             Progress = job.Progress,
                             ErrorMessage = job.ErrorMessage
@@ -220,8 +219,7 @@ namespace better_saving.Models
                         // Rename temp file to proper name
                         File.Move(tempFilePath, StateLogFilePath);
 
-                        // Réactiver la notification au TCPServer
-                        _tcpServer?.HandleStateFileUpdate();
+                        // _tcpServer?.HandleStateFileUpdate();
                     }
                 }
                 catch (Exception ex)

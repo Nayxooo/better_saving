@@ -318,7 +318,7 @@ namespace better_saving.Models
                                         }
                                         else
                                         {
-                                            _ = Task.Run(async () => await jobToStart.Start(), token);
+                                            _ = Task.Run(jobToStart.Start, token);
                                             responseMessage = $"SUCCESS: Job '{jobToStart.Name}' starting.";
                                             Log($"Attempting to start job '{jobToStart.Name}' via TCP command from {client.Client.RemoteEndPoint}.");
                                         }
@@ -332,6 +332,35 @@ namespace better_saving.Models
                                 else
                                 {
                                     responseMessage = "ERROR: START_JOB requires 1 argument: jobName";
+                                }
+                                break;
+                            case RemoteCommands.RESUME_JOB:
+                                if (commandArgs.Length >= 1)
+                                {
+                                    string jobNameToResume = commandArgs[0];
+                                    var jobToResume = _mainViewModel.ListVM.Jobs.FirstOrDefault(j => j.Name.Equals(jobNameToResume, StringComparison.OrdinalIgnoreCase));
+                                    if (jobToResume != null)
+                                    {
+                                        if (jobToResume.State == JobStates.Paused)
+                                        {
+                                            _ = Task.Run(jobToResume.Resume, token);
+                                            responseMessage = $"SUCCESS: Job '{jobToResume.Name}' resumed.";
+                                            Log($"Job '{jobToResume.Name}' resumed via TCP command from {client.Client.RemoteEndPoint}.");
+                                        }
+                                        else
+                                        {
+                                            responseMessage = $"ERROR: Job '{jobToResume.Name}' cannot be resumed (state: {jobToResume.State}).";
+                                        }
+                                    }
+                                    else
+                                    {
+                                        Log($"Job lookup failed for command {command} with name: '[{jobNameToResume}]'. Available job names: {string.Join(", ", _mainViewModel.ListVM.Jobs.Select(j => $"['{j.Name}']"))}");
+                                        responseMessage = $"ERROR: Job '{jobNameToResume}' not found.";
+                                    }
+                                }
+                                else
+                                {
+                                    responseMessage = "ERROR: RESUME_JOB requires 1 argument: jobName";
                                 }
                                 break;
                             case RemoteCommands.PAUSE_JOB:
@@ -544,7 +573,7 @@ namespace better_saving.Models
                     return;
                 }
 
-                // Ne pas retourner si le contenu est le même, car il peut y avoir des mises à jour partielles
+                // Ne pas retourner si le contenu est le mï¿½me, car il peut y avoir des mises ï¿½ jour partielles
                 this.stateJsonContent = newProcessedState;
                 this.tempStateJsonContent = newProcessedState;
 
@@ -560,7 +589,7 @@ namespace better_saving.Models
                         return;
                     }
 
-                    foreach (var writer in _clientWriters.ToList()) // Utiliser ToList() pour éviter les modifications concurrentes
+                    foreach (var writer in _clientWriters.ToList()) // Utiliser ToList() pour ï¿½viter les modifications concurrentes
                     {
                         try
                         {
@@ -575,7 +604,7 @@ namespace better_saving.Models
                         }
                     }
 
-                    // Nettoyer les clients problématiques
+                    // Nettoyer les clients problï¿½matiques
                     foreach (var client in clientsToRemove)
                     {
                         _clientWriters.Remove(client);

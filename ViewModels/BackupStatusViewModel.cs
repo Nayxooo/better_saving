@@ -35,6 +35,7 @@ namespace better_saving.ViewModels
         public ICommand StartJobCommand { get; }
         public ICommand PauseJobCommand { get; }
         public ICommand StopJobCommand { get; }
+        public ICommand ResumeJobCommand { get; }
 
         public string Status
         {
@@ -83,6 +84,7 @@ namespace better_saving.ViewModels
             StartJobCommand = new RelayCommand(_ => StartJob(), _ => CanStartJob());
             PauseJobCommand = new RelayCommand(_ => PauseJob(), _ => CanPauseJob());
             StopJobCommand = new RelayCommand(_ => StopJob(), _ => CanStopJob());
+            ResumeJobCommand = new RelayCommand(_ => ResumeJob(), _ => CanResumeJob());
 
             SubscribeToJobEvents();
             
@@ -101,6 +103,11 @@ namespace better_saving.ViewModels
         }
 
         private bool CanStopJob()
+        {
+            return true;
+        }
+
+        private bool CanResumeJob()
         {
             return true;
         }
@@ -126,6 +133,11 @@ namespace better_saving.ViewModels
         private async void StopJob()
         {
             await _mainViewModel.ListVM.StopJob(_job.Name);
+        }
+
+        private async void ResumeJob()
+        {
+            await _mainViewModel.ListVM.ResumeJob(_job.Name);
         }
 
         private void SubscribeToJobEvents()

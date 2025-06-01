@@ -195,6 +195,10 @@
                         Style="{StaticResource JobControlButton}"
                         Command="{Binding StartJobCommand}"/>
 
+                    <Button Content="Resume"
+                        Style="{StaticResource JobControlButton}"
+                        Command="{Binding ResumeJobCommand}"/>
+
                     <Button Content="Pause"
                         Style="{StaticResource JobControlButton}"
                         Command="{Binding PauseJobCommand}"/>

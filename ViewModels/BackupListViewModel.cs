@@ -228,6 +228,18 @@ namespace better_saving.ViewModels
             }
         }
 
+        public async Task ResumeJob(string jobName)
+        {
+            try
+            {
+                await _mainViewModel.ConnectionVM.SendCommand(RemoteCommands.RESUME_JOB, jobName);
+            }
+            catch (Exception ex)
+            {
+                System.Windows.MessageBox.Show($"Erreur lors du resume du job : {ex.Message}", "Erreur", System.Windows.MessageBoxButton.OK, System.Windows.MessageBoxImage.Error);
+            }
+        }
+
         public void NotifyJobsChanged() => OnPropertyChanged(nameof(Jobs));
 
         public Logger GetLogger()

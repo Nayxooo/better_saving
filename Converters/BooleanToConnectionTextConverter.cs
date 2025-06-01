@@ -8,7 +8,7 @@ namespace better_saving.Converters
     {
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
         {
-            return (bool)value ? "DÉCONNEXION" : "CONNEXION";
+            return (bool)value ? "DISCONNECT" : "CONNECT";
         }
 
         public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)

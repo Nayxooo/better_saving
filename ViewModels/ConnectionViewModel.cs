@@ -17,7 +17,7 @@ namespace better_saving.ViewModels
         private string _serverAddress = "192.168.1.26";
         private string _serverPort = "8989";
         private bool _isConnected;
-        private string _connectionStatus = "Non connecté";
+        private string _connectionStatus = "Not connected";
         private readonly string _stateFilePath;
         private readonly System.Timers.Timer _refreshTimer;
 
@@ -115,15 +115,15 @@ namespace better_saving.ViewModels
             {
                 if (!int.TryParse(_serverPort, out int port))
                 {
-                    System.Windows.MessageBox.Show("Le port doit être un nombre valide", "Erreur", MessageBoxButton.OK, MessageBoxImage.Error);
+                    System.Windows.MessageBox.Show("Port must be validated", "Erreur", MessageBoxButton.OK, MessageBoxImage.Error);
                     return;
                 }
 
-                ConnectionStatus = "Connexion en cours...";
+                ConnectionStatus = "Connecting...";
                 await _socketService.ConnectAsync(_serverAddress, port);
                 
                 Console.WriteLine($"[{DateTime.Now:yyyy-MM-ddTHH:mm:sszzz}] Connecté au serveur {_serverAddress}:{port}");
-                ConnectionStatus = "Connecté";
+                ConnectionStatus = "Connected";
                 IsConnected = true;
                 
                 // Un seul GET_JOBS à la connexion pour initialiser
@@ -131,7 +131,7 @@ namespace better_saving.ViewModels
             }
             catch (TimeoutException)
             {
-                ConnectionStatus = "Timeout de connexion";
+                ConnectionStatus = "Connexion timeout";
                 System.Windows.MessageBox.Show(
                     "Impossible de se connecter au serveur après 20 secondes d'attente.\nVérifiez que le serveur est bien démarré et accessible.",
                     "Erreur de connexion",
@@ -158,7 +158,7 @@ namespace better_saving.ViewModels
             try
             {
                 _socketService.Disconnect();
-                ConnectionStatus = "Déconnecté";
+                ConnectionStatus = "Disconnected";
                 IsConnected = false;
             }
             catch (Exception ex)

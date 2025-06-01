@@ -78,7 +78,7 @@ namespace better_saving.ViewModels
                 }
                 catch (Exception ex)
                 {
-                    Console.WriteLine($"Erreur lors du rechargement du state.json : {ex.Message}");
+                    Console.WriteLine($"Error while reloading state.json: {ex.Message}");
                 }
             });
         }
@@ -142,7 +142,7 @@ namespace better_saving.ViewModels
                             }
                             catch (Exception ex)
                             {
-                                Console.WriteLine($"Erreur lors du chargement d'un job : {ex.Message}");
+                                Console.WriteLine($"Error while loading job: {ex.Message}");
                             }
                         }
 
@@ -153,7 +153,7 @@ namespace better_saving.ViewModels
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Erreur lors du chargement du state.json : {ex.Message}");
+                Console.WriteLine($"Error loading state.json: {ex.Message}");
             }
         }
 
@@ -200,7 +200,7 @@ namespace better_saving.ViewModels
             }
             catch (Exception ex)
             {
-                System.Windows.MessageBox.Show($"Erreur lors du démarrage du job : {ex.Message}", "Erreur", System.Windows.MessageBoxButton.OK, System.Windows.MessageBoxImage.Error);
+                System.Windows.MessageBox.Show($"Error starting job: {ex.Message}", "Error", System.Windows.MessageBoxButton.OK, System.Windows.MessageBoxImage.Error);
             }
         }
 
@@ -212,7 +212,7 @@ namespace better_saving.ViewModels
             }
             catch (Exception ex)
             {
-                System.Windows.MessageBox.Show($"Erreur lors de la mise en pause du job : {ex.Message}", "Erreur", System.Windows.MessageBoxButton.OK, System.Windows.MessageBoxImage.Error);
+                System.Windows.MessageBox.Show($"Error pausing job: {ex.Message}", "Error", System.Windows.MessageBoxButton.OK, System.Windows.MessageBoxImage.Error);
             }
         }
 
@@ -224,7 +224,7 @@ namespace better_saving.ViewModels
             }
             catch (Exception ex)
             {
-                System.Windows.MessageBox.Show($"Erreur lors de l'arrêt du job : {ex.Message}", "Erreur", System.Windows.MessageBoxButton.OK, System.Windows.MessageBoxImage.Error);
+                System.Windows.MessageBox.Show($"Error stopping job: {ex.Message}", "Error", System.Windows.MessageBoxButton.OK, System.Windows.MessageBoxImage.Error);
             }
         }
 
@@ -236,7 +236,7 @@ namespace better_saving.ViewModels
             }
             catch (Exception ex)
             {
-                System.Windows.MessageBox.Show($"Erreur lors du resume du job : {ex.Message}", "Erreur", System.Windows.MessageBoxButton.OK, System.Windows.MessageBoxImage.Error);
+                System.Windows.MessageBox.Show($"Error resuming job: {ex.Message}", "Error", System.Windows.MessageBoxButton.OK, System.Windows.MessageBoxImage.Error);
             }
         }
 
@@ -259,7 +259,7 @@ namespace better_saving.ViewModels
                 }
                 catch (Exception ex)
                 {
-                    Console.WriteLine($"Erreur lors de la libération du FileWatcher : {ex.Message}");
+                    Console.WriteLine($"Error releasing FileWatcher: {ex.Message}");
                 }
             }
 
@@ -273,7 +273,7 @@ namespace better_saving.ViewModels
                 }
                 catch (Exception ex)
                 {
-                    Console.WriteLine($"Erreur lors de la libération du Timer : {ex.Message}");
+                    Console.WriteLine($"Error releasing Timer: {ex.Message}");
                 }
             }
         }

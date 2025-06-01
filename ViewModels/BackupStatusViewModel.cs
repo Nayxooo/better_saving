@@ -16,7 +16,7 @@ namespace better_saving.ViewModels
         private readonly string _stateFilePath;
         private readonly FileSystemWatcher _fileWatcher;
         private readonly System.Timers.Timer _refreshTimer;
-        private string _status = "En attente";
+        private string _status = "Waiting";
         private int _progress;
         private long _filesRemaining;
         private long _filesTotal;
@@ -167,7 +167,7 @@ namespace better_saving.ViewModels
                     OnPropertyChanged(nameof(JobType));
                     break;
                 case nameof(backupJob.State):
-                    OnPropertyChanged(nameof(JobState));
+                    OnPropertyChanged(nameof(JobState));  
                     (StartJobCommand as RelayCommand)?.RaiseCanExecuteChanged();
                     (PauseJobCommand as RelayCommand)?.RaiseCanExecuteChanged();
                     (StopJobCommand as RelayCommand)?.RaiseCanExecuteChanged();

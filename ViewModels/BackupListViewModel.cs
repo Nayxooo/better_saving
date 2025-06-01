@@ -196,7 +196,7 @@ namespace better_saving.ViewModels
         {
             try
             {
-                await _mainViewModel.ConnectionVM.SendCommand(RemoteCommands.START_JOB);
+                await _mainViewModel.ConnectionVM.SendCommand(RemoteCommands.START_JOB, jobName);
             }
             catch (Exception ex)
             {
@@ -208,7 +208,7 @@ namespace better_saving.ViewModels
         {
             try
             {
-                await _mainViewModel.ConnectionVM.SendCommand(RemoteCommands.PAUSE_JOB);
+                await _mainViewModel.ConnectionVM.SendCommand(RemoteCommands.PAUSE_JOB, jobName);
             }
             catch (Exception ex)
             {
@@ -220,7 +220,7 @@ namespace better_saving.ViewModels
         {
             try
             {
-                await _mainViewModel.ConnectionVM.SendCommand(RemoteCommands.STOP_JOB);
+                await _mainViewModel.ConnectionVM.SendCommand(RemoteCommands.STOP_JOB, jobName);
             }
             catch (Exception ex)
             {

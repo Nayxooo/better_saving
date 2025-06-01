@@ -19,6 +19,7 @@ namespace better_saving.ViewModels
         private bool _isConnected;
         private string _connectionStatus = "Non connecté";
         private readonly string _stateFilePath;
+        private readonly System.Timers.Timer _refreshTimer;
 
         public ICommand ConnectCommand { get; }
 
@@ -36,6 +37,21 @@ namespace better_saving.ViewModels
                 Directory.CreateDirectory(logsDirectory);
             }
             _stateFilePath = Path.Combine(logsDirectory, "state.json");
+            
+            // Remettre le timer de rafraîchissement
+            _refreshTimer = new System.Timers.Timer(1000); // Vérifier chaque seconde
+            _refreshTimer.Elapsed += (s, e) => 
+            {
+                // S'assurer que l'appel se fait sur le thread UI
+                System.Windows.Application.Current.Dispatcher.Invoke(() => 
+                {
+                    if (IsConnected)
+                    {
+                        SendCommand(RemoteCommands.GET_JOBS).ConfigureAwait(false);
+                    }
+                });
+            };
+            _refreshTimer.Start();
             
             ConnectCommand = new RelayCommand(_ => ExecuteConnectCommand());
         }
@@ -106,16 +122,12 @@ namespace better_saving.ViewModels
                 ConnectionStatus = "Connexion en cours...";
                 await _socketService.ConnectAsync(_serverAddress, port);
                 
-                // Confirmation de connexion
                 Console.WriteLine($"[{DateTime.Now:yyyy-MM-ddTHH:mm:sszzz}] Connecté au serveur {_serverAddress}:{port}");
                 ConnectionStatus = "Connecté";
                 IsConnected = true;
                 
-                // Envoyer GET_JOBS pour recevoir l'état des jobs
+                // Un seul GET_JOBS à la connexion pour initialiser
                 await SendCommand(RemoteCommands.GET_JOBS);
-                
-                // Démarrer la boucle de rafraîchissement des jobs
-                _ = StartJobsRefreshLoop();
             }
             catch (TimeoutException)
             {
@@ -172,23 +184,25 @@ namespace better_saving.ViewModels
                 {
                     Console.WriteLine($"[{DateTime.Now:yyyy-MM-ddTHH:mm:sszzz}] Message reçu du serveur");
                     
-                    var jobs = JsonSerializer.Deserialize<List<JsonElement>>(message);
-                    if (jobs != null)
+                    // Si le message commence par [, c'est un state.json
+                    if (message.Trim().StartsWith("["))
                     {
-                        Console.WriteLine($"[{DateTime.Now:yyyy-MM-ddTHH:mm:sszzz}] {jobs.Count} jobs reçus");
-                        
-                        // Sauvegarder dans logs/state.json
-                        File.WriteAllText(_stateFilePath, message);
-                        Console.WriteLine($"[{DateTime.Now:yyyy-MM-ddTHH:mm:sszzz}] State.json sauvegardé dans : {_stateFilePath}");
-                        
-                        // Mise à jour de l'UI
-                        UpdateBackupJobs(jobs);
-                        Console.WriteLine($"[{DateTime.Now:yyyy-MM-ddTHH:mm:sszzz}] UI mise à jour avec les nouveaux jobs");
+                        try
+                        {
+                            // Sauvegarder dans logs/state.json
+                            File.WriteAllText(_stateFilePath, message);
+                            Console.WriteLine($"[{DateTime.Now:yyyy-MM-ddTHH:mm:sszzz}] State.json mis à jour");
+                        }
+                        catch (Exception ex)
+                        {
+                            Console.WriteLine($"[{DateTime.Now:yyyy-MM-ddTHH:mm:sszzz}] Erreur lors de la mise à jour du state.json : {ex.Message}");
+                        }
                     }
-                }
-                catch (JsonException)
-                {
-                    Console.WriteLine($"[{DateTime.Now:yyyy-MM-ddTHH:mm:sszzz}] Message reçu (non-JSON): {message}");
+                    else
+                    {
+                        // Message normal du serveur (non-JSON)
+                        Console.WriteLine($"[{DateTime.Now:yyyy-MM-ddTHH:mm:sszzz}] Message reçu : {message}");
+                    }
                 }
                 catch (Exception ex)
                 {
@@ -292,20 +306,26 @@ namespace better_saving.ViewModels
             }
         }
 
-        private async Task StartJobsRefreshLoop()
+        public async Task SendCommand(RemoteCommands command, string? jobName = null)
         {
-            while (IsConnected)
+            if (!IsConnected)
             {
-                try
+                throw new InvalidOperationException("Non connecté au serveur");
+            }
+
+            try
+            {
+                string commandStr = command.ToString();
+                if (jobName != null)
                 {
-                    await SendCommand(RemoteCommands.GET_JOBS);
-                    await Task.Delay(1000); // Attendre 1 seconde entre chaque rafraîchissement
+                    commandStr += $" {jobName}";
                 }
-                catch (Exception ex)
-                {
-                    Console.WriteLine($"Erreur lors du rafraîchissement des jobs : {ex.Message}");
-                    await Task.Delay(5000); // Attendre plus longtemps en cas d'erreur
-                }
+                await _socketService.SendMessageAsync(commandStr);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Erreur lors de l'envoi de la commande : {ex.Message}");
+                throw;
             }
         }
     }

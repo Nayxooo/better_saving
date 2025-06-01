@@ -2,19 +2,24 @@
 using System.Windows.Threading; // Required for DispatcherUnhandledExceptionEventArgs
 using better_saving.Models; // Required for Logger
 using System.IO; // Required for Path
-using System.Linq; // Required for FirstOrDefault
-using System; // Required for AppDomain
 
 namespace better_saving
 {
     public partial class App : System.Windows.Application {
 
         private Logger? _appLogger;
-        
         private readonly string errorLogPath = Path.Combine(AppContext.BaseDirectory, "logs\\EasySave33.bugReport");
-
         protected override void OnStartup(StartupEventArgs e)
         {
+            // Ensure only one instance of the application runs
+            var _appMutex = new Mutex(true, "EasySave33Mutex", out bool isNewInstance);
+            if (!isNewInstance)
+            {
+                // If another instance is already running, show a message and exit
+                System.Windows.MessageBox.Show("Another instance of EasySave33 is already running.", "Instance Warning", MessageBoxButton.OK, MessageBoxImage.Warning);
+                Environment.Exit(0);
+            }
+
             // Lower-level exception handler
             AppDomain.CurrentDomain.UnhandledException += CurrentDomain_UnhandledException;
 

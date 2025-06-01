@@ -379,7 +379,8 @@ namespace better_saving.ViewModels
                 type,
                 _listVM.GetLogger(),
                 IsSoftwareRunning, // Pass the method to check if blocking software is running
-                AddToBlockedJobs   // Pass the callback to add to blocked jobs
+                AddToBlockedJobs,   // Pass the callback to add to blocked jobs
+                 this                     // Passage du MainViewModel actuel
             );
         }
 
@@ -542,5 +543,19 @@ namespace better_saving.ViewModels
             }
             return _listVM.Jobs.Any(job => job.State == JobStates.Working || job.State == JobStates.Paused || job.State == JobStates.Stopped);
         }
+        private long _currentBandwidthUsage;
+        public long CurrentBandwidthUsage
+        {
+            get => _currentBandwidthUsage;
+            set
+            {
+                _currentBandwidthUsage = value;
+                OnPropertyChanged(nameof(CurrentBandwidthUsage));
+                OnPropertyChanged(nameof(CurrentBandwidthUsageFormatted));
+            }
+        }
+
+        public string CurrentBandwidthUsageFormatted => $"{CurrentBandwidthUsage / 1024} KB/s";
+
     }
 }

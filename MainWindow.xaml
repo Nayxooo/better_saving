@@ -106,25 +106,34 @@
             <views:SettingsView/>
         </DataTemplate>
     </Window.Resources>
-    <Grid>
-        <Grid.LayoutTransform>
-            <ScaleTransform ScaleX="1.5"
-                            ScaleY="1.5"/>
-        </Grid.LayoutTransform>
-        <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="Auto"
-                    MinWidth="250"
-                    MaxWidth="400"/>
-            <ColumnDefinition Width="*"/>
-        </Grid.ColumnDefinitions>
+    <DockPanel>
+        <!-- Barre de progression en bas -->
+        <ContentControl
+        DockPanel.Dock="Bottom"
+        Margin="10"
+        Content="{StaticResource MainViewModel}"
+        ContentTemplate="{StaticResource TransferStatusDisplay}" />
+        <!-- Ton layout principal -->
+        <Grid>
+            <Grid.LayoutTransform>
+                <ScaleTransform ScaleX="1.5"
+                            ScaleY="1.5" />
+            </Grid.LayoutTransform>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto"
+                              MinWidth="250"
+                              MaxWidth="400" />
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
 
-        <ContentControl Grid.Column="0"
+            <ContentControl Grid.Column="0"
                         Content="{Binding ListVM}"
-                        HorizontalAlignment="Stretch"/>
+                        HorizontalAlignment="Stretch" />
 
-        <ContentControl Grid.Column="1"
+            <ContentControl Grid.Column="1"
                         MinWidth="300"
                         Content="{Binding CurrentView}"
-                        HorizontalAlignment="Stretch"/>
-    </Grid>
+                        HorizontalAlignment="Stretch" />
+        </Grid>
+    </DockPanel>
 </Window>

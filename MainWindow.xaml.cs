@@ -1,4 +1,5 @@
 ﻿using System.Windows;
+using better_saving.Models;
 
 namespace better_saving
 {

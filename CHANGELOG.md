@@ -1,5 +1,9 @@
 ## EasySave [v3.0.2] - 2025-06-01
 
+### Changed
+- **State File Handling (`Models/TCPServer.cs`):**
+    - TCPServer now only sends the `state.json` after a request from a client.
+
 ### Fixed
 - **State File Handling (`Models/TCPServer.cs`):**
     - Ensured that an empty or malformed `state.json` file is gracefully handled by returning an empty JSON array (`[]`) instead of `null` or crashing. This improves robustness when the state file is corrupted, not yet created or simply empty because no jobs have been created yet.

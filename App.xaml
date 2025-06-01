@@ -137,6 +137,22 @@
                     </Trigger>
                 </Style.Triggers>
             </Style>
+            <!-- ✅ Ajout : Affichage en temps réel de la bande de transfert -->
+            <DataTemplate x:Key="TransferStatusDisplay">
+                <!-- Exemple simple d'affichage d'une ProgressBar liée à une propriété -->
+                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                    <TextBlock Text="Progression :" Margin="0,0,5,0"/>
+                    <ProgressBar Width="200" Height="20"
+                     Minimum="0"
+                     Maximum="{Binding TotalSizeInBytes}"
+                     Value="{Binding CurrentTransferredSizeInBytes}" />
+                    <TextBlock Text="{Binding CurrentTransferredSizeInBytes, StringFormat=N0}" Margin="5,0,0,0"/>
+                    <TextBlock Text="{Binding CurrentBandwidthUsageFormatted}" 
+           FontSize="16" 
+           Foreground="Green" />
+
+                </StackPanel>
+            </DataTemplate>
         </ResourceDictionary>
     </Application.Resources>
 </Application>

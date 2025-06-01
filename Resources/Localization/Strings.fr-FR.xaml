@@ -79,7 +79,7 @@
     <sys:String x:Key="BackupJob_Error_SourceDirectoryDoesNotExist">Le dossier source '{0}' n'existe pas.</sys:String>
     <sys:String x:Key="BackupJob_Error_TargetDirectoryDoesNotExist">Le dossier cible '{0}' n'existe pas.</sys:String>
     <sys:String x:Key="BackupJob_Error_ErrorScanningSourceDirectory">Erreur lors de l'analyse du dossier source: {0}</sys:String>
-    <sys:String x:Key="BackupJob_Error_CryptoSoftInternalError">Une erreur interne s'est produite dans CryptoSoft.exe: {0}</sys:String>
+    <sys:String x:Key="BackupJob_Error_CryptoSoftInternalError">Une erreur interne s'est produite dans CryptoSoft.exe lors du traitement du fichier '{0}': {1}</sys:String>
     <sys:String x:Key="BackupJob_Error_CryptoSoftDownloadFailed">Échec du téléchargement de CryptoSoft.exe.</sys:String>
     <sys:String x:Key="BackupJob_Error_CryptoSoftNotFoundAfterDownload">CryptoSoft.exe non trouvé après la tentative de téléchargement.</sys:String>
     <sys:String x:Key="BackupJob_Error_CryptoSoftProcessStartFailed">Échec du démarrage du processus CryptoSoft.exe.</sys:String>

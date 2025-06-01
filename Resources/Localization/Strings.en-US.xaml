@@ -48,13 +48,16 @@
     <sys:String x:Key="PriorityFileExtensionsEncryptToolTip">Files with these extensions will be backed up first</sys:String>
 
     <!-- the total size of files that are being transferd acrross all jobs should not exceed this limit -->
-    <sys:String x:Key="MaxFileTranferSizeLabel">
-        Maximum Transfer Size (in KB):
-    </sys:String>
+    <sys:String x:Key="MaxFileTranferSizeLabel">Maximum Transfer Size (in KB):</sys:String>
     <sys:String x:Key="MaxFileTransferSizeToolTip">
         Set the maximum size of files that can be transferred across all jobs at once.
          | (e.g.: if set to 100 (KB), the combine size of all files being transferred at an instant T won't exceed 100KB). By default, no limit (0).
     </sys:String>
+
+    <!-- BackupJob Info Messages -->
+    <sys:String x:Key="BackupJob_Info_Scanning">Scanning source directory...</sys:String>
+    <sys:String x:Key="BackupJob_Info_JobPausedOrStoppedDuringScan">job was paused/stopped during directory scan -> state chanegd to "Stopped".</sys:String>
+    <!-- <sys:String x:Key="BackupJob_Info_BlockedSoftware">job cannot start -> blocked software detected.</sys:String> --> <!-- Moved to Error Messages -->
 
     <!-- TCP Server Settings -->
     <sys:String x:Key="TCPServerSettingsTitle">TCP Server Settings</sys:String>
@@ -71,4 +74,25 @@
     <sys:String x:Key="SaveButtonToolTip">Save Settings</sys:String>
     <sys:String x:Key="Cancel">Cancel</sys:String>
     <sys:String x:Key="CancelButtonToolTip">Cancel Changes</sys:String>
+
+    <!-- BackupJob Error Messages -->
+    <sys:String x:Key="BackupJob_Error_SourceDirectoryDoesNotExist">Source directory '{0}' does not exist.</sys:String>
+    <sys:String x:Key="BackupJob_Error_TargetDirectoryDoesNotExist">Target directory '{0}' does not exist.</sys:String>
+    <sys:String x:Key="BackupJob_Error_ErrorScanningSourceDirectory">Error scanning source directory: {0}</sys:String>
+    <sys:String x:Key="BackupJob_Error_CryptoSoftExeNotFound">CryptoSoft.exe not found at '{0}'.</sys:String>
+    <sys:String x:Key="BackupJob_Error_CryptoSoftDownloadFailed">Failed to download CryptoSoft.exe.</sys:String>
+    <sys:String x:Key="BackupJob_Error_CryptoSoftNotFoundAfterDownload">CryptoSoft.exe not found after download attempt.</sys:String>
+    <sys:String x:Key="BackupJob_Error_CryptoSoftProcessStartFailed">Failed to start CryptoSoft.exe process.</sys:String>
+    <sys:String x:Key="BackupJob_Error_EncryptionException">An exception occurred during encryption: {0}</sys:String>
+    <sys:String x:Key="BackupJob_Error_BlockedSoftware">Job cannot start - blocked software detected.</sys:String>
+    <sys:String x:Key="BackupJob_Error_ErrorCreatingTargetDirectory">Error creating target directory: {0}</sys:String>
+    <sys:String x:Key="BackupJob_Error_FilesSkippedDueToSizeLimits">Some files were skipped due to size limits.</sys:String>
+    <sys:String x:Key="BackupJob_Error_ErrorCopyingFileToTarget">Error copying file \'{0}\' to \'{1}\'.</sys:String>
+    <sys:String x:Key="BackupJob_Error_ErrorEncryptingFileWithCode">Error encrypting file \'{0}\'. Encryption error code: {1}</sys:String>
+    <sys:String x:Key="BackupJob_Error_ErrorCopyingFileWithException">Error copying file \'{0}\': {1}</sys:String>
+    <sys:String x:Key="BackupJob_Error_ErrorStartingJob">Error starting job: {0}</sys:String>
+    <sys:String x:Key="BackupJob_Error_CannotPauseJobInState">Cannot pause job in state {0}.</sys:String>
+    <sys:String x:Key="BackupJob_Error_CannotResumeJobInState">Cannot resume job in state {0}.</sys:String>
+    <sys:String x:Key="BackupJob_Error_ErrorResumingJob">Error resuming job: {0}</sys:String>
+    <sys:String x:Key="BackupJob_Error_GenericError">An unspecified error occurred.</sys:String>
 </ResourceDictionary>

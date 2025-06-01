@@ -25,4 +25,35 @@ namespace better_saving.Models
         GET_JOBS, // Get the state.json file (without sensitive data)
         UNKNOWN // Unknown command
     }
+
+    // Enum for BackupJob Information Message Keys
+    public enum BackupJobInfoMessageKeys
+    {
+        Scanning,
+        JobPausedOrStoppedDuringScan
+    }
+
+    // Enum for BackupJob Error Message Keys
+    public enum BackupJobErrorMessageKeys
+    {
+        SourceDirectoryDoesNotExist,
+        TargetDirectoryDoesNotExist,
+        ErrorScanningSourceDirectory,
+        CryptoSoftExeNotFound,
+        CryptoSoftDownloadFailed,
+        CryptoSoftNotFoundAfterDownload,
+        CryptoSoftProcessStartFailed,
+        EncryptionException,
+        BlockedSoftware,
+        ErrorCreatingTargetDirectory,
+        FilesSkippedDueToSizeLimits,
+        ErrorCopyingFileToTarget,
+        ErrorEncryptingFileWithCode,
+        ErrorCopyingFileWithException,
+        ErrorStartingJob,
+        CannotPauseJobInState,
+        CannotResumeJobInState,
+        ErrorResumingJob,
+        GenericError // General error message
+    }
 }

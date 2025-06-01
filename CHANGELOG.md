@@ -1,3 +1,17 @@
+## EasySave [v3.0.1] - 2025-06-01
+
+### Added
+- **Localization for BackupJob Messages:**
+    - Implemented localization for error and information messages displayed by `BackupJob`.
+    - Introduced `BackupJobInfoMessageKeys` and `BackupJobErrorMessageKeys` enums in `Models/Enums.cs` to manage message keys.
+    - Added corresponding English translations in `Resources/Localization/Strings.en-US.xaml`.
+    - Added corresponding French translations in `Resources/Localization/Strings.fr-FR.xaml`.
+    - Added helper methods `GetLocalizedInfoMessage` and `GetLocalizedErrorMessage` in `Models/BackupJob.cs` to retrieve localized strings.
+
+### Changed
+- **BackupJob Message Handling (`Models/BackupJob.cs`):**
+    - Refactored `BackupJob` to use the new localization system for all user-facing error and information messages, replacing hardcoded strings.
+
 ## EasySave [v3.0.0] - 2025-05-31
 
 ### Info

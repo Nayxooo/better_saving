@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
+using System.Diagnostics.Tracing;
 using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
@@ -10,12 +11,20 @@ using System.Threading;
 using System.Threading.Tasks;
 using better_saving.Models; // For JobType, JobStates, Hashing, Backup, Settings
 using better_saving.ViewModels; // Required for MainViewModel reference
+using System.Windows; // Required for Application.Current
+using System.Globalization; // Required for CultureInfo (though XAML handles this mostly)
 
 // Job class to store job information
 public class backupJob : INotifyPropertyChanged
 {
     // CancellationTokenSource for job execution - persists across ViewModel instances
     public CancellationTokenSource? _executionCts;
+
+    // Define constants for InfoMessage Resource Keys
+    // private const string InfoMessageKey_Scanning = "BackupJob_Info_Scanning";
+    // private const string InfoMessageKey_JobPausedOrStoppedDuringScan = "BackupJob_Info_JobPausedOrStoppedDuringScan";
+    // private const string InfoMessageKey_BlockedSoftware = "BackupJob_Info_BlockedSoftware";
+
 
     private string _name = string.Empty; // Initialize to default
     public string Name
@@ -262,10 +271,36 @@ public class backupJob : INotifyPropertyChanged
 
     private readonly Logger? BackupJobLogger;
     public event PropertyChangedEventHandler? PropertyChanged;
+
     protected virtual void OnPropertyChanged([CallerMemberName] string? propertyName = null)
     {
         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
     }
+
+    private string? GetLocalizedInfoMessage(BackupJobInfoMessageKeys messageKey)
+    {
+        string resourceKey = "BackupJob_Info_" + messageKey.ToString();
+        if (System.Windows.Application.Current != null && System.Windows.Application.Current.TryFindResource(resourceKey) is string localizedString)
+        {
+            return localizedString;
+        }
+        // Fallback if the resource key is not found or Application.Current is null (e.g., in unit tests)
+        // You might want to log this or return a default message
+        return resourceKey + " (Localization Key Not Found)";
+    }
+
+    private static string? GetLocalizedErrorMessage(BackupJobErrorMessageKeys messageKey, params object[] args)
+    {
+        string resourceKey = "BackupJob_Error_" + messageKey.ToString();
+        if (System.Windows.Application.Current != null && System.Windows.Application.Current.TryFindResource(resourceKey) is string localizedString)
+        {
+            return string.Format(localizedString, args);
+        }
+        // Fallback if the resource key is not found or Application.Current is null (e.g., in unit tests)
+        // You might want to log this or return a default message
+        return resourceKey + " (Localization Key Not Found)";
+    }
+
 
     // Ajout des champs manquants
     private readonly Func<bool> _isSoftwareRunning;
@@ -298,7 +333,7 @@ public class backupJob : INotifyPropertyChanged
 
         if (!Directory.Exists(sourceDir))
         {
-            ErrorMessage = $"Source directory '{sourceDir}' does not exist.";
+            ErrorMessage = GetLocalizedErrorMessage(BackupJobErrorMessageKeys.SourceDirectoryDoesNotExist, sourceDir);
             State = JobStates.Failed;
             // Initialize counts to reflect failure/no files
             TotalFilesToCopy = 0;
@@ -393,6 +428,7 @@ public class backupJob : INotifyPropertyChanged
     private async Task UpdateFilesCountInternalAsync(CancellationToken cancellationToken)
     {
         BackupJobLogger?.LogBackupDetails(Name, "SystemOperation", "Starting file scan to update counts.", 0, 0, 0);
+        InfoMessage = GetLocalizedInfoMessage(BackupJobInfoMessageKeys.Scanning);
 
         // Reset state for the new scan.
         // FilesToBackup is cleared, other counters are reset to accumulate new values.
@@ -421,7 +457,7 @@ public class backupJob : INotifyPropertyChanged
         }
         catch (Exception ex)
         {
-            ErrorMessage = $"Error scanning source directory: {ex.Message}";
+            ErrorMessage = GetLocalizedErrorMessage(BackupJobErrorMessageKeys.ErrorScanningSourceDirectory, ex.Message);
             State = JobStates.Failed;
             TotalFilesToCopy = 0; // No files to process
             // Other counts (TotalSizeToCopy, TotalFilesCopied, TotalSizeCopied) remain 0 as initialized.
@@ -449,7 +485,7 @@ public class backupJob : INotifyPropertyChanged
                 if (CheckCancellationRequested(cancellationToken))
                 {
                     State = JobStates.Stopped; // force stop state if cancellation is requested during file scan
-                    InfoMessage = "Job paused/stopped during file scan -> forced stop.";
+                    InfoMessage = GetLocalizedInfoMessage(BackupJobInfoMessageKeys.JobPausedOrStoppedDuringScan);
                     NumberFilesLeftToDo = FilesToBackup.Count;
                     UpdateProgress(); // Update overall progress and potentially state
                     break;
@@ -578,7 +614,7 @@ public class backupJob : INotifyPropertyChanged
             }
             catch (Exception ex)
             {
-                ErrorMessage = $"Error creating target directory: {ex.Message}";
+                ErrorMessage = GetLocalizedErrorMessage(BackupJobErrorMessageKeys.ErrorCreatingTargetDirectory, ex.Message);
                 State = JobStates.Failed;
                 return;
             }
@@ -623,10 +659,12 @@ public class backupJob : INotifyPropertyChanged
         foreach (var sourceFilePath in sortedFilesToBackup)
         {
             // Check for blocked software before each file
+            InfoMessage = null; // Clear previous file-specific messages
             if (_isSoftwareRunning())
             {
                 State = JobStates.Stopped;
-                ErrorMessage = "Backup paused due to running blocked software.";
+                // ErrorMessage is more appropriate here as it's a blocking condition
+                ErrorMessage = GetLocalizedErrorMessage(BackupJobErrorMessageKeys.BlockedSoftware); 
                 _addToBlockedJobs(this);
                 BackupJobLogger?.LogBackupDetails(Name, "SystemOperation", ErrorMessage ?? "Blocked software running", 0, 0, 0);
                 return;
@@ -652,7 +690,7 @@ public class backupJob : INotifyPropertyChanged
             if (maxEncryptionFileSizeLimitBytes > 0 && currentFileSize > maxEncryptionFileSizeLimitBytes)
             {
                 BackupJobLogger?.LogBackupDetails(Name, "FileSkipInfo", $"File {Path.GetFileName(sourceFilePath)} ({currentFileSize / 1024}KB) exceeds configured MaxFileTransferSize ({settings.MaxFileTransferSize}KB). Skipped transfer.", (ulong)currentFileSize, 0, NumberFilesLeftToDo);
-                ErrorMessage = $"Some files were skipped due to size limits.";
+                ErrorMessage = GetLocalizedErrorMessage(BackupJobErrorMessageKeys.FilesSkippedDueToSizeLimits);
                 continue; // Skip to the next file
             }
 
@@ -684,19 +722,38 @@ public class backupJob : INotifyPropertyChanged
                 int transferTime = Backup.BackupFile(sourceFilePath, targetFilePath);
                 if (transferTime < 0)
                 {
-                    ErrorMessage = $"Error copying file {sourceFilePath} to {targetFilePath}.";
+                    ErrorMessage = GetLocalizedErrorMessage(BackupJobErrorMessageKeys.ErrorCopyingFileToTarget, sourceFilePath, targetFilePath);
                     BackupJobLogger?.LogBackupDetails(Name, sourceFilePath, targetFilePath, (ulong)currentFileSize, transferTime, 0); // Assuming 0 for transferTime for now                    State = JobStates.Failed;
                     continue; // Skip to the next file
                 }
 
                 int encryptionResult = EncryptFileIfNeeded(targetFilePath);
-                if (encryptionResult < 0)
+                // Handle encryption error codes by setting localized ErrorMessage
+                if (encryptionResult != 0) // 0 means success or no encryption needed
                 {
-                    ErrorMessage = $"Error encrypting file {targetFilePath}. Encryption error code: {encryptionResult}";
-                    BackupJobLogger?.LogBackupDetails(Name, sourceFilePath, targetFilePath, (ulong)currentFileSize, transferTime, encryptionResult); // Assuming 0 for transferTime for now
+                    BackupJobErrorMessageKeys errorKey = encryptionResult switch
+                    {
+                        -1 => BackupJobErrorMessageKeys.CryptoSoftExeNotFound, // Assuming -1 is a general "not found" or unhandled before specific checks
+                        -6 => BackupJobErrorMessageKeys.CryptoSoftDownloadFailed,
+                        -7 => BackupJobErrorMessageKeys.CryptoSoftNotFoundAfterDownload,
+                        -8 => BackupJobErrorMessageKeys.CryptoSoftProcessStartFailed,
+                        -9 => BackupJobErrorMessageKeys.EncryptionException,
+                        _ => BackupJobErrorMessageKeys.GenericError // Default for other negative codes
+                    };
+                    string[] errorArgs = encryptionResult switch
+                    {
+                        -1 => [CryptoSoftExePath],
+                        -9 => ["Encryption process failed"], // Example, specific exception message might be better if available
+                        _ => []
+                    };
+                
+                    ErrorMessage = GetLocalizedErrorMessage(errorKey, errorArgs);
+                    // Log details including the specific encryptionResult code
+                    BackupJobLogger?.LogBackupDetails(Name, sourceFilePath, targetFilePath, (ulong)currentFileSize, transferTime, encryptionResult);
                     State = JobStates.Failed;
                     continue; // Skip to the next file
                 }
+
 
                 if (State == JobStates.Stopped) continue;
 
@@ -727,8 +784,8 @@ public class backupJob : INotifyPropertyChanged
             }
             catch (Exception ex)
             {
-                ErrorMessage = $"Error copying file {sourceFilePath}: {ex.Message}";
-                BackupJobLogger?.LogBackupDetails(Name, "FileCopyError", ErrorMessage, 0, 0, 0);
+                ErrorMessage = GetLocalizedErrorMessage(BackupJobErrorMessageKeys.ErrorCopyingFileWithException, sourceFilePath, ex.Message);
+                BackupJobLogger?.LogBackupDetails(Name, "FileCopyError", $"{ErrorMessage}", 0, 0, 0);
             }
             finally
             {
@@ -788,7 +845,7 @@ public class backupJob : INotifyPropertyChanged
         }
         catch (Exception ex)
         {
-            ErrorMessage = $"Error starting job: {ex.Message}";
+            ErrorMessage = GetLocalizedErrorMessage(BackupJobErrorMessageKeys.ErrorStartingJob, ex.Message);
             State = JobStates.Failed;
             IsPausing = false;
             UpdateProgress();
@@ -821,7 +878,7 @@ public class backupJob : INotifyPropertyChanged
     {
         if (State != JobStates.Working)
         {
-            ErrorMessage = $"Cannot pause job in state {State}";
+            ErrorMessage = GetLocalizedErrorMessage(BackupJobErrorMessageKeys.CannotPauseJobInState, State.ToString());
             return;
         }
         IsPausing = true;
@@ -832,7 +889,7 @@ public class backupJob : INotifyPropertyChanged
     {
         if (State != JobStates.Paused)
         {
-            ErrorMessage = $"Cannot resume job in state {State}";
+            ErrorMessage = GetLocalizedErrorMessage(BackupJobErrorMessageKeys.CannotResumeJobInState, State.ToString());
             return;
         }
 
@@ -849,7 +906,7 @@ public class backupJob : INotifyPropertyChanged
         }
         catch (Exception ex)
         {
-            ErrorMessage = $"Error resuming job: {ex.Message}";
+            ErrorMessage = GetLocalizedErrorMessage(BackupJobErrorMessageKeys.ErrorResumingJob, ex.Message);
             State = JobStates.Failed;
             IsPausing = false;
         }

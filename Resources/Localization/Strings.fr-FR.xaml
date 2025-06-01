@@ -48,13 +48,16 @@
     <sys:String x:Key="PriorityFileExtensionsEncryptToolTip">Les fichiers avec ces extensions seront sauvegardés en premier</sys:String>
 
     <!-- la taille totale des fichiers transférés simultanément pour toutes les tâches ne doit pas dépasser cette limite -->
-    <sys:String x:Key="MaxFileTranferSizeLabel">
-        Taille Maximale de Transfert (en Ko):
-    </sys:String>
+    <sys:String x:Key="MaxFileTranferSizeLabel">Taille Maximale de Transfert (en Ko):</sys:String>
     <sys:String x:Key="MaxFileTransferSizeToolTip">
         Définissez la taille maximale des fichiers pouvant être transférés simultanément pour l'ensemble des tâches.
          | (par exemple : si défini à 100 (Ko), la taille combinée de tous les fichiers en cours de transfert à un instant T ne dépassera pas 100 Ko). Par défaut, aucune limite (0).
     </sys:String>
+
+    <!-- Messages d'information pour BackupJob -->
+    <sys:String x:Key="BackupJob_Info_Scanning">Analyse du répertoire source...</sys:String>
+    <sys:String x:Key="BackupJob_Info_JobPausedOrStoppedDuringScan">La tâche a été mise en pause/arrêtée pendant l'analyse du répertoire -> état mis a "Stopped".</sys:String>
+    <!-- <sys:String x:Key="BackupJob_Info_BlockedSoftware">La tâche ne peut pas démarrer -> logiciel bloquant détecté.</sys:String> --> <!-- Moved to Error Messages -->
 
     <!-- TCP Server Settings -->
     <sys:String x:Key="TCPServerSettingsTitle">Paramètres du serveur TCP</sys:String>
@@ -71,4 +74,25 @@
     <sys:String x:Key="SaveButtonToolTip">Enregistrer les paramètres</sys:String>
     <sys:String x:Key="Cancel">Annuler</sys:String>
     <sys:String x:Key="CancelButtonToolTip">Annuler les modifications</sys:String>
+
+    <!-- BackupJob Error Messages -->
+    <sys:String x:Key="BackupJob_Error_SourceDirectoryDoesNotExist">Le dossier source '{0}' n'existe pas.</sys:String>
+    <sys:String x:Key="BackupJob_Error_TargetDirectoryDoesNotExist">Le dossier cible '{0}' n'existe pas.</sys:String>
+    <sys:String x:Key="BackupJob_Error_ErrorScanningSourceDirectory">Erreur lors de l'analyse du dossier source : {0}</sys:String>
+    <sys:String x:Key="BackupJob_Error_CryptoSoftExeNotFound">CryptoSoft.exe non trouvé à '{0}'.</sys:String>
+    <sys:String x:Key="BackupJob_Error_CryptoSoftDownloadFailed">Échec du téléchargement de CryptoSoft.exe.</sys:String>
+    <sys:String x:Key="BackupJob_Error_CryptoSoftNotFoundAfterDownload">CryptoSoft.exe non trouvé après la tentative de téléchargement.</sys:String>
+    <sys:String x:Key="BackupJob_Error_CryptoSoftProcessStartFailed">Échec du démarrage du processus CryptoSoft.exe.</sys:String>
+    <sys:String x:Key="BackupJob_Error_EncryptionException">Une exception s'est produite lors du chiffrement : {0}</sys:String>
+    <sys:String x:Key="BackupJob_Error_BlockedSoftware">La tâche ne peut pas démarrer - logiciel bloquant détecté.</sys:String>
+    <sys:String x:Key="BackupJob_Error_ErrorCreatingTargetDirectory">Erreur lors de la création du dossier cible : {0}</sys:String>
+    <sys:String x:Key="BackupJob_Error_FilesSkippedDueToSizeLimits">Certains fichiers ont été ignorés en raison des limites de taille.</sys:String>
+    <sys:String x:Key="BackupJob_Error_ErrorCopyingFileToTarget">Erreur lors de la copie du fichier \'{0}\' vers \'{1}\'.</sys:String>
+    <sys:String x:Key="BackupJob_Error_ErrorEncryptingFileWithCode">Erreur lors du chiffrement du fichier \'{0}\'. Code d\'erreur de chiffrement : {1}</sys:String>
+    <sys:String x:Key="BackupJob_Error_ErrorCopyingFileWithException">Erreur lors de la copie du fichier \'{0}\' : {1}</sys:String>
+    <sys:String x:Key="BackupJob_Error_ErrorStartingJob">Erreur lors du démarrage de la tâche : {0}</sys:String>
+    <sys:String x:Key="BackupJob_Error_CannotPauseJobInState">Impossible de mettre en pause la tâche à l\'état {0}.</sys:String>
+    <sys:String x:Key="BackupJob_Error_CannotResumeJobInState">Impossible de reprendre la tâche à l\'état {0}.</sys:String>
+    <sys:String x:Key="BackupJob_Error_ErrorResumingJob">Erreur lors de la reprise de la tâche : {0}</sys:String>
+    <sys:String x:Key="BackupJob_Error_GenericError">Une erreur non spécifiée s\'est produite.</sys:String>
 </ResourceDictionary>

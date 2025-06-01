@@ -310,15 +310,11 @@ public class backupJob : INotifyPropertyChanged
 
     public backupJob(string name, string sourceDir, string targetDir, JobType type, Logger? loggerInstance, Func<bool>? isSoftwareRunning = null, Action<backupJob>? addToBlockedJobs = null, MainViewModel? mainViewModel = null)
     {
-        // Set _initializing to true at the very beginning to prevent UpdateAllJobsState calls
-        _initializing = true;
-
         // Initialize properties
         Name = name;
         SourceDirectory = sourceDir;
         TargetDirectory = targetDir;
         Type = type;
-        BackupJobLogger = loggerInstance;
         _isSoftwareRunning = isSoftwareRunning ?? (() => false); // Default to no software running if not provided
         _addToBlockedJobs = addToBlockedJobs ?? (_ => { }); // Default to no-op if not provided
         _mainViewModel = mainViewModel; // Store the MainViewModel instance
@@ -330,6 +326,8 @@ public class backupJob : INotifyPropertyChanged
         Progress = 0;
         TotalFilesCopied = 0;
         TotalSizeCopied = 0;
+
+        BackupJobLogger = loggerInstance;
 
         if (!Directory.Exists(sourceDir))
         {

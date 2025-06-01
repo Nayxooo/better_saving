@@ -1,3 +1,18 @@
+## EasySave [v3.0.2] - 2025-06-01
+
+### Fixed
+- **State File Handling (`Models/TCPServer.cs`):**
+    - Ensured that an empty or malformed `state.json` file is gracefully handled by returning an empty JSON array (`[]`) instead of `null` or crashing. This improves robustness when the state file is corrupted, not yet created or simply empty because no jobs have been created yet.
+- **Logging (`Models/logger.cs`):**
+    - In `UpdateAllJobsState`, added a `SkipNullCheck` parameter (defaulting to `false`). When `true`, this allows `state.json` to be updated even if the job list is empty (e.g., after deleting the last job).
+    - Ensured `LogError` is used consistently for logging errors within the `Logger` class itself.
+    - Corrected the `LoadJobsState` method to initialize `loadedJobs` at the beginning of the method and return it, ensuring it's not re-scoped inside the `lock`.
+- **ViewModel Updates (`ViewModels/BackupListViewModel.cs`):**
+    - When removing a job in `RemoveJob`, `_logger.UpdateAllJobsState(SkipNullCheck: true)` is now called to ensure `state.json` can be updated to an empty array if the last job is removed.
+- **Navigation (`ViewModels/MainViewModel.cs` & `ViewModels/BackupStatusViewModel.cs`):**
+    - Introduced `ForceNullView()` in `MainViewModel` to reliably clear the current detail view.
+    - `BackupStatusViewModel.ExecuteDeleteJob` now calls `_mainViewModel.ForceNullView()` after removing a job.
+
 ## EasySave [v3.0.1] - 2025-06-01
 
 ### Added

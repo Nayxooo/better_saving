@@ -236,7 +236,7 @@ namespace better_saving.ViewModels
                 }
 
                 _mainViewModel.ListVM.RemoveJob(_selectedJob);
-                _mainViewModel.CurrentView = null; // Clear the detail view, returning to the default (job list)
+                _mainViewModel.ForceNullView();// Clear the detail view, returning to the default (job list)
 
                 // Clean up resources associated with this job in this ViewModel instance
                 UnsubscribeFromJobEvents();

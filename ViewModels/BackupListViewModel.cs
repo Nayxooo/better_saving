@@ -74,11 +74,7 @@ namespace better_saving.ViewModels
             if (Jobs.Contains(jobToRemove))
             {
                 Jobs.Remove(jobToRemove);
-                // Only update state.json if there are still jobs left
-                if (Jobs.Count > 0)
-                {
-                    _logger.UpdateAllJobsState();
-                }
+                _logger.UpdateAllJobsState(SkipNullCheck: true); // Ensure state.json is updated even if there are no jobs
                 OnPropertyChanged(nameof(Jobs));
             }
         }

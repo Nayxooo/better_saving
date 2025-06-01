@@ -482,15 +482,17 @@ namespace better_saving.Models
                 string content = File.ReadAllText(StateLogFilePath);
                 if (string.IsNullOrWhiteSpace(content))
                 {
-                    Log($"State file {StateLogFilePath} is empty or whitespace.");
-                    return null;
+                    Log($"State file {StateLogFilePath} is empty or whitespace. Interpreting as empty job list [].");
+                    return "[]"; // Treat empty/whitespace file as an empty job list
                 }
 
-                JsonArray? stateJsonArray = JsonNode.Parse(content)?.AsArray();
+                JsonNode? parsedNode = JsonNode.Parse(content);
+                JsonArray? stateJsonArray = parsedNode?.AsArray();
+
                 if (stateJsonArray == null)
                 {
-                    Log($"Error parsing state file {StateLogFilePath} as JSON.");
-                    return null;
+                    Log($"Error parsing state file {StateLogFilePath} as JSON array (or content was not an array). Content: '{content}'. Interpreting as empty job list [].");
+                    return "[]"; // Treat non-array JSON or parse error as an empty job list
                 }
 
                 // Remove sensitive information like directory paths
@@ -504,17 +506,22 @@ namespace better_saving.Models
                 }
 
                 // Convert the modified state JSON back to a string
-                return stateJsonArray.ToJsonString(new JsonSerializerOptions { WriteIndented = true }) ?? "{}";
+                return stateJsonArray.ToJsonString(new JsonSerializerOptions { WriteIndented = true });
             }
             catch (FileNotFoundException)
             {
                 Log($"Error: State file not found at {StateLogFilePath}");
                 return null;
             }
+            catch (JsonException jsonEx)
+            {
+                Log($"Error parsing JSON from state file {StateLogFilePath}: {jsonEx.Message}. Interpreting as empty job list [].");
+                return "[]"; // Treat JSON parsing errors as an empty job list
+            }
             catch (Exception ex)
             {
-                Log($"Error reading state file {StateLogFilePath}: {ex.Message}");
-                return null;
+                Log($"Error reading or processing state file {StateLogFilePath}: {ex.Message}");
+                return null; // For other unexpected errors, return null
             }
         }
         
@@ -527,27 +534,33 @@ namespace better_saving.Models
                 return;
             }
 
-            // Convert the modified state JSON back to a string
-            stateJsonContent = GetJobsStateContent();
-            if (string.IsNullOrWhiteSpace(stateJsonContent))
+            string? newProcessedState = GetJobsStateContent();
+
+            if (newProcessedState == null)
             {
-                Log("Attempting to broadcast state.json update.");
-                Log("State JSON content is empty after processing.");
+                // This typically means StateLogFilePath was not set, or a critical file read error occurred (e.g., FileNotFound)
+                Log("Failed to retrieve state.json content due to configuration or critical file access error; broadcast aborted.");
                 return;
             }
 
-            if (stateJsonContent == tempStateJsonContent)
+            // At this point, newProcessedState is a non-null string (e.g., "[]" or actual job data "[{...}]")
+
+            if (newProcessedState == tempStateJsonContent)
             {
+                // Content hasn't changed since the last broadcast, so no need to send again.
                 return;
             }
 
+            Log($"Attempting to broadcast state.json update. New content hash: {newProcessedState.GetHashCode()} (Previous hash: {tempStateJsonContent?.GetHashCode() ?? 0})");
+            // Storing the actual content in logs can be verbose, using hash or length for brevity in typical logs.
+            // For detailed debugging, you might log: Log($"New content: {newProcessedState}, Previous content: {tempStateJsonContent}");
 
-            Log("Attempting to broadcast state.json update.");
-            // Update the tempStateJsonContent to the current state
-            tempStateJsonContent = stateJsonContent;
 
+            // Update the stored states
+            this.stateJsonContent = newProcessedState; // Store the latest valid processed state for any internal use
+            this.tempStateJsonContent = newProcessedState; // Update the record of the last broadcasted state
 
-            byte[] stateBytes = Encoding.UTF8.GetBytes(stateJsonContent);
+            byte[] stateBytes = Encoding.UTF8.GetBytes(this.stateJsonContent); // Use the updated class member
 
             List<BinaryWriter> clientsToRemove = [];
 

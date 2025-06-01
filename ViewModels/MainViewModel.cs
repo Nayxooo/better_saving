@@ -114,6 +114,12 @@ namespace better_saving.ViewModels
             _listVM.GetLogger().LogBackupDetails("System", "Settings", settingsLog, 0, 0, 0);
         }
 
+        public void ForceNullView()
+        {
+            // Force the CurrentView to null, which will trigger the restoration of PreviousView
+            PreviousView = null;
+            CurrentView = null;
+        }
         internal void ShowBA()
         {
             CurrentView = new BAViewModel(this);

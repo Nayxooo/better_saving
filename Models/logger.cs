@@ -156,23 +156,24 @@ namespace better_saving.Models
         /// Updates the state.json file with the current state of all backup jobs.
         /// This provides persistence of job information between application runs.
         /// </summary>
-        public void UpdateAllJobsState() // Parameter removed in previous step, logic now uses _jobProvider
+        public void UpdateAllJobsState(bool SkipNullCheck = false) // Parameter removed in previous step, logic now uses _jobProvider
         {
             Console.WriteLine("Updating all jobs state...");
+            LogError($"{_jobProvider?.Invoke()?.Count() ?? 0} jobs to update in state.json");
             if (_jobProvider == null)
             {
-                File.AppendAllText(DebugFile, $"{DateTime.Now:yyyy-MM-ddTHH:mm:sszzz} | LOGGER_FAILURE in UpdateAllJobsState: Job provider is not set.{Environment.NewLine}");
+                LogError($"{DateTime.Now:yyyy-MM-ddTHH:mm:sszzz} | LOGGER_FAILURE in UpdateAllJobsState: Job provider is not set.{Environment.NewLine}");
+                return;
+            }
+
+            // check if the job provider returns null or empty
+            if (!SkipNullCheck && (_jobProvider.Invoke() == null || !_jobProvider.Invoke().Any()))
+            {
+                LogError($"{DateTime.Now:yyyy-MM-ddTHH:mm:sszzz} | LOGGER_FAILURE in UpdateAllJobsState: Job provider returned null or empty job list.{Environment.NewLine}");
                 return;
             }
 
             var jobs = _jobProvider.Invoke();
-            if (jobs == null || !jobs.Any())
-            {
-                File.AppendAllText(DebugFile, $"{DateTime.Now:yyyy-MM-ddTHH:mm:sszzz} | LOGGER_FAILURE in UpdateAllJobsState: No jobs available to update.{Environment.NewLine}");
-                // Don't update the file if there are no jobs to avoid clearing state.json
-                return;
-            }
-
             lock (logLock)
             {
                 try
@@ -221,15 +222,15 @@ namespace better_saving.Models
                     }
 
                     // Notify TCPServer about the update
-                    _tcpServer?.HandleStateFileUpdate();
+                    // _tcpServer?.HandleStateFileUpdate();
                 }
                 catch (Exception ex)
                 {
-                    File.AppendAllText(DebugFile, $"{DateTime.Now:yyyy-MM-ddTHH:mm:sszzz} | LOGGER_FAILURE in UpdateAllJobsState: {ex.Message}{Environment.NewLine}");
+                    LogError($"{DateTime.Now:yyyy-MM-ddTHH:mm:sszzz} | LOGGER_FAILURE in UpdateAllJobsState: {ex.Message}{Environment.NewLine}");
                     // Log error but don't rethrow to avoid disrupting app flow
                 }
             }
-        }// Removed LoadJobsFromStateFile since it's unused
+        }
 
         /// <summary>
         /// Loads backup job configurations from the state.json file.
@@ -237,6 +238,7 @@ namespace better_saving.Models
         /// <returns>A list of backupJob objects.</returns>
         public List<backupJob>? LoadJobsState()
         {
+            var loadedJobs = new List<backupJob>();
             lock (logLock)
             {
                 if (!File.Exists(StateLogFilePath))
@@ -252,7 +254,6 @@ namespace better_saving.Models
 
                 // Deserialize the JSON content to a list of job states
                 var jobStates = JsonSerializer.Deserialize<List<JsonElement>>(jsonContent);
-                var loadedJobs = new List<backupJob>();
 
                 if (jobStates == null) return loadedJobs; // Return empty list if deserialization fails
 
@@ -294,13 +295,12 @@ namespace better_saving.Models
                     }
                     catch (Exception ex)
                     {
-                        File.AppendAllText(DebugFile, $"{DateTime.Now:yyyy-MM-ddTHH:mm:sszzz} | LOGGER_FAILURE in LoadJobsState: {ex.Message} | Job State Element: {jobStateElement}{Environment.NewLine}");
+                        LogError($"{DateTime.Now:yyyy-MM-ddTHH:mm:sszzz} | LOGGER_FAILURE in LoadJobsState: {ex.Message} | Job State Element: {jobStateElement}{Environment.NewLine}");
                         // Continue loading other jobs
                     }
                 }
-                // _jobs = loadedJobs; // Removed: This method should not set an internal field for UpdateAllJobsState's use.
-                return loadedJobs;
             }
+            return loadedJobs;
         }
     }
 }

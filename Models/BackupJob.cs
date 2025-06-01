@@ -279,7 +279,7 @@ public class backupJob : INotifyPropertyChanged
         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
     }
 
-    private string? GetLocalizedInfoMessage(BackupJobInfoMessageKeys messageKey)
+    private static string? GetLocalizedInfoMessage(BackupJobInfoMessageKeys messageKey)
     {
         string resourceKey = "BackupJob_Info_" + messageKey.ToString();
         if (System.Windows.Application.Current != null && System.Windows.Application.Current.TryFindResource(resourceKey) is string localizedString)
@@ -362,7 +362,7 @@ public class backupJob : INotifyPropertyChanged
         var settings = Settings.LoadSettings();
         var extensionsToEncrypt = settings.FileExtensions;
 
-        // Check if the file extension is in the list of extensions to encrypt or if the list contains "*"
+        // Check if the file extension is in the list of extensions to encrypt or if the list contains "*" (never encrypt .ini files)
         string fileExtension = Path.GetExtension(filePath).ToLower();
         if (!extensionsToEncrypt.Contains(fileExtension) && !extensionsToEncrypt.Contains(".*"))
         {
@@ -377,8 +377,8 @@ public class backupJob : INotifyPropertyChanged
                 System.Windows.MessageBox.Show(
                     "CryptoSoft.exe not found, press OK to download it from the official repository.",
                     "Encryption Error",
-                    System.Windows.MessageBoxButton.OK,
-                    System.Windows.MessageBoxImage.Warning);
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Warning);
 
                 // try to download CryptoSoft.exe (because users can'tbe trused to download it themselves or read the f**king documentation)
                 bool downloadSuccess = CryptoSoftDownloader.DownloadCryptoSoft();
@@ -729,29 +729,24 @@ public class backupJob : INotifyPropertyChanged
 
                 int encryptionResult = EncryptFileIfNeeded(targetFilePath);
                 // Handle encryption error codes by setting localized ErrorMessage
-                if (encryptionResult != 0) // 0 means success or no encryption needed
+                if (encryptionResult < 0)
                 {
                     BackupJobErrorMessageKeys errorKey = encryptionResult switch
                     {
-                        -1 => BackupJobErrorMessageKeys.CryptoSoftExeNotFound, // Assuming -1 is a general "not found" or unhandled before specific checks
                         -6 => BackupJobErrorMessageKeys.CryptoSoftDownloadFailed,
                         -7 => BackupJobErrorMessageKeys.CryptoSoftNotFoundAfterDownload,
                         -8 => BackupJobErrorMessageKeys.CryptoSoftProcessStartFailed,
                         -9 => BackupJobErrorMessageKeys.EncryptionException,
-                        _ => BackupJobErrorMessageKeys.GenericError // Default for other negative codes
+                        _ => BackupJobErrorMessageKeys.CryptoSoftInternalError // internal error from CryptoSoft
                     };
                     string[] errorArgs = encryptionResult switch
                     {
-                        -1 => [CryptoSoftExePath],
-                        -9 => ["Encryption process failed"], // Example, specific exception message might be better if available
-                        _ => []
+                        _ => [sourceFilePath, $"{encryptionResult}"]
                     };
                 
                     ErrorMessage = GetLocalizedErrorMessage(errorKey, errorArgs);
                     // Log details including the specific encryptionResult code
                     BackupJobLogger?.LogBackupDetails(Name, sourceFilePath, targetFilePath, (ulong)currentFileSize, transferTime, encryptionResult);
-                    State = JobStates.Failed;
-                    continue; // Skip to the next file
                 }
 
 

@@ -1,3 +1,17 @@
+# EasySave Changelog
+
+## EasySave [v3.0.4] - 2025-06-01
+
+### Fixed
+- **Robustness of Backup Jobs with Encryption (`Models/BackupJob.cs`):**
+    - Resolved an issue where backup jobs would prematurely fail or halt if `CryptoSoft.exe` encountered an error during the encryption of a single file. Jobs now log the specific file error and attempt to continue processing the remaining files.
+
+### Changed
+- **CryptoSoft Error Diagnostics (`Models/BackupJob.cs`, `Models/Enums.cs`, `Resources/Localization/*.xaml`):**
+    - The error key `BackupJobErrorMessageKeys.CryptoSoftExeNotFound` has been consolidated into `BackupJobErrorMessageKeys.CryptoSoftInternalError` for reporting issues with `CryptoSoft.exe`.
+    - The corresponding English error message for `CryptoSoftInternalError` has been enhanced to display both the affected file path and the numerical error code from `CryptoSoft.exe`, aiding in diagnostics.
+    - French localization for this error message has also been updated.
+
 ## EasySave [v3.0.3] - 2025-06-01
 
 ### Added

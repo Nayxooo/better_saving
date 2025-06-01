@@ -40,7 +40,7 @@ namespace better_saving.Models
         SourceDirectoryDoesNotExist,
         TargetDirectoryDoesNotExist,
         ErrorScanningSourceDirectory,
-        CryptoSoftExeNotFound,
+        CryptoSoftInternalError,
         CryptoSoftDownloadFailed,
         CryptoSoftNotFoundAfterDownload,
         CryptoSoftProcessStartFailed,

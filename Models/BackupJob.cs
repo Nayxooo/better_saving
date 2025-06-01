@@ -174,6 +174,7 @@ public class backupJob : INotifyPropertyChanged
             {
                 _totalFilesCopied = value;
                 OnPropertyChanged();
+                UpdateProgress(); // Ajouter cet appel pour mettre à jour le state.json à chaque changement
             }
         }
     }
@@ -202,6 +203,7 @@ public class backupJob : INotifyPropertyChanged
             {
                 _totalSizeCopied = value;
                 OnPropertyChanged();
+                UpdateProgress(); // Ajouter cet appel pour mettre à jour le state.json à chaque changement
             }
         }
     }

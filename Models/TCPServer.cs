@@ -224,6 +224,7 @@ namespace better_saving.Models
 
         private async Task HandleClientAsync(TcpClient client, CancellationToken token)
         {
+            using var cts = CancellationTokenSource.CreateLinkedTokenSource(token);
             BinaryWriter? clientBinaryWriter = null; // To ensure removal in finally block
             try
             {
@@ -245,10 +246,10 @@ namespace better_saving.Models
                     byte[] welcomeBytes = Encoding.UTF8.GetBytes(welcomeMessage);
                     writer.Write(welcomeBytes.Length); // Send length
                     writer.Write(welcomeBytes); // Send message
-                    await writer.BaseStream.FlushAsync(token);
+                    await writer.BaseStream.FlushAsync(cts.Token);
 
 
-                    while (!token.IsCancellationRequested && client.Connected)
+                    while (!cts.Token.IsCancellationRequested && client.Connected)
                     {
                         // Read length prefix
                         int messageLength;
@@ -415,7 +416,7 @@ namespace better_saving.Models
                         byte[] responseBytes = Encoding.UTF8.GetBytes(responseMessage);
                         writer.Write(responseBytes.Length); // Send length
                         writer.Write(responseBytes); // Send response
-                        await writer.BaseStream.FlushAsync(token); // Ensure data is sent
+                        await writer.BaseStream.FlushAsync(cts.Token); // Ensure data is sent
 
                         Log($"Sent response to {client.Client.RemoteEndPoint}: {responseMessage}");
                     }
@@ -423,7 +424,7 @@ namespace better_saving.Models
             }
             catch (OperationCanceledException)
             {
-                Log($"Operation canceled while handling client {client.Client.RemoteEndPoint}.");
+                Log($"Client connection {client.Client.RemoteEndPoint} cancelled gracefully.");
             }
             catch (Exception ex)
             {
@@ -528,93 +529,63 @@ namespace better_saving.Models
 
         public void HandleStateFileUpdate()
         {
-            if (!IsRunning)
+            try
             {
-                Log("Server not running, cannot handle state file update.");
-                return;
-            }
-
-            string? newProcessedState = GetJobsStateContent();
-
-            if (newProcessedState == null)
-            {
-                // This typically means StateLogFilePath was not set, or a critical file read error occurred (e.g., FileNotFound)
-                Log("Failed to retrieve state.json content due to configuration or critical file access error; broadcast aborted.");
-                return;
-            }
-
-            // At this point, newProcessedState is a non-null string (e.g., "[]" or actual job data "[{...}]")
-
-            if (newProcessedState == tempStateJsonContent)
-            {
-                // Content hasn't changed since the last broadcast, so no need to send again.
-                return;
-            }
-
-            Log($"Attempting to broadcast state.json update. New content hash: {newProcessedState.GetHashCode()} (Previous hash: {tempStateJsonContent?.GetHashCode() ?? 0})");
-            // Storing the actual content in logs can be verbose, using hash or length for brevity in typical logs.
-            // For detailed debugging, you might log: Log($"New content: {newProcessedState}, Previous content: {tempStateJsonContent}");
-
-
-            // Update the stored states
-            this.stateJsonContent = newProcessedState; // Store the latest valid processed state for any internal use
-            this.tempStateJsonContent = newProcessedState; // Update the record of the last broadcasted state
-
-            byte[] stateBytes = Encoding.UTF8.GetBytes(this.stateJsonContent); // Use the updated class member
-
-            List<BinaryWriter> clientsToRemove = [];
-
-            lock (_clientsLock)
-            {
-                if (_clientWriters.Count == 0)
+                if (!IsRunning)
                 {
-                    Log("No clients connected to broadcast state update.");
+                    Log("Server not running, skipping state file update.");
                     return;
                 }
-                Log($"Broadcasting state.json to {_clientWriters.Count} client(s).");
-                foreach (var writer in _clientWriters)
+
+                string? newProcessedState = GetJobsStateContent();
+                if (newProcessedState == null)
                 {
-                    try
-                    {
-                        writer.Write(stateBytes.Length); // Send length prefix (integer)
-                        writer.Write(stateBytes);        // Send message content
-                        writer.Flush();                  // Ensure data is sent
-                        Log($"Successfully sent state update to a client.");
-                    }
-                    catch (IOException ex)
-                    {
-                        Log($"IO Error sending state update to a client, marking for removal: {ex.Message}");
-                        clientsToRemove.Add(writer);
-                    }
-                    catch (ObjectDisposedException ex)
-                    {
-                        Log($"Writer disposed sending state update to a client, marking for removal: {ex.Message}");
-                        clientsToRemove.Add(writer);
-                    }
-                    catch (Exception ex)
-                    {
-                        Log($"Unexpected error sending state update to a client, marking for removal: {ex.Message}");
-                        clientsToRemove.Add(writer);
-                    }
+                    Log("Failed to retrieve state.json content; broadcast aborted.");
+                    return;
                 }
 
-                foreach (var clientToRemove in clientsToRemove)
+                // Ne pas retourner si le contenu est le même, car il peut y avoir des mises à jour partielles
+                this.stateJsonContent = newProcessedState;
+                this.tempStateJsonContent = newProcessedState;
+
+                byte[] stateBytes = Encoding.UTF8.GetBytes(this.stateJsonContent);
+
+                List<BinaryWriter> clientsToRemove = [];
+
+                lock (_clientsLock)
                 {
-                    _clientWriters.Remove(clientToRemove);
-                    try
+                    if (_clientWriters.Count == 0)
                     {
-                        clientToRemove.Close();
-                        Log($"Closed and removed problematic client writer.");
+                        Log("No clients connected, state.json updated locally only.");
+                        return;
                     }
-                    catch (Exception ex)
+
+                    foreach (var writer in _clientWriters.ToList()) // Utiliser ToList() pour éviter les modifications concurrentes
                     {
-                        Log($"Error closing problematic client writer during removal: {ex.Message}");
+                        try
+                        {
+                            writer.Write(stateBytes.Length);
+                            writer.Write(stateBytes);
+                            writer.Flush();
+                        }
+                        catch (Exception ex)
+                        {
+                            Log($"Error sending state update to client: {ex.Message}");
+                            clientsToRemove.Add(writer);
+                        }
+                    }
+
+                    // Nettoyer les clients problématiques
+                    foreach (var client in clientsToRemove)
+                    {
+                        _clientWriters.Remove(client);
+                        try { client.Close(); } catch { }
                     }
                 }
             }
-            if (clientsToRemove.Count != 0)
+            catch (Exception ex)
             {
-                Log($"Removed {clientsToRemove.Count} client(s) after broadcast attempt.");
+                Log($"Error in HandleStateFileUpdate: {ex.Message}");
             }
         }
     }

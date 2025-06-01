@@ -219,15 +219,14 @@ namespace better_saving.Models
                         }
                         // Rename temp file to proper name
                         File.Move(tempFilePath, StateLogFilePath);
-                    }
 
-                    // Notify TCPServer about the update
-                    // _tcpServer?.HandleStateFileUpdate();
+                        // Réactiver la notification au TCPServer
+                        _tcpServer?.HandleStateFileUpdate();
+                    }
                 }
                 catch (Exception ex)
                 {
-                    LogError($"{DateTime.Now:yyyy-MM-ddTHH:mm:sszzz} | LOGGER_FAILURE in UpdateAllJobsState: {ex.Message}{Environment.NewLine}");
-                    // Log error but don't rethrow to avoid disrupting app flow
+                    LogError($"Error updating state file: {ex.Message}");
                 }
             }
         }

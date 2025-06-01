@@ -92,22 +92,30 @@ namespace better_saving.ViewModels
 
         private bool CanStartJob()
         {
-            return _job.State == JobStates.Idle || _job.State == JobStates.Stopped;
+            return true;
         }
 
         private bool CanPauseJob()
         {
-            return _job.State == JobStates.Working;
+            return true;
         }
 
         private bool CanStopJob()
         {
-            return _job.State == JobStates.Working || _job.State == JobStates.Idle;
+            return true;
         }
 
         private async void StartJob()
         {
-            await _mainViewModel.ListVM.StartJob(_job.Name);
+            try
+            {
+                Console.WriteLine($"[{DateTime.Now:yyyy-MM-ddTHH:mm:sszzz}] Tentative de démarrage du job {_job.Name} (État actuel: {_job.State})");
+                await _mainViewModel.ListVM.StartJob(_job.Name);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[{DateTime.Now:yyyy-MM-ddTHH:mm:sszzz}] Erreur lors du démarrage du job {_job.Name}: {ex.Message}");
+            }
         }
 
         private async void PauseJob()

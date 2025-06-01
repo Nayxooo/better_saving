@@ -142,6 +142,51 @@
                     </Trigger>
                 </Style.Triggers>
             </Style>
+
+            <Style x:Key="JobControlButton" TargetType="Button">
+                <Setter Property="Margin" Value="5"/>
+                <Setter Property="Padding" Value="15,8"/>
+                <Setter Property="Background" Value="{DynamicResource ButtonBackground}"/>
+                <Setter Property="Foreground" Value="{DynamicResource ButtonForeground}"/>
+                <Setter Property="BorderBrush" Value="{DynamicResource ButtonBorderBrush}"/>
+                <Setter Property="BorderThickness" Value="1"/>
+                <Setter Property="FontSize" Value="14"/>
+                <Setter Property="Cursor" Value="Hand"/>
+                <Setter Property="Template">
+                    <Setter.Value>
+                        <ControlTemplate TargetType="Button">
+                            <Border Background="{TemplateBinding Background}"
+                                    BorderBrush="{TemplateBinding BorderBrush}"
+                                    BorderThickness="{TemplateBinding BorderThickness}"
+                                    CornerRadius="4">
+                                <ContentPresenter HorizontalAlignment="Center" 
+                                                VerticalAlignment="Center"
+                                                Margin="{TemplateBinding Padding}"/>
+                            </Border>
+                            <ControlTemplate.Triggers>
+                                <Trigger Property="IsMouseOver" Value="True">
+                                    <Setter Property="Background" Value="{DynamicResource ButtonBackgroundHover}"/>
+                                    <Setter Property="BorderBrush" Value="{DynamicResource ButtonBorderBrushHover}"/>
+                                </Trigger>
+                                <Trigger Property="IsEnabled" Value="False">
+                                    <Setter Property="Opacity" Value="0.5"/>
+                                </Trigger>
+                            </ControlTemplate.Triggers>
+                        </ControlTemplate>
+                    </Setter.Value>
+                </Setter>
+            </Style>
+
+            <!-- Couleurs de thème personnalisées -->
+            <Color x:Key="PrimaryColor">#1976D2</Color>
+            <Color x:Key="SecondaryColor">#424242</Color>
+            <Color x:Key="AccentColor">#2196F3</Color>
+            
+            <SolidColorBrush x:Key="ButtonBackground" Color="#1976D2"/>
+            <SolidColorBrush x:Key="ButtonBackgroundHover" Color="#1565C0"/>
+            <SolidColorBrush x:Key="ButtonBorderBrush" Color="#1976D2"/>
+            <SolidColorBrush x:Key="ButtonBorderBrushHover" Color="#1565C0"/>
+            <SolidColorBrush x:Key="ButtonForeground" Color="White"/>
         </ResourceDictionary>
     </Application.Resources>
 </Application>

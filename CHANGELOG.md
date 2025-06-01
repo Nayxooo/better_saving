@@ -1,5 +1,12 @@
 # EasySave Changelog
 
+## EasySave [v3.1.0] - 2025-06-01
+
+### Added
+app i now a signle instance only
+- **Single Instance Application (`App.xaml.cs`):**
+    - App can now only run as a single instance. A warning message is displayed if the user tries to start a second instance of the application.
+
 ## EasySave [v3.0.4] - 2025-06-01
 
 ### Fixed

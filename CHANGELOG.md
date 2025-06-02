@@ -1,5 +1,11 @@
 # EasySave Changelog
 
+## EasySave [v3.1.1] - 2025-06-02
+
+### Fixed
+- **Single Instance Application (`App.xaml.cs`):**
+    - Fixed an issue where the application would not correctly handle the single instance check, allowing multiple instances to start under certain conditions. Now, if a second instance is attempted, it will display a warning message and exit gracefully.
+
 ## EasySave [v3.1.0] - 2025-06-01
 
 ### Added

@@ -1,23 +1,35 @@
 ﻿using System.Windows;
-using System.Windows.Threading; // Required for DispatcherUnhandledExceptionEventArgs
-using better_saving.Models; // Required for Logger
-using System.IO; // Required for Path
+using System.Windows.Threading;
+using better_saving.Models;
+using System.IO;
+using System.Threading;
 
 namespace better_saving
 {
-    public partial class App : System.Windows.Application {
+    public partial class App : System.Windows.Application
+    {
 
         private Logger? _appLogger;
         private readonly string errorLogPath = Path.Combine(AppContext.BaseDirectory, "logs\\EasySave33.bugReport");
+        private Mutex? _appMutex;
         protected override void OnStartup(StartupEventArgs e)
         {
-            // Ensure only one instance of the application runs
-            var _appMutex = new Mutex(true, "EasySave33Mutex", out bool isNewInstance);
-            if (!isNewInstance)
+            try
             {
-                // If another instance is already running, show a message and exit
-                System.Windows.MessageBox.Show("Another instance of EasySave33 is already running.", "Instance Warning", MessageBoxButton.OK, MessageBoxImage.Warning);
-                Environment.Exit(0);
+                // Ensure only one instance of the application runs
+                _appMutex = new(true, "EasySave33Mutex", out bool isNewInstance);
+                if (!isNewInstance)
+                {
+                    // If another instance is already running, show a message and exit
+                    System.Windows.MessageBox.Show("Another instance of EasySave33 is already running.", "Instance Warning", MessageBoxButton.OK, MessageBoxImage.Warning);
+                    Environment.Exit(0);
+                }
+            }
+            catch (Exception ex)
+            {
+                // If mutex creation fails, log the error and exit
+                File.AppendAllText(errorLogPath, $"{DateTime.Now}: Mutex creation failed: {ex}\n");
+                Environment.Exit(1);
             }
 
             // Lower-level exception handler
@@ -88,9 +100,9 @@ namespace better_saving
             _appLogger?.LogError($"ApplicationStartupError | DispatcherUnhandledException \"{e.Exception}\"");
             // Optionally, display a message to the user
             System.Windows.MessageBox.Show("An unexpected error occurred. Please check the logs for more details.", "Application Error", System.Windows.MessageBoxButton.OK, System.Windows.MessageBoxImage.Error);
-            
+
             // Prevent application from crashing
-            e.Handled = true; 
+            e.Handled = true;
             // Environment.Exit(1); // Or, if you want to force exit
         }
 
